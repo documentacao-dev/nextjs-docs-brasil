@@ -13,6 +13,7 @@ use turbo_tasks::{
     FxIndexMap, NonLocalValue, ResolvedVc, TryJoinIterExt, ValueToString, Vc,
     debug::ValueDebugFormat,
 };
+use turbo_tasks_fs::FileSystemPath;
 use turbopack_core::{
     chunk::{ChunkableModule, ChunkingContext, ModuleChunkItemIdExt, ModuleId},
     issue::{
@@ -35,6 +36,7 @@ use crate::{
     runtime_functions::{
         TURBOPACK_ASYNC_LOADER, TURBOPACK_EXTERNAL_IMPORT, TURBOPACK_EXTERNAL_REQUIRE,
         TURBOPACK_IMPORT, TURBOPACK_MODULE_CONTEXT, TURBOPACK_REQUIRE,
+        TURBOPACK_RESOLVE_ABSOLUTE_PATH,
     },
     utils::module_id_to_lit,
 };
@@ -69,6 +71,22 @@ pub(crate) enum SinglePatternMapping {
     Dropped,
 }
 
+/// An entry of a [`PatternMapping::Map`].
+#[derive(PartialEq, Eq, ValueDebugFormat, NonLocalValue, Encode, Decode)]
+pub(crate) struct PatternMappingEntry {
+    mapping: SinglePatternMapping,
+    /// When the output runs in Node.js and the request is an absolute project path
+    /// (`/ROOT/<path>`, see [`as_abs_path`][crate::references::as_abs_path]), the same path
+    /// relative to the chunking root path.
+    ///
+    /// The analyzer evaluates `__dirname` and `__filename` to `/ROOT/<path>` values, but in
+    /// Node.js they are the real absolute path at runtime (see
+    /// [`InputRelativeCodeGen`][crate::references::input_relative::InputRelativeCodeGen]). The
+    /// entry is therefore also keyed by that runtime absolute path, which is computed the same
+    /// way.
+    root_relative_path: Option<RcStr>,
+}
+
 /// A mapping from a request pattern (e.g. "./module", `./images/${name}.png`)
 /// to corresponding module ids. The same pattern can map to multiple module ids
 /// at runtime when using variable interpolation.
@@ -87,7 +105,7 @@ pub(crate) enum PatternMapping {
     /// ```js
     /// require(`./images/${name}.png`)
     /// ```
-    Map(#[bincode(with = "turbo_bincode::indexmap")] FxIndexMap<RcStr, SinglePatternMapping>),
+    Map(#[bincode(with = "turbo_bincode::indexmap")] FxIndexMap<RcStr, PatternMappingEntry>),
 }
 
 #[turbo_tasks::task_input]
@@ -223,7 +241,7 @@ enum ImportMode {
 /// loaded that way, as `undefined` when it is ignored, and otherwise as a function
 /// that returns it, e.g. one that throws for a request that can't be resolved.
 fn create_context(
-    map: &FxIndexMap<RcStr, SinglePatternMapping>,
+    map: &FxIndexMap<RcStr, PatternMappingEntry>,
     key_expr: &Expr,
     import_mode: ImportMode,
 ) -> Expr {
@@ -234,7 +252,7 @@ fn create_context(
         ImportMode::Import => {
             if map
                 .values()
-                .any(|entry| matches!(entry, SinglePatternMapping::ModuleLoader(_)))
+                .any(|entry| matches!(entry.mapping, SinglePatternMapping::ModuleLoader(_)))
             {
                 CONTEXT_MODE_ASYNC_LOADER
             } else {
@@ -244,7 +262,14 @@ fn create_context(
     };
 
     let mut elems = Vec::with_capacity(map.len() * 2);
-    for (key, entry) in map {
+    for (
+        key,
+        PatternMappingEntry {
+            mapping: entry,
+            root_relative_path,
+        },
+    ) in map
+    {
         let module = match (mode, entry) {
             (_, SinglePatternMapping::Ignored | SinglePatternMapping::Dropped) => {
                 quote!("undefined" as Expr)
@@ -261,6 +286,20 @@ fn create_context(
                 }
             ),
         };
+        if let Some(root_relative_path) = root_relative_path {
+            elems.push(Some(ExprOrSpread {
+                spread: None,
+                expr: Box::new(quote!(
+                    "$turbopack_resolve_absolute_path($path)" as Expr,
+                    turbopack_resolve_absolute_path: Expr = TURBOPACK_RESOLVE_ABSOLUTE_PATH.into(),
+                    path: Expr = root_relative_path.as_str().into(),
+                )),
+            }));
+            elems.push(Some(ExprOrSpread {
+                spread: None,
+                expr: Box::new(module.clone()),
+            }));
+        }
         elems.push(Some(ExprOrSpread {
             spread: None,
             expr: Box::new(Expr::Lit(Lit::Str(key.as_str().into()))),
@@ -493,6 +532,15 @@ impl PatternMapping {
             }
             _ => {
                 let primary = &result.primary;
+                // Paths are only resolved at runtime when running in Node.js, see
+                // `PatternMappingEntry::root_relative_path`.
+                let root_path = if *chunking_context.environment().node_externals().await? {
+                    let root_path = chunking_context.root_path().owned().await?;
+                    let fs_root = root_path.root().owned().await?;
+                    Some((fs_root, root_path))
+                } else {
+                    None
+                };
                 let mut set = HashSet::new();
                 let items: Vec<(RcStr, &ModuleResolveResultItem)> = primary
                     .iter()
@@ -513,7 +561,19 @@ impl PatternMapping {
                             dropped_targets,
                         )
                         .await?;
-                        Ok((k, single_pattern_mapping))
+                        let root_relative_path = match &root_path {
+                            Some((fs_root, root_path)) => {
+                                project_path_relative_to_root(fs_root, root_path, &k)
+                            }
+                            None => None,
+                        };
+                        Ok((
+                            k,
+                            PatternMappingEntry {
+                                mapping: single_pattern_mapping,
+                                root_relative_path,
+                            },
+                        ))
                     })
                     .try_join()
                     .await?
@@ -523,4 +583,16 @@ impl PatternMapping {
             }
         }
     }
+}
+
+/// Returns the path of a `/ROOT/<path>` request relative to `root_path`, or `None` when the
+/// request is not an absolute project path.
+fn project_path_relative_to_root(
+    fs_root: &FileSystemPath,
+    root_path: &FileSystemPath,
+    request: &str,
+) -> Option<RcStr> {
+    let path = fs_root.join(request.strip_prefix("/ROOT/")?).ok()?;
+    let relative_path = root_path.get_relative_path_to(&path)?;
+    Some(relative_path.trim_start_matches("./").into())
 }
