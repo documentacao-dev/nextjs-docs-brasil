@@ -2252,6 +2252,46 @@ impl Project {
 
     /// Scans the app/pages directories for entry points files (matching the
     /// provided page_extensions).
+    /// Emits an issue for each route of [`Self::entrypoints_with_app_route_filter`] that both the
+    /// App Router and the Pages Router match.
+    ///
+    /// This is separate from the entrypoints: the operations that pick single endpoints out of the
+    /// entrypoints (see `EntrypointsOperation`) connect to them, so issues emitted there would be
+    /// reported for every route, not just the conflicting ones.
+    #[turbo_tasks::function]
+    pub async fn emit_route_conflict_issues(
+        self: Vc<Self>,
+        app_route_filter: Option<Vec<RcStr>>,
+    ) -> Result<()> {
+        let entrypoints = self
+            .entrypoints_with_app_route_filter(app_route_filter)
+            .await?;
+        let conflicts = entrypoints
+            .routes
+            .iter()
+            .filter(|(_, route)| matches!(route, Route::Conflict))
+            .map(|(pathname, _)| pathname);
+        for pathname in conflicts {
+            ConflictIssue {
+                path: self.project_path().owned().await?,
+                title: StyledString::Text(
+                    format!("App Router and Pages Router both match path: {pathname}").into(),
+                )
+                .resolved_cell(),
+                description: StyledString::Text(
+                    "Next.js does not support having both App Router and Pages Router routes \
+                     matching the same path. Please remove one of the conflicting routes."
+                        .into(),
+                )
+                .resolved_cell(),
+                severity: IssueSeverity::Error,
+            }
+            .resolved_cell()
+            .emit();
+        }
+        Ok(())
+    }
+
     #[turbo_tasks::function]
     pub async fn entrypoints(self: Vc<Self>) -> Result<Vc<Entrypoints>> {
         Ok(self.entrypoints_with_app_route_filter(None))
@@ -2302,24 +2342,7 @@ impl Project {
 
             match routes.entry(pathname.clone()) {
                 Entry::Occupied(mut entry) => {
-                    ConflictIssue {
-                        path: self.project_path().owned().await?,
-                        title: StyledString::Text(
-                            format!("App Router and Pages Router both match path: {pathname}")
-                                .into(),
-                        )
-                        .resolved_cell(),
-                        description: StyledString::Text(
-                            "Next.js does not support having both App Router and Pages Router \
-                             routes matching the same path. Please remove one of the conflicting \
-                             routes."
-                                .into(),
-                        )
-                        .resolved_cell(),
-                        severity: IssueSeverity::Error,
-                    }
-                    .resolved_cell()
-                    .emit();
+                    // The issue is emitted by `emit_route_conflict_issues`.
                     *entry.get_mut() = Route::Conflict;
                 }
                 Entry::Vacant(entry) => {
