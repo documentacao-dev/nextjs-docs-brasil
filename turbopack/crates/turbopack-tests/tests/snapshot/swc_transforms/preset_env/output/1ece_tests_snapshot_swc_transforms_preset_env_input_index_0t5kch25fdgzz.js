@@ -773,20 +773,45 @@ contextPrototype.r = commonJsRequire;
                 };
             }
         }
-        map[ids[i]] = {
+        var key = ids[i];
+        map[key] = {
             id: id,
             module: module
         };
+        if (key.indexOf('\\') !== -1) {
+            if (slashKeyMap === undefined) {
+                slashKeyMap = {};
+            }
+            slashKeyMap[key.replace(/\\/g, '/')] = map[key];
+        }
     };
     var mode = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 0;
     var context = this;
     var parentModule = this.m;
     var map = {};
+    // Keys computed at runtime from absolute paths (e.g. `__dirname`) use `\` as separator on
+    // Windows, while a request built from them can mix in `/` (e.g. `__dirname + '/' + name`).
+    // Such keys are therefore also looked up with `/` as separator. This is only done for keys
+    // that contain a `\`, so it doesn't change the lookup of any other key.
+    var slashKeyMap;
     for(var i = 0; i < ids.length; i += 2)_loop(i);
+    function getEntry(id) {
+        if (hasOwnProperty.call(map, id)) {
+            return map[id];
+        }
+        if (slashKeyMap !== undefined) {
+            var slashId = id.replace(/\\/g, '/');
+            if (hasOwnProperty.call(slashKeyMap, slashId)) {
+                return slashKeyMap[slashId];
+            }
+        }
+        return undefined;
+    }
     function moduleContext(id) {
         id = parseRequest(id);
-        if (hasOwnProperty.call(map, id)) {
-            return map[id].module();
+        var entry = getEntry(id);
+        if (entry !== undefined) {
+            return entry.module();
         }
         var e = new Error(`Cannot find module '${id}'`);
         e.code = 'MODULE_NOT_FOUND';
@@ -797,8 +822,9 @@ contextPrototype.r = commonJsRequire;
     };
     moduleContext.resolve = function(id) {
         id = parseRequest(id);
-        if (hasOwnProperty.call(map, id)) {
-            return map[id].id();
+        var entry = getEntry(id);
+        if (entry !== undefined) {
+            return entry.id();
         }
         var e = new Error(`Cannot find module '${id}'`);
         e.code = 'MODULE_NOT_FOUND';

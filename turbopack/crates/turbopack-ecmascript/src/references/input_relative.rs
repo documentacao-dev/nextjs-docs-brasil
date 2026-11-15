@@ -23,8 +23,8 @@ use crate::{
 ///
 /// When the output runs in Node.js, the path is resolved at runtime (relative to the location of
 /// the output), so that it points to the real location of the source file, like `import.meta.url`
-/// does. The source file and any files it reads relative to that path are traced and exist at
-/// that location.
+/// does. Files that are statically referenced relative to that path (e.g.
+/// `fs.readFileSync(path.join(__dirname, "data.bin"))`) are traced and exist at that location.
 ///
 /// Otherwise, or when the source file is not in the root filesystem, the placeholder
 /// `/ROOT/<path>` is inlined instead (see [`as_abs_path`]).

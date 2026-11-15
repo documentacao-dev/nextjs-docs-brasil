@@ -1,4 +1,10 @@
-import { nextTestSetup, FileRef, isNextDev, isNextDeploy } from 'e2e-utils'
+import {
+  nextTestSetup,
+  FileRef,
+  isNextDev,
+  isNextDeploy,
+  patchFileWithDeployEnvAssignments,
+} from 'e2e-utils'
 import * as path from 'path'
 import { realpathSync } from 'fs'
 
@@ -20,6 +26,11 @@ describe('dirname-monorepo-package', () => {
       - 'apps/*'
       - 'packages/*'
       `,
+    },
+    overrideFiles: {
+      'apps/web/next.config.ts': patchFileWithDeployEnvAssignments(
+        path.join(__dirname, 'apps/web/next.config.ts')
+      ),
     },
     packageJson: require('./package.json'),
     buildCommand: 'pnpm build',

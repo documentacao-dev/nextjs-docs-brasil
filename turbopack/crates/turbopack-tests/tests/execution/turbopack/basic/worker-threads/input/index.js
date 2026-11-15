@@ -72,8 +72,10 @@ if (isMainThread) {
     expect(response).toEqual({ type: 'string', result: 'HELLO' })
   })
 
-  async function runDynamicDirnameWorker(workerType, args) {
-    const worker = new Worker(path.join(__dirname, `${workerType}-worker.js`))
+  async function runDynamicDirnameWorker(workerType, args, concat) {
+    const worker = concat
+      ? new Worker(__dirname + '/' + workerType + '-worker.js')
+      : new Worker(path.join(__dirname, `${workerType}-worker.js`))
 
     try {
       return await new Promise((resolve, reject) => {
@@ -101,6 +103,15 @@ if (isMainThread) {
       type: 'string',
       result: 'HELLO',
     })
+  })
+
+  it('should handle dynamic worker selection with a path concatenated to __dirname', async () => {
+    expect(await runDynamicDirnameWorker('math', { a: 5, b: 3 }, true)).toEqual(
+      { type: 'math', result: 8 }
+    )
+    expect(
+      await runDynamicDirnameWorker('string', { text: 'hello' }, true)
+    ).toEqual({ type: 'string', result: 'HELLO' })
   })
 } else {
   // Worker thread - handle self-referencing worker messages

@@ -1,4 +1,4 @@
-;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="def46318-113b-4f82-5b10-6d3d2287859d")}catch(e){}}();
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="b086dc01-7ca7-82a5-5579-3d3132a9a534")}catch(e){}}();
 (globalThis["TURBOPACK"] || (globalThis["TURBOPACK"] = [])).push([
     "output/0rv8_turbopack-tests_tests_snapshot_debug-ids_browser_input_index_0bjegbrfzt05o.js",
     {"otherChunks":["output/0_9x_turbopack-tests_tests_snapshot_debug-ids_browser_input_index_03ibyvsq4xsbk.js"],"runtimeModuleIds":["[project]/turbopack/crates/turbopack-tests/tests/snapshot/debug-ids/browser/input/index.js [test] (ecmascript)"]}
@@ -535,6 +535,11 @@ contextPrototype.r = commonJsRequire;
     const context = this;
     const parentModule = this.m;
     const map = {};
+    // Keys computed at runtime from absolute paths (e.g. `__dirname`) use `\` as separator on
+    // Windows, while a request built from them can mix in `/` (e.g. `__dirname + '/' + name`).
+    // Such keys are therefore also looked up with `/` as separator. This is only done for keys
+    // that contain a `\`, so it doesn't change the lookup of any other key.
+    let slashKeyMap;
     for(let i = 0; i < ids.length; i += 2){
         const entry = ids[i + 1];
         let id;
@@ -559,15 +564,35 @@ contextPrototype.r = commonJsRequire;
                 module = ()=>asyncLoader.call(context, entry);
             }
         }
-        map[ids[i]] = {
+        const key = ids[i];
+        map[key] = {
             id,
             module
         };
+        if (key.indexOf('\\') !== -1) {
+            if (slashKeyMap === undefined) {
+                slashKeyMap = {};
+            }
+            slashKeyMap[key.replace(/\\/g, '/')] = map[key];
+        }
+    }
+    function getEntry(id) {
+        if (hasOwnProperty.call(map, id)) {
+            return map[id];
+        }
+        if (slashKeyMap !== undefined) {
+            const slashId = id.replace(/\\/g, '/');
+            if (hasOwnProperty.call(slashKeyMap, slashId)) {
+                return slashKeyMap[slashId];
+            }
+        }
+        return undefined;
     }
     function moduleContext(id) {
         id = parseRequest(id);
-        if (hasOwnProperty.call(map, id)) {
-            return map[id].module();
+        const entry = getEntry(id);
+        if (entry !== undefined) {
+            return entry.module();
         }
         const e = new Error(`Cannot find module '${id}'`);
         e.code = 'MODULE_NOT_FOUND';
@@ -578,8 +603,9 @@ contextPrototype.r = commonJsRequire;
     };
     moduleContext.resolve = (id)=>{
         id = parseRequest(id);
-        if (hasOwnProperty.call(map, id)) {
-            return map[id].id();
+        const entry = getEntry(id);
+        if (entry !== undefined) {
+            return entry.id();
         }
         const e = new Error(`Cannot find module '${id}'`);
         e.code = 'MODULE_NOT_FOUND';
@@ -2708,5 +2734,5 @@ chunkListsToRegister.forEach(registerChunkList);
 })();
 
 
-//# debugId=def46318-113b-4f82-5b10-6d3d2287859d
+//# debugId=b086dc01-7ca7-82a5-5579-3d3132a9a534
 //# sourceMappingURL=0_9x_turbopack-tests_tests_snapshot_debug-ids_browser_input_index_0bjegbrfzt05o.js.map
