@@ -32,11 +32,23 @@ it('should look up runtime context keys with mixed separators', () => {
     () => 'a',
     '/project/dir/b.js',
     () => 'b',
+    '\\\\server\\share\\c.js',
+    () => 'c',
+    // A POSIX file name that contains a `\`
+    '/project/dir/d\\e.js',
+    () => 'd',
   ])
   expect(context('C:\\project\\dir\\a.js')).toBe('a')
   expect(context('C:\\project\\dir/a.js')).toBe('a')
   expect(context('C:/project/dir/a.js')).toBe('a')
+  expect(context.resolve('C:\\project\\dir/a.js')).toBe('a')
+  expect(context('\\\\server\\share/c.js')).toBe('c')
   expect(context('/project/dir/b.js')).toBe('b')
-  // Only keys containing `\` are looked up with `/` as separator.
+  // Only absolute Windows paths are looked up with `/` as separator.
   expect(() => context('\\project\\dir\\b.js')).toThrow(/Cannot find module/)
+  expect(context('/project/dir/d\\e.js')).toBe('d')
+  expect(() => context('/project/dir/d/e.js')).toThrow(/Cannot find module/)
+  expect(() => context.resolve('/project/dir/d/e.js')).toThrow(
+    /Cannot find module/
+  )
 })
