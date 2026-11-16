@@ -2606,7 +2606,7 @@ impl NextConfig {
                 && self
                     .experimental
                     .turbopack_lazy_dynamic_imports
-                    .unwrap_or(false),
+                    .unwrap_or(true),
         )
     }
 
@@ -2617,7 +2617,7 @@ impl NextConfig {
                 && self
                     .experimental
                     .turbopack_lazy_dynamic_imports_ssr
-                    .unwrap_or(false),
+                    .unwrap_or(true),
         )
     }
 
