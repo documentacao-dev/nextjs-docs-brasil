@@ -641,7 +641,6 @@ impl BrowserChunkingContext {
         }
     }
 
-    /// Returns the source map type.
     /// Returns the chunk path information.
     #[turbo_tasks::function]
     fn chunk_path_info(&self) -> Vc<ChunkPathInfo> {
