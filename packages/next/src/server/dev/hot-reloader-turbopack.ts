@@ -882,6 +882,8 @@ export async function createHotReloaderTurbopack(
   // advance it at all when no client is connected.
   let serverComponentsHmrRefreshVersion = 0
   let clientHmrVersion = 0
+  // Clients reporting an older version may have missed an update.
+  let requiredClientHmrVersion = 0
   let clientHmrEventHappened = false
   // Undefined until the first entrypoints emission. That one has nothing to
   // compare against, so every route it lists would look added.
@@ -1029,20 +1031,27 @@ export async function createHotReloaderTurbopack(
   }
   const sendEnqueuedMessagesDebounce = debounce(sendEnqueuedMessages, 2)
 
-  function markClientHmrChange() {
+  function advanceClientHmrVersion() {
     if (!clientHmrEventHappened) {
       clientHmrVersion++
       clientHmrEventHappened = true
     }
   }
 
+  function markClientHmrChange() {
+    advanceClientHmrVersion()
+    requiredClientHmrVersion = clientHmrVersion
+  }
+
   // Compiling a lazy dynamic import changes the client output without any file changing, and no
   // client can miss anything from that. So client output changes that aren't sent to a client
-  // only advance the version when the update they belong to was caused by a file change. Like
-  // server component changes, they can be observed before their update's start.
+  // advance the version right away, keeping new pages current, but only require it when the
+  // update they belong to was caused by a file change. Like server component changes, they can
+  // be observed before their update's start.
   let pendingClientOutputChange = false
   let pendingClientOutputChangeTimeout: NodeJS.Timeout | undefined
   function markClientOutputChange() {
+    advanceClientHmrVersion()
     pendingClientOutputChange = true
     if (!updateInProgress && !pendingClientOutputChangeTimeout) {
       pendingClientOutputChangeTimeout = setTimeout(
@@ -1058,7 +1067,7 @@ export async function createHotReloaderTurbopack(
     if (pendingClientOutputChange) {
       pendingClientOutputChange = false
       if (lastUpdateHadFileChanges) {
-        markClientHmrChange()
+        requiredClientHmrVersion = clientHmrVersion
       }
     }
   }
@@ -1878,13 +1887,13 @@ export async function createHotReloaderTurbopack(
             case 'turbopack-subscribe': {
               const state = clientStates.get(client)
               // Only check the connection's first subscriptions, which cover a dropped connection or
-              // stale HTML. The version also advances for changes the client never receives, e.g.
-              // when a lazy dynamic import is compiled, so checking chunk lists that were loaded
-              // later would reload the page for nothing.
+              // stale HTML. Chunk lists loaded later were fetched while connected, and checking
+              // them would reload the page for changes the client never received but didn't
+              // need, e.g. to dynamic imports it hadn't loaded yet.
               if (
                 parsedData.hmrVersion !== undefined &&
                 !state?.hmrVersionChecked &&
-                parsedData.hmrVersion !== String(clientHmrVersion)
+                Number(parsedData.hmrVersion) < requiredClientHmrVersion
               ) {
                 sendToClient(client, {
                   type: HMR_MESSAGE_SENT_TO_BROWSER.RELOAD_PAGE,
