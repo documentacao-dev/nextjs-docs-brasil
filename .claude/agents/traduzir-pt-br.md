@@ -26,6 +26,7 @@ Você traduz a documentação do Next.js do inglês para o português do Brasil,
 ## Glossário
 
 - **Ficam em inglês:** Server Components, Client Components, Server Actions, Server Functions, App Router, Pages Router, route handler, middleware, proxy, layout, cache, caching, prerendering, streaming, hydration, build (masculino: "o build"), deploy, runtime, bundle, bundler, Turbopack, webpack, Cache Components, Partial Prerendering, Suspense, props, hook, dev server, CLI, codemod, framework, plugin, script, commit.
+- Também em inglês: prefetch/prefetching, prerendering, hydration, streaming, Static Rendering, Dynamic Rendering, Server Rendering (não "pré-carregamento", "pré-renderização", "hidratação", "transmitir"). Já request = "requisição" e fetch (verbo na prosa) = "buscar" ficam em português. "aplicação" também não: é "app". "suportado" não: "aceito", "tem suporte".
 - **"app" é sempre "app"**, nunca "aplicativo". developer = desenvolvedor. getting started = Primeiros passos. learn more = Saiba mais. next steps = Próximos passos. API reference = Referência da API.
 
 ## Estilo

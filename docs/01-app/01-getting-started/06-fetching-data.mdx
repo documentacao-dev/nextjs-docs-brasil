@@ -1,9 +1,9 @@
 ---
-title: Fetching Data
-description: Learn how to fetch data and stream content that depends on data.
+title: Busca de dados
+description: Aprenda a buscar dados e fazer streaming de conteúdo que depende de dados.
 related:
-  title: Next steps
-  description: Learn more about advanced data-fetching patterns and the features mentioned in this page.
+  title: Próximos passos
+  description: Saiba mais sobre padrões avançados de busca de dados e os recursos mencionados nesta página.
   links:
     - app/guides/single-page-applications
     - app/guides/data-security
@@ -13,20 +13,20 @@ related:
     - app/api-reference/config/next-config-js/taint
 ---
 
-This page will walk you through how you can fetch data in [Server](#server-components) and [Client](#client-components) Components, and how to [stream](#streaming) components that depend on uncached data.
+Esta página mostra como buscar dados em [Server](#server-components) e [Client](#client-components) Components, e como fazer [streaming](#streaming) de componentes que dependem de dados não armazenados em cache.
 
-## Fetching data
+## Busca de dados \{#fetching-data}
 
-### Server Components
+### Server Components \{#server-components}
 
-You can fetch data in Server Components using any asynchronous I/O, such as:
+Você pode buscar dados em Server Components usando qualquer I/O assíncrono, como:
 
-1. The [`fetch` API](#with-the-fetch-api)
-2. An [ORM or database](#with-an-orm-or-database)
+1. A [API `fetch`](#with-the-fetch-api)
+2. Um [ORM ou banco de dados](#with-an-orm-or-database)
 
-#### With the `fetch` API
+#### Com a API `fetch` \{#with-the-fetch-api}
 
-To fetch data with the `fetch` API, turn your component into an asynchronous function, and await the `fetch` call. For example:
+Para buscar dados com a API `fetch`, transforme seu componente em uma função assíncrona e use `await` na chamada do `fetch`. Por exemplo:
 
 ```tsx filename="app/blog/page.tsx" switcher
 export default async function Page() {
@@ -56,15 +56,15 @@ export default async function Page() {
 }
 ```
 
-> **Good to know:**
+> **Bom saber:**
 >
-> - Identical `fetch` requests in a React component tree are [memoized](/docs/app/glossary#memoization) by default, so you can fetch data in the component that needs it instead of drilling props.
-> - `fetch` requests are not cached by default and will block the page from rendering until the request is complete. Use the [`use cache`](/docs/app/api-reference/directives/use-cache) directive to cache results, or wrap the fetching component in [`<Suspense>`](/docs/app/getting-started/caching#streaming-uncached-data) to stream fresh data at request time. See [caching](/docs/app/getting-started/caching) for details.
-> - During development, you can log `fetch` calls for better visibility and debugging. See the [`logging` API reference](/docs/app/api-reference/config/next-config-js/logging).
+> - Requisições `fetch` idênticas em uma árvore de componentes React são [memorizadas](/docs/app/glossary#memoization) por padrão, então você pode buscar dados no componente que precisa deles, em vez de passar props por vários níveis.
+> - Requisições `fetch` não são armazenadas em cache por padrão e bloqueiam a renderização da página até que a requisição seja concluída. Use a diretiva [`use cache`](/docs/app/api-reference/directives/use-cache) para armazenar os resultados em cache, ou envolva o componente que faz a busca em um [`<Suspense>`](/docs/app/getting-started/caching#streaming-uncached-data) para fazer streaming de dados atualizados no momento da requisição. Veja [caching](/docs/app/getting-started/caching) para mais detalhes.
+> - Durante o desenvolvimento, você pode registrar as chamadas de `fetch` para ter mais visibilidade e facilitar a depuração. Veja a referência da API [`logging`](/docs/app/api-reference/config/next-config-js/logging).
 
-#### With an ORM or database
+#### Com um ORM ou banco de dados \{#with-an-orm-or-database}
 
-Since Server Components are rendered on the server, credentials and query logic will not be included in the client bundle so you can safely make database queries using an ORM or database client.
+Como os Server Components são renderizados no servidor, credenciais e a lógica de consulta não são incluídas no bundle do cliente. Por isso, você pode fazer consultas ao banco de dados com segurança, usando um ORM ou um cliente de banco de dados.
 
 ```tsx filename="app/blog/page.tsx" switcher
 import { db, posts } from '@/lib/db'
@@ -96,35 +96,35 @@ export default async function Page() {
 }
 ```
 
-You should still ensure requests are properly authenticated and authorized. For best practices on securing server-side data access, see the [data security guide](/docs/app/guides/data-security).
+Você ainda deve garantir que as requisições estejam devidamente autenticadas e autorizadas. Para boas práticas de segurança no acesso a dados do lado do servidor, veja o [guia de segurança de dados](/docs/app/guides/data-security).
 
-### Streaming
+### Streaming \{#streaming}
 
-When you fetch data in Server Components, the data is fetched and rendered on the server for each request. If you have any slow data requests, the whole route will be blocked from rendering until all the data is fetched.
+Quando você busca dados em Server Components, os dados são buscados e renderizados no servidor a cada requisição. Se houver alguma requisição de dados lenta, a rota inteira fica bloqueada até que todos os dados sejam buscados.
 
-To improve the initial load time and user experience, you can break the page into smaller _chunks_ and progressively send those chunks from the server to the client. This is called streaming. See the [Streaming guide](/docs/app/guides/streaming) for a deeper look at how streaming works, including the HTTP contract, infrastructure considerations, and performance trade-offs.
+Para melhorar o tempo de carregamento inicial e a experiência do usuário, você pode dividir a página em partes menores, chamadas _chunks_, e enviá-las progressivamente do servidor para o cliente. Isso se chama streaming. Veja o [guia de Streaming](/docs/app/guides/streaming) para entender em mais detalhes como ele funciona, incluindo o contrato HTTP, considerações de infraestrutura e trade-offs de desempenho.
 
 <Image
-  alt="How Server Rendering with Streaming Works"
+  alt="Como funciona a renderização no servidor com streaming"
   srcLight="/docs/light/server-rendering-with-streaming.png"
   srcDark="/docs/dark/server-rendering-with-streaming.png"
   width="1600"
   height="785"
 />
 
-There are two ways you can use streaming in your application:
+Há duas formas de usar streaming no seu app:
 
-1. Wrapping a page with a [`loading.js` file](#with-loadingjs)
-2. Wrapping a component with [`<Suspense>`](#with-suspense)
+1. Envolvendo uma página com um [arquivo `loading.js`](#with-loadingjs)
+2. Envolvendo um componente com [`<Suspense>`](#with-suspense)
 
-> **Good to know:** Bots and crawlers are served differently from browsers. Next.js waits for data fetching to finish and sends the fully rendered page instead of streaming it progressively. See [Bots and crawlers](/docs/app/guides/streaming#bots-and-crawlers).
+> **Bom saber:** Bots e crawlers recebem um tratamento diferente dos navegadores. O Next.js espera a busca de dados terminar e envia a página totalmente renderizada, em vez de fazer streaming progressivo. Veja [Bots e crawlers](/docs/app/guides/streaming#bots-and-crawlers).
 
-#### With `loading.js`
+#### Com `loading.js` \{#with-loadingjs}
 
-You can create a `loading.js` file in the same folder as your page to stream the **entire page** while the data is being fetched. For example, to stream `app/blog/page.js`, add the file inside the `app/blog` folder.
+Você pode criar um arquivo `loading.js` na mesma pasta da sua página para fazer streaming da **página inteira** enquanto os dados são buscados. Por exemplo, para fazer streaming de `app/blog/page.js`, adicione o arquivo dentro da pasta `app/blog`.
 
 <Image
-  alt="Blog folder structure with loading.js file"
+  alt="Estrutura da pasta blog com o arquivo loading.js"
   srcLight="/docs/light/loading-file.png"
   srcDark="/docs/dark/loading-file.png"
   width="1600"
@@ -145,35 +145,35 @@ export default function Loading() {
 }
 ```
 
-On navigation, the user will immediately see the layout and a [loading state](#creating-meaningful-loading-states) while the page is being rendered. The new content will then be automatically swapped in once rendering is complete.
+Na navegação, o usuário vê imediatamente o layout e um [estado de carregamento](#creating-meaningful-loading-states) enquanto a página é renderizada. O novo conteúdo é então substituído automaticamente quando a renderização termina.
 
 <Image
-  alt="Loading UI"
+  alt="Interface de carregamento"
   srcLight="/docs/light/loading-ui.png"
   srcDark="/docs/dark/loading-ui.png"
   width="1600"
   height="691"
 />
 
-Behind the scenes, `loading.js` will be [nested inside `layout.js`](/docs/app/getting-started/project-structure#component-hierarchy), and will automatically wrap the `page.js` file and any children below in a `<Suspense>` boundary.
+Por baixo dos panos, o `loading.js` é [aninhado dentro do `layout.js`](/docs/app/getting-started/project-structure#component-hierarchy) e envolve automaticamente o arquivo `page.js` e todos os filhos abaixo dele em um limite de `<Suspense>`.
 
 <Image
-  alt="loading.js overview"
+  alt="Visão geral do loading.js"
   srcLight="/docs/light/loading-overview.png"
   srcDark="/docs/dark/loading-overview.png"
   width="1600"
   height="768"
 />
 
-Because of this, a layout that accesses uncached or runtime data (e.g. `cookies()`, `headers()`, or uncached fetches) does not fall back to a same route segment `loading.js`. Instead, it blocks navigation until the layout finishes rendering. [Cache Components](/docs/app/getting-started/caching) prevents this by guiding you with a build-time error.
+Por isso, um layout que acessa dados não armazenados em cache ou dados de runtime (por exemplo, `cookies()`, `headers()` ou `fetch` sem cache) não usa o `loading.js` do mesmo segmento de rota como fallback. Em vez disso, ele bloqueia a navegação até que o layout termine de renderizar. O [Cache Components](/docs/app/getting-started/caching) evita isso, orientando você com um erro em tempo de build.
 
-To fix this, wrap the uncached access in its own [`<Suspense>`](#with-suspense) boundary with a fallback, or move the data fetching into `page.js` where `loading.js` can cover it. See [`loading.js`](/docs/app/api-reference/file-conventions/loading) for more details.
+Para corrigir, envolva o acesso não armazenado em cache no seu próprio limite de [`<Suspense>`](#with-suspense) com um fallback, ou mova a busca de dados para o `page.js`, onde o `loading.js` consegue cobri-la. Veja [`loading.js`](/docs/app/api-reference/file-conventions/loading) para mais detalhes.
 
-This is why, while `loading.js` works well for streaming route segments, using `<Suspense>` closer to the runtime or uncached data access is recommended.
+É por isso que, embora o `loading.js` funcione bem para fazer streaming de segmentos de rota, é recomendado usar `<Suspense>` mais próximo do acesso a dados de runtime ou não armazenados em cache.
 
-#### With `<Suspense>`
+#### Com `<Suspense>` \{#with-suspense}
 
-`<Suspense>` allows you to be more granular about what parts of the page to stream. For example, you can immediately show any page content that falls outside of the `<Suspense>` boundary, and stream in the list of blog posts inside the boundary.
+O `<Suspense>` permite controlar com mais granularidade quais partes da página fazem streaming. Por exemplo, você pode mostrar imediatamente qualquer conteúdo da página que esteja fora do limite de `<Suspense>` e fazer streaming da lista de posts do blog que está dentro dele.
 
 ```tsx filename="app/blog/page.tsx" switcher
 import { Suspense } from 'react'
@@ -223,22 +223,22 @@ export default function BlogPage() {
 }
 ```
 
-#### Creating meaningful loading states
+#### Criando estados de carregamento significativos \{#creating-meaningful-loading-states}
 
-An instant loading state is fallback UI that is shown immediately to the user after navigation. For the best user experience, we recommend designing loading states that are meaningful and help users understand the app is responding. For example, you can use skeletons and spinners, or a small but meaningful part of future screens such as a cover photo, title, etc.
+Um estado de carregamento instantâneo é a interface de fallback exibida ao usuário logo após a navegação. Para a melhor experiência, recomendamos criar estados de carregamento significativos, que ajudem o usuário a entender que o app está respondendo. Por exemplo, você pode usar skeletons e spinners, ou uma parte pequena, mas relevante, das telas futuras, como uma foto de capa, o título etc.
 
-In development, you can preview and inspect the loading state of your components using the [React Devtools](https://react.dev/learn/react-developer-tools).
+Em desenvolvimento, você pode visualizar e inspecionar o estado de carregamento dos seus componentes usando o [React Devtools](https://react.dev/learn/react-developer-tools).
 
-### Client Components
+### Client Components \{#client-components}
 
-There are two ways to fetch data in Client Components, using:
+Há duas formas de buscar dados em Client Components, usando:
 
-1. React's [`use` API](https://react.dev/reference/react/use)
-2. A community library like [SWR](https://swr.vercel.app/) or [React Query](https://tanstack.com/query/latest)
+1. A [API `use` do React](https://react.dev/reference/react/use)
+2. Uma biblioteca da comunidade, como [SWR](https://swr.vercel.app/) ou [React Query](https://tanstack.com/query/latest)
 
-#### Streaming data with the `use` API
+#### Streaming de dados com a API `use` \{#streaming-data-with-the-use-api}
 
-You can use React's [`use` API](https://react.dev/reference/react/use) to [stream](#streaming) data from the server to client. Start by fetching data in your Server component, and pass the promise to your Client Component as prop:
+Você pode usar a [API `use` do React](https://react.dev/reference/react/use) para fazer [streaming](#streaming) de dados do servidor para o cliente. Comece buscando os dados no seu Server Component e passe a promise para o seu Client Component como prop:
 
 ```tsx filename="app/blog/page.tsx" switcher
 import Posts from '@/app/ui/posts'
@@ -272,7 +272,7 @@ export default function Page() {
 }
 ```
 
-Then, in your Client Component, use the `use` API to read the promise:
+Em seguida, no seu Client Component, use a API `use` para ler a promise:
 
 ```tsx filename="app/ui/posts.tsx" switcher
 'use client'
@@ -312,13 +312,13 @@ export default function Posts({ posts }) {
 }
 ```
 
-In the example above, the `<Posts>` component is wrapped in a [`<Suspense>` boundary](https://react.dev/reference/react/Suspense). This means the fallback will be shown while the promise is being resolved. Learn more about [streaming](#streaming).
+No exemplo acima, o componente `<Posts>` está envolvido em um [limite de `<Suspense>`](https://react.dev/reference/react/Suspense). Isso significa que o fallback será exibido enquanto a promise estiver sendo resolvida. Saiba mais sobre [streaming](#streaming).
 
-You can resolve a promise on the server with `await` or in a Client Component with `use()`. React covers [when to resolve a Promise in a Server or Client Component](https://react.dev/reference/react/use#resolve-promise-in-server-or-client-component). To share one promise with many Client Components instead of passing it as a prop, provide it through context. See [Using React's `use` within a Context Provider](/docs/app/guides/single-page-applications#using-reacts-use-within-a-context-provider).
+Você pode resolver uma promise no servidor com `await` ou em um Client Component com `use()`. O React explica [quando resolver uma Promise em um Server ou Client Component](https://react.dev/reference/react/use#resolve-promise-in-server-or-client-component). Para compartilhar uma mesma promise com vários Client Components, em vez de passá-la como prop, forneça-a por meio de context. Veja [Usando o `use` do React dentro de um Context Provider](/docs/app/guides/single-page-applications#using-reacts-use-within-a-context-provider).
 
-#### Community libraries
+#### Bibliotecas da comunidade \{#community-libraries}
 
-You can use a community library like [SWR](https://swr.vercel.app/) or [React Query](https://tanstack.com/query/latest) to fetch data in Client Components. These libraries have their own semantics for caching, streaming, and other features. For example, with SWR:
+Você pode usar uma biblioteca da comunidade, como [SWR](https://swr.vercel.app/) ou [React Query](https://tanstack.com/query/latest), para buscar dados em Client Components. Essas bibliotecas têm suas próprias semânticas de cache, streaming e outros recursos. Por exemplo, com SWR:
 
 ```tsx filename="app/blog/page.tsx" switcher
 'use client'
@@ -371,15 +371,15 @@ export default function BlogPage() {
 }
 ```
 
-See [Client-side data fetching](/docs/app/guides/client-side-data-fetching) for direct browser fetching, providing initial data from a Server Component, and coordinating a library cache with the Next.js server and client caches.
+Veja [Busca de dados no lado do cliente](/docs/app/guides/client-side-data-fetching) para buscas diretas no navegador, para fornecer dados iniciais a partir de um Server Component e para coordenar o cache de uma biblioteca com os caches do servidor e do cliente do Next.js.
 
-## Examples
+## Exemplos \{#examples}
 
-### Sequential data fetching
+### Busca de dados sequencial \{#sequential-data-fetching}
 
-Sequential data fetching happens when one request depends on data from another.
+A busca de dados sequencial acontece quando uma requisição depende dos dados de outra.
 
-For example, `<Playlists>` can only fetch data after `getArtist()` resolves because it needs the `artistID`:
+Por exemplo, `<Playlists>` só pode buscar dados depois que `getArtist()` for resolvido, porque precisa do `artistID`:
 
 ```tsx filename="app/artist/[username]/page.tsx" switcher
 export default async function Page({
@@ -449,17 +449,17 @@ async function Playlists({ artistID }) {
 }
 ```
 
-In this example, `<Suspense>` allows the playlists to stream in after the artist data loads. However, the page still waits for the artist data before displaying anything. To prevent this, you can wrap the entire page component in a `<Suspense>` boundary (for example, using a [`loading.js` file](#with-loadingjs)) to show a loading state immediately.
+Neste exemplo, o `<Suspense>` permite que as playlists façam streaming depois que os dados do artista carregam. No entanto, a página ainda espera pelos dados do artista antes de exibir qualquer coisa. Para evitar isso, você pode envolver o componente de página inteiro em um limite de `<Suspense>` (por exemplo, usando um [arquivo `loading.js`](#with-loadingjs)) para mostrar um estado de carregamento imediatamente.
 
-Ensure your data source can resolve the first request quickly, as it blocks everything else. If you can't optimize the request further, consider [caching](/docs/app/getting-started/caching) the result if the data changes infrequently.
+Garanta que sua fonte de dados consiga responder à primeira requisição rapidamente, pois ela bloqueia todo o resto. Se não for possível otimizar mais a requisição, considere [armazenar em cache](/docs/app/getting-started/caching) o resultado se os dados mudarem com pouca frequência.
 
-### Parallel data fetching
+### Busca de dados paralela \{#parallel-data-fetching}
 
-Parallel data fetching happens when data requests in a route are eagerly initiated and start at the same time.
+A busca de dados paralela acontece quando as requisições de dados de uma rota são iniciadas de forma antecipada e começam ao mesmo tempo.
 
-By default, [layouts and pages](/docs/app/getting-started/layouts-and-pages) are rendered in parallel. So each segment starts fetching data as soon as possible.
+Por padrão, [layouts e páginas](/docs/app/getting-started/layouts-and-pages) são renderizados em paralelo. Assim, cada segmento começa a buscar dados o quanto antes.
 
-However, within _any_ component, multiple `async`/`await` requests can still be sequential if placed after the other. For example, `getAlbums` will be blocked until `getArtist` is resolved:
+No entanto, dentro de _qualquer_ componente, várias requisições `async`/`await` ainda podem ser sequenciais se uma vier depois da outra. Por exemplo, `getAlbums` ficará bloqueado até que `getArtist` seja resolvido:
 
 ```tsx filename="app/artist/[username]/page.tsx" switcher
 import { getArtist, getAlbums } from '@/app/lib/data'
@@ -473,7 +473,7 @@ export default async function Page({ params }) {
 }
 ```
 
-Start multiple requests by calling `fetch`, then await them with [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all). Requests begin as soon as `fetch` is called.
+Inicie várias requisições chamando `fetch` e depois aguarde todas com [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all). As requisições começam assim que o `fetch` é chamado.
 
 ```tsx filename="app/artist/[username]/page.tsx" highlight={3,8,24} switcher
 import Albums from './albums'
@@ -541,11 +541,11 @@ export default async function Page({ params }) {
 }
 ```
 
-> **Good to know:** If one request fails when using `Promise.all`, the entire operation will fail. To handle this, you can use the [`Promise.allSettled`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) method instead.
+> **Bom saber:** Se uma requisição falhar ao usar `Promise.all`, a operação inteira falha. Para lidar com isso, você pode usar o método [`Promise.allSettled`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled).
 
-### Reusing data with `React.cache`
+### Reutilização de dados com `React.cache` \{#reusing-data-with-reactcache}
 
-For data access that does not use `fetch`, such as an ORM or database query, wrap the function in [`React.cache`](https://react.dev/reference/react/cache). Multiple components can then call the function within the same request while sharing one result:
+Para acesso a dados que não usa `fetch`, como uma consulta de ORM ou de banco de dados, envolva a função em [`React.cache`](https://react.dev/reference/react/cache). Assim, vários componentes podem chamar a função dentro da mesma requisição e compartilhar um único resultado:
 
 ```ts filename="app/lib/user.ts" switcher
 import { cache } from 'react'
@@ -569,7 +569,7 @@ export const getUser = cache(async (id) => {
 })
 ```
 
-Server Components can call `getUser()` directly:
+Os Server Components podem chamar `getUser()` diretamente:
 
 ```tsx filename="app/dashboard/page.tsx" switcher
 import { getUser } from '../lib/user'
@@ -599,25 +599,25 @@ export default async function DashboardPage() {
 }
 ```
 
-Since `getUser` is wrapped with `React.cache`, calls with the same `id` within one request return the same memoized result.
+Como `getUser` está envolvido com `React.cache`, chamadas com o mesmo `id` dentro de uma requisição retornam o mesmo resultado memorizado.
 
-> **Good to know:** [`React.cache`](https://react.dev/reference/react/cache#caveats) is scoped to the current request only. Each request gets its own memoization scope with no sharing between requests.
+> **Bom saber:** O [`React.cache`](https://react.dev/reference/react/cache#caveats) fica restrito à requisição atual. Cada requisição tem seu próprio escopo de memorização, sem compartilhamento entre requisições.
 
-### Preloading data
+### Pré-carregando dados \{#preloading-data}
 
-When a component renders after other blocking work, its data request starts late even if the request inputs are already available. Preloading starts the request earlier so it can run in parallel with that work and avoid a request waterfall.
+Quando um componente renderiza depois de outro trabalho bloqueante, sua requisição de dados começa tarde, mesmo que os dados necessários já estejam disponíveis. O pré-carregamento inicia a requisição mais cedo, para que ela rode em paralelo com esse trabalho e evite uma cascata de requisições (_waterfall_).
 
-To preload data, call the data-fetching function without `await` before blocking work, then call the same function in the component that consumes the result.
+Para pré-carregar dados, chame a função de busca sem `await` antes do trabalho bloqueante e, depois, chame a mesma função no componente que consome o resultado.
 
-The data-fetching function must deduplicate matching calls so the component can reuse the request started during preloading. Use one of the following approaches:
+A função de busca de dados precisa deduplicar as chamadas equivalentes para que o componente possa reutilizar a requisição iniciada durante o pré-carregamento. Use uma das abordagens a seguir:
 
-- For `fetch`, [identical requests are memoized automatically](/docs/app/api-reference/functions/fetch#memoization).
-- For an ORM or database, wrap the data-fetching function in [`React.cache`](#reusing-data-with-reactcache).
-- With Cache Components, add [`'use cache'`](/docs/app/api-reference/directives/use-cache) to the data-fetching function. If the function reads request APIs such as `cookies()` or `headers()`, use [`'use cache: private'`](/docs/app/api-reference/directives/use-cache-private).
+- Para `fetch`, [requisições idênticas são memorizadas automaticamente](/docs/app/api-reference/functions/fetch#memoization).
+- Para um ORM ou banco de dados, envolva a função de busca de dados em [`React.cache`](#reusing-data-with-reactcache).
+- Com Cache Components, adicione [`'use cache'`](/docs/app/api-reference/directives/use-cache) à função de busca de dados. Se a função ler APIs de requisição, como `cookies()` ou `headers()`, use [`'use cache: private'`](/docs/app/api-reference/directives/use-cache-private).
 
-In production, matching calls to a private Cache Function can reuse the same result within one request. This lets a component reuse a request started during preloading without storing the result in a server cache across requests.
+Em produção, chamadas equivalentes a uma Cache Function privada podem reutilizar o mesmo resultado dentro de uma requisição. Isso permite que um componente reutilize uma requisição iniciada durante o pré-carregamento, sem armazenar o resultado em um cache do servidor entre requisições.
 
-Keep the preload function next to the component that consumes the data. This makes the dependency easier to find if you move or remove the component:
+Mantenha a função de pré-carregamento ao lado do componente que consome os dados. Assim, a dependência fica mais fácil de encontrar se você mover ou remover o componente:
 
 ```tsx filename="app/item/[id]/item.tsx" switcher
 async function getItem(id: string) {
@@ -651,7 +651,7 @@ export default async function Item({ id }) {
 }
 ```
 
-Call `preload()` before another blocking request to start loading the item earlier:
+Chame `preload()` antes de outra requisição bloqueante para começar a carregar o item mais cedo:
 
 ```tsx filename="app/item/[id]/page.tsx" switcher
 import Item, { preload } from './item'
@@ -685,4 +685,6 @@ export default async function Page({ params }) {
 }
 ```
 
-The item request continues while `checkIsAvailable()` runs. If the page renders `<Item>`, the identical `fetch` call reuses the request that `preload()` started.
+A requisição do item continua enquanto `checkIsAvailable()` roda. Se a página renderizar `<Item>`, a chamada `fetch` idêntica reutiliza a requisição que o `preload()` iniciou.
+
+{/* ia-translate: true */}

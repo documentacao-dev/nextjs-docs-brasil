@@ -1,32 +1,32 @@
 ---
 title: Route Handlers
 nav_title: Route Handlers
-description: Create custom request handlers with Next.js Route Handlers using the Web Request and Response APIs.
+description: Crie manipuladores de requisição personalizados com Route Handlers do Next.js, usando as APIs Web Request e Response.
 related:
-  title: API Reference
-  description: Learn more about Route Handlers
+  title: Referência da API
+  description: Saiba mais sobre Route Handlers
   links:
     - app/api-reference/file-conventions/route
     - app/guides/backend-for-frontend
 ---
 
-## Route Handlers
+## Route Handlers \{#route-handlers}
 
-Route Handlers allow you to create custom request handlers for a given route using the Web [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs.
+Route Handlers permitem criar manipuladores de requisição personalizados para uma determinada rota, usando as APIs Web [Request](https://developer.mozilla.org/docs/Web/API/Request) e [Response](https://developer.mozilla.org/docs/Web/API/Response).
 
 <Image
-  alt="Route.js Special File"
+  alt="Arquivo especial route.js"
   srcLight="/docs/light/route-special-file.png"
   srcDark="/docs/dark/route-special-file.png"
   width="1600"
   height="444"
 />
 
-> **Good to know**: Route Handlers are only available inside the `app` directory. They are the equivalent of [API Routes](/docs/pages/building-your-application/routing/api-routes) inside the `pages` directory meaning you **do not** need to use API Routes and Route Handlers together.
+> **Bom saber**: Route Handlers estão disponíveis apenas dentro do diretório `app`. Eles são o equivalente às [API Routes](/docs/pages/building-your-application/routing/api-routes) do diretório `pages`, ou seja, você **não** precisa usar API Routes e Route Handlers juntos.
 
-### Convention
+### Convenção \{#convention}
 
-Route Handlers are defined in a [`route.js|ts` file](/docs/app/api-reference/file-conventions/route) inside the `app` directory:
+Route Handlers são definidos em um [arquivo `route.js|ts`](/docs/app/api-reference/file-conventions/route) dentro do diretório `app`:
 
 ```ts filename="app/api/route.ts" switcher
 export async function GET(request: Request) {}
@@ -36,19 +36,19 @@ export async function GET(request: Request) {}
 export async function GET(request) {}
 ```
 
-Route Handlers can be nested anywhere inside the `app` directory, similar to `page.js` and `layout.js`. But there **cannot** be a `route.js` file at the same route segment level as `page.js`.
+Route Handlers podem ser aninhados em qualquer lugar dentro do diretório `app`, da mesma forma que `page.js` e `layout.js`. Mas **não pode** haver um arquivo `route.js` no mesmo segmento de rota em que está o `page.js`.
 
-### Supported HTTP Methods
+### Métodos HTTP aceitos \{#supported-http-methods}
 
-The following [HTTP methods](https://developer.mozilla.org/docs/Web/HTTP/Methods) are supported: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`. If an unsupported method is called, Next.js will return a `405 Method Not Allowed` response.
+Os [métodos HTTP](https://developer.mozilla.org/docs/Web/HTTP/Methods) a seguir são aceitos: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` e `OPTIONS`. Se um método não aceito for chamado, o Next.js retorna uma resposta `405 Method Not Allowed`.
 
-### Extended `NextRequest` and `NextResponse` APIs
+### APIs estendidas `NextRequest` e `NextResponse` \{#extended-nextrequest-and-nextresponse-apis}
 
-In addition to supporting the native [Request](https://developer.mozilla.org/docs/Web/API/Request) and [Response](https://developer.mozilla.org/docs/Web/API/Response) APIs, Next.js extends them with [`NextRequest`](/docs/app/api-reference/functions/next-request) and [`NextResponse`](/docs/app/api-reference/functions/next-response) to provide convenient helpers for advanced use cases.
+Além de dar suporte às APIs nativas [Request](https://developer.mozilla.org/docs/Web/API/Request) e [Response](https://developer.mozilla.org/docs/Web/API/Response), o Next.js as estende com [`NextRequest`](/docs/app/api-reference/functions/next-request) e [`NextResponse`](/docs/app/api-reference/functions/next-response), com funções auxiliares práticas para casos de uso avançados.
 
-### Caching
+### Cache \{#caching}
 
-Route Handlers are not cached by default. You can, however, opt into caching for `GET` methods. Other supported HTTP methods are **not** cached. To cache a `GET` method, use a [route config option](/docs/app/guides/caching-without-cache-components#dynamic) such as `export const dynamic = 'force-static'` in your Route Handler file.
+Route Handlers não têm cache por padrão. Você pode, no entanto, optar por colocar em cache os métodos `GET`. Os outros métodos HTTP aceitos **não** têm cache. Para colocar em cache um método `GET`, use uma [opção de configuração de rota](/docs/app/guides/caching-without-cache-components#dynamic), como `export const dynamic = 'force-static'`, no arquivo do Route Handler.
 
 ```ts filename="app/items/route.ts" switcher
 export const dynamic = 'force-static'
@@ -82,13 +82,13 @@ export async function GET() {
 }
 ```
 
-> **Good to know**: Other supported HTTP methods are **not** cached, even if they are placed alongside a `GET` method that is cached, in the same file.
+> **Bom saber**: os outros métodos HTTP aceitos **não** têm cache, mesmo no mesmo arquivo de um método `GET` com cache.
 
-#### With Cache Components
+#### Com Cache Components \{#with-cache-components}
 
-When [Cache Components](/docs/app/getting-started/caching) is enabled, `GET` Route Handlers follow the same model as normal UI routes in your application. They run at request time by default, can be prerendered when they don't access uncached or runtime data, and you can use `use cache` to include uncached data in the static response.
+Quando [Cache Components](/docs/app/getting-started/caching) estão habilitados, os métodos `GET` dos Route Handlers seguem o mesmo modelo das rotas de UI normais do app. Por padrão, eles rodam em tempo de requisição, podem ser prerenderizados quando não acessam dados sem cache nem de runtime, e você pode usar `use cache` para incluir dados sem cache na resposta estática.
 
-**Static example** - doesn't access uncached or runtime data, so it will be prerendered at build time:
+**Exemplo estático** - não acessa dados sem cache nem de runtime, então é prerenderizado no build:
 
 ```tsx filename="app/api/project-info/route.ts"
 export async function GET() {
@@ -98,7 +98,7 @@ export async function GET() {
 }
 ```
 
-**Dynamic example** - accesses non-deterministic operations. During the build, prerendering stops when `Math.random()` is called, deferring to request-time rendering:
+**Exemplo dinâmico** - acessa operações não determinísticas. Durante o build, o prerendering para quando `Math.random()` é chamado, e o rendering passa a acontecer na requisição:
 
 ```tsx filename="app/api/random-number/route.ts"
 export async function GET() {
@@ -108,7 +108,7 @@ export async function GET() {
 }
 ```
 
-**Runtime data example** - accesses request-specific data. Prerendering terminates when runtime APIs like `headers()` are called:
+**Exemplo com dados de runtime** - acessa dados específicos da requisição. O prerendering termina quando APIs de runtime como `headers()` são chamadas:
 
 ```tsx filename="app/api/user-agent/route.ts"
 import { headers } from 'next/headers'
@@ -121,9 +121,9 @@ export async function GET() {
 }
 ```
 
-> **Good to know**: Prerendering stops if the `GET` handler accesses network requests, database queries, async file system operations, request object properties (like `req.url`, `request.headers`, `request.cookies`, `request.body`), runtime APIs like [`cookies()`](/docs/app/api-reference/functions/cookies), [`headers()`](/docs/app/api-reference/functions/headers), [`connection()`](/docs/app/api-reference/functions/connection), or non-deterministic operations.
+> **Bom saber**: o prerendering para se o handler `GET` acessar requisições de rede, consultas a banco de dados, operações assíncronas de sistema de arquivos, propriedades do objeto de requisição (como `req.url`, `request.headers`, `request.cookies`, `request.body`), APIs de runtime como [`cookies()`](/docs/app/api-reference/functions/cookies), [`headers()`](/docs/app/api-reference/functions/headers), [`connection()`](/docs/app/api-reference/functions/connection), ou operações não determinísticas.
 
-**Cached example** - accesses uncached data (database query) but caches it with `use cache`, allowing it to be included in the prerendered response:
+**Exemplo com cache** - acessa dados sem cache (uma consulta a banco de dados), mas o coloca em cache com `use cache`, o que permite incluí-los na resposta com prerendering:
 
 ```tsx filename="app/api/products/route.ts"
 import { cacheLife } from 'next/cache'
@@ -141,26 +141,26 @@ async function getProducts() {
 }
 ```
 
-> **Good to know**: `use cache` cannot be used directly inside a Route Handler body; extract it to a helper function. Cached responses revalidate according to `cacheLife` when a new request arrives.
+> **Bom saber**: `use cache` não pode ser usado diretamente no corpo de um Route Handler. Extraia-o para uma função auxiliar. Respostas em cache são revalidadas conforme `cacheLife` quando chega uma nova requisição.
 
-### Special Route Handlers
+### Route Handlers especiais \{#special-route-handlers}
 
-Special Route Handlers like [`sitemap.ts`](/docs/app/api-reference/file-conventions/metadata/sitemap), [`opengraph-image.tsx`](/docs/app/api-reference/file-conventions/metadata/opengraph-image), and [`icon.tsx`](/docs/app/api-reference/file-conventions/metadata/app-icons), and other [metadata files](/docs/app/api-reference/file-conventions/metadata) remain static by default unless they use Request-time APIs or dynamic config options.
+Route Handlers especiais, como [`sitemap.ts`](/docs/app/api-reference/file-conventions/metadata/sitemap), [`opengraph-image.tsx`](/docs/app/api-reference/file-conventions/metadata/opengraph-image) e [`icon.tsx`](/docs/app/api-reference/file-conventions/metadata/app-icons), e outros [arquivos de metadados](/docs/app/api-reference/file-conventions/metadata), permanecem estáticos por padrão, a menos que usem APIs que dependem da requisição ou opções de configuração dinâmicas.
 
-### Route Resolution
+### Resolução de rotas \{#route-resolution}
 
-You can consider a `route` the lowest level routing primitive.
+Considere `route` a primitiva de roteamento de nível mais baixo.
 
-- They **do not** participate in layouts or client-side navigations like `page`.
-- There **cannot** be a `route.js` file at the same route as `page.js`.
+- Ele **não** participa de layouts nem de navegações no cliente, como `page` faz.
+- **Não pode** haver um arquivo `route.js` na mesma rota que `page.js`.
 
-| Page                 | Route              | Result                       |
+| Página               | Rota               | Resultado                    |
 | -------------------- | ------------------ | ---------------------------- |
-| `app/page.js`        | `app/route.js`     | <Cross size={18} /> Conflict |
-| `app/page.js`        | `app/api/route.js` | <Check size={18} /> Valid    |
-| `app/[user]/page.js` | `app/api/route.js` | <Check size={18} /> Valid    |
+| `app/page.js`        | `app/route.js`     | <Cross size={18} /> Conflito |
+| `app/page.js`        | `app/api/route.js` | <Check size={18} /> Válido   |
+| `app/[user]/page.js` | `app/api/route.js` | <Check size={18} /> Válido   |
 
-Each `route.js` or `page.js` file takes over all HTTP verbs for that route.
+Cada arquivo `route.js` ou `page.js` fica responsável por todos os verbos HTTP daquela rota.
 
 ```ts filename="app/page.ts" switcher
 export default function Page() {
@@ -182,11 +182,11 @@ export default function Page() {
 export async function POST(request) {}
 ```
 
-Read more about how Route Handlers [complement your frontend application](/docs/app/guides/backend-for-frontend), or explore the Route Handlers [API Reference](/docs/app/api-reference/file-conventions/route).
+Leia mais sobre como os Route Handlers [complementam o frontend](/docs/app/guides/backend-for-frontend), ou explore a [Referência da API](/docs/app/api-reference/file-conventions/route) de Route Handlers.
 
-### Route Context Helper
+### Helper de contexto da rota \{#route-context-helper}
 
-In TypeScript, you can type the `context` parameter for Route Handlers with the globally available [`RouteContext`](/docs/app/api-reference/file-conventions/route#route-context-helper) helper:
+No TypeScript, você pode tipar o parâmetro `context` dos Route Handlers com o helper globalmente disponível [`RouteContext`](/docs/app/api-reference/file-conventions/route#route-context-helper):
 
 ```ts filename="app/users/[id]/route.ts" switcher
 import type { NextRequest } from 'next/server'
@@ -197,6 +197,8 @@ export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {
 }
 ```
 
-> **Good to know**
+> **Bom saber**
 >
-> - Types are generated during `next dev`, `next build` or `next typegen`.
+> - Os tipos são gerados durante `next dev`, `next build` ou `next typegen`.
+
+{/* ia-translate: true */}

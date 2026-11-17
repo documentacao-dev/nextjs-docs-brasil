@@ -1,9 +1,9 @@
 ---
-title: Mutating Data
-description: Learn how to mutate data using Server Functions and Server Actions in Next.js.
+title: Modificando dados
+description: Aprenda a modificar dados usando Server Functions e Server Actions no Next.js.
 related:
-  title: Next steps
-  description: Learn more about Server Actions and the APIs mentioned in this page.
+  title: Próximos passos
+  description: Saiba mais sobre Server Actions e as APIs mencionadas nesta página.
   links:
     - app/guides/server-actions
     - app/api-reference/functions/revalidatePath
@@ -11,31 +11,31 @@ related:
     - app/api-reference/functions/redirect
 ---
 
-You can mutate data in Next.js using [React Server Functions](https://react.dev/reference/rsc/server-functions). This page will go through how you can [create](#creating-server-functions) and [invoke](#invoking-server-functions) Server Functions. For Next.js-specific behaviors (single-roundtrip response, sequential dispatch, security, deployment), see [Server Actions and Mutations](/docs/app/guides/server-actions).
+Você pode modificar dados no Next.js usando [React Server Functions](https://react.dev/reference/rsc/server-functions). Esta página mostra como [criar](#creating-server-functions) e [invocar](#invoking-server-functions) Server Functions. Para comportamentos específicos do Next.js (resposta em uma única ida e volta ao servidor, despacho sequencial, segurança, deploy), veja [Server Actions e mutações](/docs/app/guides/server-actions).
 
-## What are Server Functions?
+## O que são Server Functions? \{#what-are-server-functions}
 
-A **Server Function** is an asynchronous function that runs on the server. You can call them from the client through a network request, which is why they must be asynchronous.
+Uma **Server Function** é uma função assíncrona que roda no servidor. Você pode chamá-la a partir do cliente por meio de uma requisição de rede, por isso ela precisa ser assíncrona.
 
-In an `action` or mutation context, they are also called **Server Actions**.
+Em um contexto de `action` ou mutação, elas também são chamadas de **Server Actions**.
 
-By convention, a Server Action is an async function used with [`startTransition`](https://react.dev/reference/react/startTransition). This happens automatically when the function is:
+Por convenção, uma Server Action é uma função assíncrona usada com [`startTransition`](https://react.dev/reference/react/startTransition). Isso acontece automaticamente quando a função é:
 
-- Passed to a `<form>` using the `action` prop.
-- Passed to a `<button>` using the `formAction` prop.
+- Passada para um `<form>` pela prop `action`.
+- Passada para um `<button>` pela prop `formAction`.
 
-When an action is invoked, Next.js can return both the updated UI and new data in a single server roundtrip.
+Quando uma action é invocada, o Next.js pode retornar, em uma única ida e volta ao servidor, tanto a UI atualizada quanto os dados novos.
 
-Behind the scenes, actions use the `POST` method, and only this HTTP method can invoke them.
+Por baixo dos panos, as actions usam o método `POST`, e somente esse método HTTP pode invocá-las.
 
 > [!WARNING]
-> Server Functions are reachable via direct POST requests, not just through your application's UI. Always verify authentication and authorization inside every Server Function. See the [Data Security guide](/docs/app/guides/data-security#authentication-and-authorization) for recommended patterns.
+> Server Functions são acessíveis por requisições POST diretas, não apenas pela UI do seu app. Sempre verifique a autenticação e a autorização dentro de cada Server Function. Veja o [guia de segurança de dados](/docs/app/guides/data-security#authentication-and-authorization) para os padrões recomendados.
 
-> **Good to know:** A Server Action is a Server Function used in a specific way (for handling form submissions and mutations). Server Function is the broader term.
+> **Bom saber:** Uma Server Action é uma Server Function usada de um modo específico (para tratar envios de formulário e mutações). Server Function é o termo mais amplo.
 
-## Creating Server Functions
+## Criando Server Functions \{#creating-server-functions}
 
-A Server Function can be defined by using the [`use server`](https://react.dev/reference/rsc/use-server) directive. You can place the directive at the top of an **asynchronous** function to mark the function as a Server Function, or at the top of a separate file to mark all exports of that file.
+Uma Server Function pode ser definida com a diretiva [`use server`](https://react.dev/reference/rsc/use-server). Você pode colocar a diretiva no topo de uma função **assíncrona** para marcá-la como Server Function, ou no topo de um arquivo separado para marcar todas as exportações desse arquivo.
 
 ```ts filename="app/lib/actions.ts" switcher
 import { auth } from '@/lib/auth'
@@ -101,9 +101,9 @@ export async function deletePost(formData) {
 }
 ```
 
-### Server Components
+### Server Components \{#server-components}
 
-Server Functions can be inlined in Server Components by adding the `"use server"` directive to the top of the function body:
+Server Functions podem ser definidas inline em Server Components, adicionando a diretiva `"use server"` no topo do corpo da função:
 
 ```tsx filename="app/page.tsx" switcher
 export default function Page() {
@@ -129,11 +129,11 @@ export default function Page() {
 }
 ```
 
-> **Good to know:** Server Components support progressive enhancement by default, meaning forms that call Server Actions will be submitted even if JavaScript hasn't loaded yet or is disabled.
+> **Bom saber:** Server Components oferecem progressive enhancement por padrão, ou seja, formulários que chamam Server Actions são enviados mesmo que o JavaScript ainda não tenha carregado ou esteja desativado.
 
-### Client Components
+### Client Components \{#client-components}
 
-It's not possible to define Server Functions in Client Components. However, you can invoke them in Client Components by importing them from a file that has the `"use server"` directive at the top of it:
+Não é possível definir Server Functions em Client Components. No entanto, você pode invocá-las em Client Components importando-as de um arquivo que tenha a diretiva `"use server"` no topo:
 
 ```ts filename="app/actions.ts" switcher
 'use server'
@@ -167,11 +167,11 @@ export function Button() {
 }
 ```
 
-> **Good to know:** In Client Components, forms invoking Server Actions will queue submissions if JavaScript isn't loaded yet, and will be prioritized for hydration. After hydration, the browser does not refresh on form submission.
+> **Bom saber:** Em Client Components, formulários que invocam Server Actions colocam os envios na fila caso o JavaScript ainda não tenha carregado, e esses envios são priorizados na hydration. Depois da hydration, o navegador não recarrega a página ao enviar o formulário.
 
-### Passing actions as props
+### Passando actions como props \{#passing-actions-as-props}
 
-You can also pass an action to a Client Component as a prop:
+Você também pode passar uma action para um Client Component como prop:
 
 ```jsx
 <ClientComponent updateItemAction={updateItem} />
@@ -197,20 +197,20 @@ export default function ClientComponent({ updateItemAction }) {
 }
 ```
 
-## Invoking Server Functions
+## Invocando Server Functions \{#invoking-server-functions}
 
-There are two main ways you can invoke a Server Function:
+Há duas formas principais de invocar uma Server Function:
 
-1. [Forms](#forms) in Server and Client Components
-2. [Event Handlers](#event-handlers) and [useEffect](#useeffect) in Client Components
+1. [Formulários](#forms) em Server e Client Components
+2. [Manipuladores de eventos](#event-handlers) e [useEffect](#useeffect) em Client Components
 
-> **Good to know:** Server Functions are designed for server-side mutations. The client dispatches and awaits them one at a time. See [Sequential dispatch on the client](/docs/app/guides/server-actions#sequential-dispatch-on-the-client). If you need parallel data fetching, use [data fetching](/docs/app/getting-started/fetching-data#server-components) in Server Components, or perform parallel work inside a single Server Function or [Route Handler](/docs/app/guides/backend-for-frontend#manipulating-data).
+> **Bom saber:** Server Functions são projetadas para mutações no servidor. O cliente as despacha e aguarda uma de cada vez. Veja [Despacho sequencial no cliente](/docs/app/guides/server-actions#sequential-dispatch-on-the-client). Se você precisar de busca de dados em paralelo, use [busca de dados](/docs/app/getting-started/fetching-data#server-components) em Server Components, ou execute trabalho em paralelo dentro de uma única Server Function ou de um [Route Handler](/docs/app/guides/backend-for-frontend#manipulating-data).
 
-### Forms
+### Formulários \{#forms}
 
-React extends the HTML [`<form>`](https://react.dev/reference/react-dom/components/form) element to allow a Server Function to be invoked with the HTML `action` prop.
+O React estende o elemento HTML [`<form>`](https://react.dev/reference/react-dom/components/form) para permitir que uma Server Function seja invocada pela prop HTML `action`.
 
-When invoked in a form, the function automatically receives the [`FormData`](https://developer.mozilla.org/docs/Web/API/FormData/FormData) object. You can extract the data using the native [`FormData` methods](https://developer.mozilla.org/en-US/docs/Web/API/FormData#instance_methods):
+Quando invocada em um formulário, a função recebe automaticamente o objeto [`FormData`](https://developer.mozilla.org/docs/Web/API/FormData/FormData). Você pode extrair os dados usando os [métodos nativos de `FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData#instance_methods):
 
 ```tsx filename="app/ui/form.tsx" switcher
 import { createPost } from '@/app/actions'
@@ -278,9 +278,9 @@ export async function createPost(formData) {
 }
 ```
 
-### Event Handlers
+### Manipuladores de eventos \{#event-handlers}
 
-You can invoke a Server Function in a Client Component by using event handlers such as `onClick`.
+Você pode invocar uma Server Function em um Client Component usando manipuladores de eventos, como `onClick`.
 
 ```tsx filename="app/like-button.tsx" switcher
 'use client'
@@ -332,11 +332,11 @@ export default function LikeButton({ initialLikes }) {
 }
 ```
 
-## Examples
+## Exemplos \{#examples}
 
-### Showing a pending state
+### Exibindo um estado pendente \{#showing-a-pending-state}
 
-While executing a Server Function, you can show a loading indicator with React's [`useActionState`](https://react.dev/reference/react/useActionState) hook. This hook returns a `pending` boolean:
+Enquanto uma Server Function é executada, você pode mostrar um indicador de carregamento com o hook [`useActionState`](https://react.dev/reference/react/useActionState) do React. Esse hook retorna um booleano `pending`:
 
 ```tsx filename="app/ui/button.tsx" switcher
 'use client'
@@ -374,13 +374,13 @@ export function Button() {
 }
 ```
 
-See the [Building interactive apps](/docs/app/guides/interactive-apps) guide for a deeper walkthrough of responsive interactions, including pending feedback, optimistic UI, transitions, and error handling.
+Veja o guia [Criando apps interativos](/docs/app/guides/interactive-apps) para um passo a passo mais detalhado sobre interações responsivas, incluindo feedback de pendência, UI otimista, transições e tratamento de erros.
 
-> **Good to know**: With the **experimental** [`useOffline`](/docs/app/guides/offline-support) config enabled, a Server Action interrupted by a connectivity drop stays pending and completes when the network returns.
+> **Bom saber**: Com a configuração **experimental** [`useOffline`](/docs/app/guides/offline-support) ativada, uma Server Action interrompida por uma queda de conexão fica pendente e é concluída quando a rede volta.
 
-### Refresh data
+### Atualizar dados \{#refresh-data}
 
-After a mutation, you may want to refresh the current page to show the latest data. You can do this by calling [`refresh`](/docs/app/api-reference/functions/refresh) from `next/cache` in a Server Action:
+Depois de uma mutação, talvez você queira atualizar a página atual para mostrar os dados mais recentes. Para isso, chame [`refresh`](/docs/app/api-reference/functions/refresh) de `next/cache` em uma Server Action:
 
 ```ts filename="app/lib/actions.ts" switcher
 'use server'
@@ -418,11 +418,11 @@ export async function updatePost(formData) {
 }
 ```
 
-This refreshes the client router, ensuring the UI reflects the latest state. The `refresh()` function does not revalidate tagged data. To revalidate tagged data, use [`updateTag`](/docs/app/api-reference/functions/updateTag) or [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag) instead.
+Isso atualiza o router do cliente, garantindo que a UI reflita o estado mais recente. A função `refresh()` não revalida dados com tag. Para revalidar dados com tag, use [`updateTag`](/docs/app/api-reference/functions/updateTag) ou [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag).
 
-### Revalidate data
+### Revalidar dados \{#revalidate-data}
 
-After performing a mutation, you can revalidate the Next.js cache and show the updated data by calling [`revalidatePath`](/docs/app/api-reference/functions/revalidatePath) or [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag) within the Server Function:
+Depois de executar uma mutação, você pode revalidar o cache do Next.js e mostrar os dados atualizados chamando [`revalidatePath`](/docs/app/api-reference/functions/revalidatePath) ou [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag) dentro da Server Function:
 
 ```ts filename="app/lib/actions.ts" switcher
 import { auth } from '@/lib/auth'
@@ -457,9 +457,9 @@ export async function createPost(formData) {
 }
 ```
 
-### Redirect after a mutation
+### Redirecionar após uma mutação \{#redirect-after-a-mutation}
 
-You may want to redirect the user to a different page after a mutation. You can do this by calling [`redirect`](/docs/app/api-reference/functions/redirect) within the Server Function.
+Talvez você queira redirecionar o usuário para outra página depois de uma mutação. Para isso, chame [`redirect`](/docs/app/api-reference/functions/redirect) dentro da Server Function.
 
 ```ts filename="app/lib/actions.ts" switcher
 'use server'
@@ -501,15 +501,15 @@ export async function createPost(formData) {
 }
 ```
 
-Calling `redirect` [throws](/docs/app/api-reference/functions/redirect#behavior) a framework handled control-flow exception. Any code after it won't execute. If you need fresh data, call [`revalidatePath`](/docs/app/api-reference/functions/revalidatePath) or [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag) beforehand.
+Chamar `redirect` [lança](/docs/app/api-reference/functions/redirect#behavior) uma exceção de controle de fluxo tratada pelo framework. Nenhum código depois dela é executado. Se você precisar de dados atualizados, chame [`revalidatePath`](/docs/app/api-reference/functions/revalidatePath) ou [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag) antes.
 
-### Cookies
+### Cookies \{#cookies}
 
-You can `get`, `set`, and `delete` cookies inside a Server Action using the [`cookies`](/docs/app/api-reference/functions/cookies) API.
+Você pode `get`, `set` e `delete` cookies dentro de uma Server Action usando a API [`cookies`](/docs/app/api-reference/functions/cookies).
 
-When you [set or delete](/docs/app/api-reference/functions/cookies#understanding-cookie-behavior-in-server-functions) a cookie in a Server Action, Next.js re-renders the current page and its layouts on the server so the **UI reflects the new cookie value**.
+Quando você [define ou remove](/docs/app/api-reference/functions/cookies#understanding-cookie-behavior-in-server-functions) um cookie em uma Server Action, o Next.js renderiza de novo a página atual e seus layouts no servidor, para que a **UI reflita o novo valor do cookie**.
 
-> **Good to know**: The server update applies to the current React tree, re-rendering, mounting, or unmounting components, as needed. Client state is preserved for re-rendered components, and effects re-run if their dependencies changed.
+> **Bom saber**: A atualização no servidor se aplica à árvore React atual, renderizando de novo, montando ou desmontando componentes conforme necessário. O estado do cliente é preservado nos componentes renderizados de novo, e os effects são executados de novo se as dependências tiverem mudado.
 
 ```ts filename="app/actions.ts" switcher
 'use server'
@@ -550,9 +550,9 @@ export async function exampleAction() {
 }
 ```
 
-### useEffect
+### useEffect \{#useeffect}
 
-You can use the React [`useEffect`](https://react.dev/reference/react/useEffect) hook to invoke a Server Action when the component mounts or a dependency changes. This is useful for mutations that depend on global events or need to be triggered automatically. For example, `onKeyDown` for app shortcuts, an intersection observer hook for infinite scrolling, or when the component mounts to update a view count:
+Você pode usar o hook [`useEffect`](https://react.dev/reference/react/useEffect) do React para invocar uma Server Action quando o componente é montado ou quando uma dependência muda. Isso é útil para mutações que dependem de eventos globais ou que precisam ser disparadas automaticamente. Por exemplo, `onKeyDown` para atalhos do app, um hook de intersection observer para rolagem infinita, ou quando o componente é montado para atualizar uma contagem de visualizações:
 
 ```tsx filename="app/view-count.tsx" switcher
 'use client'
@@ -597,3 +597,5 @@ export default function ViewCount({ initialViews }) {
   return <p>Total Views: {views}</p>
 }
 ```
+
+{/* ia-translate: true */}

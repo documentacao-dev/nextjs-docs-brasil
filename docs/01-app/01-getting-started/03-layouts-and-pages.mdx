@@ -1,9 +1,9 @@
 ---
-title: Layouts and Pages
-description: Learn how to create your first pages and layouts, and link between them with the Link component.
+title: Layouts e páginas
+description: Aprenda a criar suas primeiras páginas e layouts e a navegar entre eles com o componente Link.
 related:
-  title: API Reference
-  description: Learn more about the features mentioned in this page by reading the API Reference.
+  title: Referência da API
+  description: Saiba mais sobre os recursos mencionados nesta página lendo a Referência da API.
   links:
     - app/getting-started/linking-and-navigating
     - app/api-reference/file-conventions/layout
@@ -12,14 +12,14 @@ related:
     - app/api-reference/file-conventions/dynamic-routes
 ---
 
-Next.js uses **file-system based routing**, meaning you can use folders and files to define routes. This page will guide you through how to create layouts and pages, and link between them.
+O Next.js usa **roteamento baseado no sistema de arquivos**, o que significa que você pode usar pastas e arquivos para definir rotas. Esta página vai mostrar como criar layouts e páginas e como navegar entre eles.
 
-## Creating a page
+## Criando uma página \{#creating-a-page}
 
-A **page** is UI that is rendered on a specific route. To create a page, add a [`page` file](/docs/app/api-reference/file-conventions/page) inside the `app` directory and default export a React component. For example, to create an index page (`/`):
+Uma **página** é uma interface (UI) renderizada em uma rota específica. Para criar uma página, adicione um [arquivo `page`](/docs/app/api-reference/file-conventions/page) dentro do diretório `app` e exporte por padrão um componente React. Por exemplo, para criar uma página inicial (`/`):
 
 <Image
-  alt="page.js special file"
+  alt="Arquivo especial page.js"
   srcLight="/docs/light/page-special-file.png"
   srcDark="/docs/dark/page-special-file.png"
   width="1600"
@@ -38,16 +38,16 @@ export default function Page() {
 }
 ```
 
-## Creating a layout
+## Criando um layout \{#creating-a-layout}
 
-A layout is UI that is **shared** between multiple pages. On navigation, layouts preserve state, remain interactive, and do not rerender.
+Um layout é uma interface **compartilhada** entre várias páginas. Na navegação, os layouts preservam o estado, continuam interativos e não renderizam de novo.
 
-You can define a layout by default exporting a React component from a [`layout` file](/docs/app/api-reference/file-conventions/layout). The component should accept a `children` prop which can be a page or another [layout](#nesting-layouts).
+Você pode definir um layout exportando por padrão um componente React de um [arquivo `layout`](/docs/app/api-reference/file-conventions/layout). O componente deve receber uma prop `children`, que pode ser uma página ou outro [layout](#nesting-layouts).
 
-For example, to create a layout that accepts your index page as child, add a `layout` file inside the `app` directory:
+Por exemplo, para criar um layout que recebe sua página inicial como filho, adicione um arquivo `layout` dentro do diretório `app`:
 
 <Image
-  alt="layout.js special file"
+  alt="Arquivo especial layout.js"
   srcLight="/docs/light/layout-special-file.png"
   srcDark="/docs/dark/layout-special-file.png"
   width="1600"
@@ -86,25 +86,25 @@ export default function DashboardLayout({ children }) {
 }
 ```
 
-The layout above is called a [root layout](/docs/app/api-reference/file-conventions/layout#root-layout) because it's defined at the root of the `app` directory. The root layout is **required** and must contain `html` and `body` tags.
+O layout acima é chamado de [layout raiz](/docs/app/api-reference/file-conventions/layout#root-layout) porque está definido na raiz do diretório `app`. O layout raiz é **obrigatório** e deve conter as tags `html` e `body`.
 
-## Creating a nested route
+## Criando uma rota aninhada \{#creating-a-nested-route}
 
-A nested route is a route composed of multiple URL segments. For example, the `/blog/[slug]` route is composed of three segments:
+Uma rota aninhada é uma rota composta por vários segmentos de URL. Por exemplo, a rota `/blog/[slug]` é composta por três segmentos:
 
-- `/` (Root Segment)
-- `blog` (Segment)
-- `[slug]` (Leaf Segment)
+- `/` (Segmento raiz)
+- `blog` (Segmento)
+- `[slug]` (Segmento folha)
 
-In Next.js:
+No Next.js:
 
-- **Folders** are used to define the route segments that map to URL segments.
-- **Files** (like `page` and `layout`) are used to create UI that is shown for a segment.
+- **Pastas** são usadas para definir os segmentos de rota que correspondem aos segmentos de URL.
+- **Arquivos** (como `page` e `layout`) são usados para criar a interface exibida para um segmento.
 
-To create nested routes, you can nest folders inside each other. For example, to add a route for `/blog`, create a folder called `blog` in the `app` directory. Then, to make `/blog` publicly accessible, add a `page.tsx` file:
+Para criar rotas aninhadas, você pode colocar pastas umas dentro das outras. Por exemplo, para adicionar uma rota para `/blog`, crie uma pasta chamada `blog` no diretório `app`. Depois, para tornar `/blog` acessível publicamente, adicione um arquivo `page.tsx`:
 
 <Image
-  alt="File hierarchy showing blog folder and a page.js file"
+  alt="Hierarquia de arquivos mostrando a pasta blog e um arquivo page.js"
   srcLight="/docs/light/blog-nested-route.png"
   srcDark="/docs/dark/blog-nested-route.png"
   width="1600"
@@ -147,10 +147,10 @@ export default async function Page() {
 }
 ```
 
-You can continue nesting folders to create nested routes. For example, to create a route for a specific blog post, create a new `[slug]` folder inside `blog` and add a `page` file:
+Você pode continuar aninhando pastas para criar rotas aninhadas. Por exemplo, para criar uma rota para um post específico do blog, crie uma nova pasta `[slug]` dentro de `blog` e adicione um arquivo `page`:
 
 <Image
-  alt="File hierarchy showing blog folder with a nested slug folder and a page.js file"
+  alt="Hierarquia de arquivos mostrando a pasta blog com uma pasta slug aninhada e um arquivo page.js"
   srcLight="/docs/light/blog-post-nested-route.png"
   srcDark="/docs/dark/blog-post-nested-route.png"
   width="1600"
@@ -173,16 +173,16 @@ export default function Page() {
 }
 ```
 
-Wrapping a folder name in square brackets (e.g. `[slug]`) creates a [dynamic route segment](/docs/app/api-reference/file-conventions/dynamic-routes) which is used to generate multiple pages from data. e.g. blog posts, product pages, etc.
+Colocar o nome de uma pasta entre colchetes (por exemplo, `[slug]`) cria um [segmento de rota dinâmico](/docs/app/api-reference/file-conventions/dynamic-routes), usado para gerar várias páginas a partir de dados. Por exemplo, posts de blog, páginas de produto etc.
 
-## Nesting layouts
+## Aninhando layouts \{#nesting-layouts}
 
-By default, layouts in the folder hierarchy are also nested, which means they wrap child layouts via their `children` prop. You can nest layouts by adding `layout` inside specific route segments (folders).
+Por padrão, os layouts na hierarquia de pastas também são aninhados, o que significa que eles envolvem os layouts filhos pela prop `children`. Você pode aninhar layouts adicionando `layout` dentro de segmentos de rota (pastas) específicos.
 
-For example, to create a layout for the `/blog` route, add a new `layout` file inside the `blog` folder.
+Por exemplo, para criar um layout para a rota `/blog`, adicione um novo arquivo `layout` dentro da pasta `blog`.
 
 <Image
-  alt="File hierarchy showing root layout wrapping the blog layout"
+  alt="Hierarquia de arquivos mostrando o layout raiz envolvendo o layout do blog"
   srcLight="/docs/light/nested-layouts.png"
   srcDark="/docs/dark/nested-layouts.png"
   width="1600"
@@ -205,13 +205,13 @@ export default function BlogLayout({ children }) {
 }
 ```
 
-If you were to combine the two layouts above, the root layout (`app/layout.js`) would wrap the blog layout (`app/blog/layout.js`), which would wrap the blog (`app/blog/page.js`) and blog post page (`app/blog/[slug]/page.js`).
+Se você combinar os dois layouts acima, o layout raiz (`app/layout.js`) vai envolver o layout do blog (`app/blog/layout.js`), que vai envolver o blog (`app/blog/page.js`) e a página de post do blog (`app/blog/[slug]/page.js`).
 
-## Creating a dynamic segment
+## Criando um segmento dinâmico \{#creating-a-dynamic-segment}
 
-[Dynamic segments](/docs/app/api-reference/file-conventions/dynamic-routes) allow you to create routes that are generated from data. For example, instead of manually creating a route for each individual blog post, you can create a dynamic segment to generate the routes based on blog post data.
+[Segmentos dinâmicos](/docs/app/api-reference/file-conventions/dynamic-routes) permitem criar rotas geradas a partir de dados. Por exemplo, em vez de criar manualmente uma rota para cada post do blog, você pode criar um segmento dinâmico que gera as rotas com base nos dados dos posts.
 
-To create a dynamic segment, wrap the segment (folder) name in square brackets: `[segmentName]`. For example, in the `app/blog/[slug]/page.tsx` route, the `[slug]` is the dynamic segment.
+Para criar um segmento dinâmico, coloque o nome do segmento (pasta) entre colchetes: `[segmentName]`. Por exemplo, na rota `app/blog/[slug]/page.tsx`, o `[slug]` é o segmento dinâmico.
 
 ```tsx filename="app/blog/[slug]/page.tsx" switcher
 export default async function BlogPostPage({
@@ -245,13 +245,13 @@ export default async function BlogPostPage({ params }) {
 }
 ```
 
-Learn more about [Dynamic Segments](/docs/app/api-reference/file-conventions/dynamic-routes) and the [`params`](/docs/app/api-reference/file-conventions/page#params-optional) props.
+Saiba mais sobre [Segmentos dinâmicos](/docs/app/api-reference/file-conventions/dynamic-routes) e as props [`params`](/docs/app/api-reference/file-conventions/page#params-optional).
 
-Nested [layouts within Dynamic Segments](/docs/app/api-reference/file-conventions/layout#params-optional) can also access the `params` props.
+[Layouts dentro de segmentos dinâmicos](/docs/app/api-reference/file-conventions/layout#params-optional) também podem acessar as props `params`.
 
-## Rendering with search params
+## Renderizando com parâmetros de busca \{#rendering-with-search-params}
 
-In a Server Component **page**, you can access search parameters using the [`searchParams`](/docs/app/api-reference/file-conventions/page#searchparams-optional) prop:
+Em uma **página** de Server Component, você pode acessar os parâmetros de busca usando a prop [`searchParams`](/docs/app/api-reference/file-conventions/page#searchparams-optional):
 
 ```tsx filename="app/page.tsx" switcher
 export default async function Page({
@@ -269,23 +269,23 @@ export default async function Page({ searchParams }) {
 }
 ```
 
-Using `searchParams` opts your page into [**dynamic rendering**](/docs/app/glossary#dynamic-rendering) because it requires an incoming request to read the search parameters from.
+Usar `searchParams` faz sua página entrar em [**Dynamic Rendering**](/docs/app/glossary#dynamic-rendering), porque ela precisa de uma requisição recebida para ler os parâmetros de busca.
 
-Client Components can read search params using the [`useSearchParams`](/docs/app/api-reference/functions/use-search-params) hook.
+Client Components podem ler os parâmetros de busca usando o hook [`useSearchParams`](/docs/app/api-reference/functions/use-search-params).
 
-Learn more about `useSearchParams` in [prerendered](/docs/app/api-reference/functions/use-search-params#prerendering) and [dynamically rendered](/docs/app/api-reference/functions/use-search-params#dynamic-rendering) routes.
+Saiba mais sobre `useSearchParams` em rotas com [prerendering](/docs/app/api-reference/functions/use-search-params#prerendering) e [Dynamic Rendering](/docs/app/api-reference/functions/use-search-params#dynamic-rendering).
 
-### What to use and when
+### O que usar e quando \{#what-to-use-and-when}
 
-- Use the `searchParams` prop when you need search parameters to **load data for the page** (e.g. pagination, filtering from a database).
-- Use `useSearchParams` when search parameters are used **only on the client** (e.g. filtering a list already loaded via props).
-- As a small optimization, you can use `new URLSearchParams(window.location.search)` in **callbacks or event handlers** to read search params without triggering re-renders.
+- Use a prop `searchParams` quando precisar dos parâmetros de busca para **carregar dados da página** (por exemplo, paginação ou filtragem vinda de um banco de dados).
+- Use `useSearchParams` quando os parâmetros de busca forem usados **apenas no cliente** (por exemplo, filtrar uma lista já carregada por props).
+- Como uma pequena otimização, você pode usar `new URLSearchParams(window.location.search)` em **callbacks ou manipuladores de eventos** para ler os parâmetros de busca sem disparar novas renderizações.
 
-## Linking between pages
+## Criando links entre páginas \{#linking-between-pages}
 
-You can use the [`<Link>` component](/docs/app/api-reference/components/link) to navigate between routes. `<Link>` is a built-in Next.js component that extends the HTML `<a>` tag to provide [prefetching](/docs/app/getting-started/linking-and-navigating#prefetching) and [client-side navigation](/docs/app/getting-started/linking-and-navigating#client-side-transitions).
+Você pode usar o [componente `<Link>`](/docs/app/api-reference/components/link) para navegar entre rotas. `<Link>` é um componente embutido do Next.js que estende a tag HTML `<a>` para oferecer [prefetching](/docs/app/getting-started/linking-and-navigating#prefetching) e [navegação no lado do cliente](/docs/app/getting-started/linking-and-navigating#client-side-transitions).
 
-For example, to generate a list of blog posts, import `<Link>` from `next/link` and pass a `href` prop to the component:
+Por exemplo, para gerar uma lista de posts do blog, importe `<Link>` de `next/link` e passe uma prop `href` para o componente:
 
 ```tsx filename="app/ui/post.tsx" highlight={1,2,11} switcher
 import Link from 'next/link'
@@ -325,16 +325,16 @@ export default async function Posts() {
 }
 ```
 
-> **Good to know**: `<Link>` is the primary way to navigate between routes in Next.js. You can also use the [`useRouter` hook](/docs/app/api-reference/functions/use-router) for more advanced navigation.
+> **Bom saber**: `<Link>` é a forma principal de navegar entre rotas no Next.js. Você também pode usar o [hook `useRouter`](/docs/app/api-reference/functions/use-router) para navegações mais avançadas.
 
-## Route Props Helpers
+## Helpers de props de rota \{#route-props-helpers}
 
-Next.js exposes utility types that infer `params` and named slots from your route structure:
+O Next.js expõe tipos utilitários que inferem `params` e slots nomeados a partir da estrutura das suas rotas:
 
-- [**PageProps**](/docs/app/api-reference/file-conventions/page#page-props-helper): Props for `page` components, including `params` and `searchParams`.
-- [**LayoutProps**](/docs/app/api-reference/file-conventions/layout#layout-props-helper): Props for `layout` components, including `children` and any named slots (e.g. folders like `@analytics`).
+- [**PageProps**](/docs/app/api-reference/file-conventions/page#page-props-helper): props para componentes `page`, incluindo `params` e `searchParams`.
+- [**LayoutProps**](/docs/app/api-reference/file-conventions/layout#layout-props-helper): props para componentes `layout`, incluindo `children` e quaisquer slots nomeados (por exemplo, pastas como `@analytics`).
 
-These are globally available helpers, generated when running either `next dev`, `next build` or [`next typegen`](/docs/app/api-reference/cli/next#next-typegen-options).
+Estes são helpers globais, gerados ao executar `next dev`, `next build` ou [`next typegen`](/docs/app/api-reference/cli/next#next-typegen-options).
 
 ```tsx filename="app/blog/[slug]/page.tsx"
 export default async function Page(props: PageProps<'/blog/[slug]'>) {
@@ -355,8 +355,10 @@ export default function Layout(props: LayoutProps<'/dashboard'>) {
 }
 ```
 
-> **Good to know**
+> **Bom saber**
 >
-> - Static routes resolve `params` to `{}`.
-> - `PageProps`, `LayoutProps` are global helpers — no imports required.
-> - Types are generated during `next dev`, `next build` or `next typegen`.
+> - Rotas estáticas resolvem `params` para `{}`.
+> - `PageProps` e `LayoutProps` são helpers globais, sem necessidade de importação.
+> - Os tipos são gerados durante `next dev`, `next build` ou `next typegen`.
+
+{/* ia-translate: true */}

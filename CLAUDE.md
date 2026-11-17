@@ -40,6 +40,7 @@ Gerador próprio em `tool/site/` (o site do nextjs.org não é open source):
 
 Ficam em inglês: Server Components, Client Components, Server Actions, Server Functions, App Router, Pages Router, route handler, middleware, proxy, layout, cache, caching, prerendering, streaming, hydration, build, deploy, runtime, Edge Runtime, bundle, bundler, Turbopack, webpack, Cache Components, Partial Prerendering (PPR), Static/Dynamic Rendering quando nome de recurso, Suspense, props, hook, dev server, CLI, codemod, framework, plugin, script, commit, branch.
 
+- Também em inglês: prefetch/prefetching, prerendering, hydration, streaming, Static Rendering, Dynamic Rendering, Server Rendering (não "pré-carregamento", "pré-renderização", "hidratação", "transmitir"). Já request = "requisição" e fetch (verbo na prosa) = "buscar" ficam em português. "aplicação" também não: é "app". "suportado" não: "aceito", "tem suporte".
 - **"app" nunca vira "aplicativo"**: é sempre "app" ("crie um app Next.js"). O diretório `app` e `pages` são código.
 - getting started = Primeiros passos, learn more = Saiba mais, see also = Veja também, next steps = Próximos passos, good to know = Bom saber, API reference = Referência da API.
 - Títulos em sentence case (só a primeira palavra e nomes próprios em maiúscula). "Você", tom direto. Evite "certifique-se", "você pode querer", "suportar" (support) e travessão onde o português usaria vírgula.

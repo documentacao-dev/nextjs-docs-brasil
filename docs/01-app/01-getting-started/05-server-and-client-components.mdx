@@ -1,39 +1,39 @@
 ---
-title: Server and Client Components
-description: Learn how you can use React Server and Client Components to render parts of your application on the server or the client.
+title: Server e Client Components
+description: Aprenda como usar React Server e Client Components para renderizar partes do seu app no servidor ou no cliente.
 related:
-  title: Next Steps
-  description: Learn more about the APIs mentioned in this page.
+  title: Próximos passos
+  description: Saiba mais sobre as APIs mencionadas nesta página.
   links:
     - app/api-reference/directives/use-client
     - app/guides/server-and-client-boundary
 ---
 
-By default, layouts and pages are [Server Components](https://react.dev/reference/rsc/server-components), which lets you fetch data and render parts of your UI on the server, optionally cache the result, and stream it to the client. When you need interactivity or browser APIs, you can use [Client Components](https://react.dev/reference/rsc/use-client) to layer in functionality.
+Por padrão, layouts e páginas são [Server Components](https://react.dev/reference/rsc/server-components), o que permite buscar dados e renderizar partes da sua UI no servidor, opcionalmente colocar o resultado em cache e fazer streaming dele para o cliente. Quando você precisa de interatividade ou de APIs do navegador, pode usar [Client Components](https://react.dev/reference/rsc/use-client) para adicionar funcionalidades.
 
-This page explains how Server and Client Components work in Next.js and when to use them, with examples of how to compose them together in your application.
+Esta página explica como Server e Client Components funcionam no Next.js e quando usá-los, com exemplos de como combiná-los no seu app.
 
-> **Good to know:** For an explanation of where each component type runs and how the boundary works, see [The Server and Client Boundary](/docs/app/guides/server-and-client-boundary).
+> **Bom saber:** para uma explicação de onde cada tipo de componente roda e de como funciona a fronteira entre eles, veja [A fronteira entre Server e Client](/docs/app/guides/server-and-client-boundary).
 
-## When to use Server and Client Components?
+## Quando usar Server e Client Components? \{#when-to-use-server-and-client-components}
 
-The client and server environments have different capabilities. Server and Client Components allow you to run logic in each environment depending on your use case.
+Os ambientes do cliente e do servidor têm capacidades diferentes. Server e Client Components permitem executar lógica em cada ambiente, dependendo do seu caso de uso.
 
-Use **Client Components** when you need:
+Use **Client Components** quando precisar de:
 
-- [State](https://react.dev/learn/managing-state) and [event handlers](https://react.dev/learn/responding-to-events). E.g. `onClick`, `onChange`.
-- [Lifecycle logic](https://react.dev/learn/lifecycle-of-reactive-effects). E.g. `useEffect`.
-- Browser-only APIs. E.g. `localStorage`, `window`, `navigator.geolocation`, etc.
-- [Custom hooks](https://react.dev/learn/reusing-logic-with-custom-hooks).
+- [Estado](https://react.dev/learn/managing-state) e [manipuladores de eventos](https://react.dev/learn/responding-to-events). Ex.: `onClick`, `onChange`.
+- [Lógica de ciclo de vida](https://react.dev/learn/lifecycle-of-reactive-effects). Ex.: `useEffect`.
+- APIs exclusivas do navegador. Ex.: `localStorage`, `window`, `navigator.geolocation`, etc.
+- [Hooks customizados](https://react.dev/learn/reusing-logic-with-custom-hooks).
 
-Use **Server Components** when you need:
+Use **Server Components** quando precisar de:
 
-- Fetch data from databases or APIs close to the source.
-- Use API keys, tokens, and other secrets without exposing them to the client.
-- Reduce the amount of JavaScript sent to the browser.
-- Improve the [First Contentful Paint (FCP)](https://web.dev/fcp/), and stream content progressively to the client.
+- Buscar dados de bancos de dados ou APIs próximos da fonte.
+- Usar chaves de API, tokens e outros segredos sem expô-los ao cliente.
+- Reduzir a quantidade de JavaScript enviada ao navegador.
+- Melhorar o [First Contentful Paint (FCP)](https://web.dev/fcp/) e transmitir o conteúdo progressivamente ao cliente.
 
-For example, the `<Page>` component is a Server Component that fetches data about a post, and passes it as props to the `<LikeButton>` which handles client-side interactivity.
+Por exemplo, o componente `<Page>` é um Server Component que busca dados sobre um post e os passa como props para o `<LikeButton>`, que cuida da interatividade no cliente.
 
 ```tsx filename="app/[id]/page.tsx" highlight={1,17} switcher
 import LikeButton from '@/app/ui/like-button'
@@ -99,47 +99,47 @@ export default function LikeButton({ likes }) {
 }
 ```
 
-## How do Server and Client Components work in Next.js?
+## Como Server e Client Components funcionam no Next.js? \{#how-do-server-and-client-components-work-in-nextjs}
 
-### On the server
+### No servidor \{#on-the-server}
 
-On the server, Next.js uses React's APIs to orchestrate rendering. The rendering work is split into chunks, by individual route segments ([layouts and pages](/docs/app/getting-started/layouts-and-pages)), including [parallel route slots](/docs/app/api-reference/file-conventions/parallel-routes) whether or not they are displayed:
+No servidor, o Next.js usa as APIs do React para orquestrar a renderização. O trabalho de renderização é dividido em partes, por segmento de rota individual ([layouts e páginas](/docs/app/getting-started/layouts-and-pages)), incluindo [slots de rotas paralelas](/docs/app/api-reference/file-conventions/parallel-routes), estejam eles exibidos ou não:
 
-- **Server Components** are rendered into a special data format called the React Server Component Payload (RSC Payload).
-- **Client Components** and the RSC Payload are used to [prerender](/docs/app/glossary#prerendering) HTML.
+- **Server Components** são renderizados em um formato de dados especial chamado React Server Component Payload (RSC Payload).
+- **Client Components** e o RSC Payload são usados para fazer o [prerendering](/docs/app/glossary#prerendering) do HTML.
 
-> **What is the React Server Component Payload (RSC)?**
+> **O que é o React Server Component Payload (RSC)?**
 >
-> The RSC Payload is a compact, serialized representation of the rendered React Server Components tree. It's used by React on the client to update the browser's DOM. The RSC Payload contains:
+> O RSC Payload é uma representação serializada e compacta da árvore de React Server Components renderizada. O React a usa no cliente para atualizar o DOM do navegador. O RSC Payload contém:
 >
-> - The rendered result of Server Components
-> - Placeholders for where Client Components should be rendered and references to their JavaScript files
-> - Any props passed from a Server Component to a Client Component
+> - O resultado renderizado dos Server Components
+> - Placeholders indicando onde os Client Components devem ser renderizados e referências aos seus arquivos JavaScript
+> - Quaisquer props passadas de um Server Component para um Client Component
 
-### On the client (first load)
+### No cliente (primeiro carregamento) \{#on-the-client-first-load}
 
-Then, on the client:
+Em seguida, no cliente:
 
-1. **HTML** is used to immediately show a fast non-interactive preview of the route to the user.
-2. **RSC Payload** is used to reconcile the Client and Server Component trees.
-3. **JavaScript** is used to hydrate Client Components and make the application interactive.
+1. **HTML** é usado para mostrar imediatamente uma prévia rápida e não interativa da rota ao usuário.
+2. **RSC Payload** é usado para reconciliar as árvores de Client e Server Components.
+3. **JavaScript** é usado para fazer a hydration dos Client Components e tornar o app interativo.
 
-> **What is hydration?**
+> **O que é hydration?**
 >
-> Hydration is React's process for attaching [event handlers](https://react.dev/learn/responding-to-events) to the DOM, to make the static HTML interactive.
+> Hydration é o processo do React para anexar [manipuladores de eventos](https://react.dev/learn/responding-to-events) ao DOM, tornando o HTML estático interativo.
 
-### Subsequent Navigations
+### Navegações seguintes \{#subsequent-navigations}
 
-On subsequent navigations:
+Nas navegações seguintes:
 
-- The **RSC Payload** is prefetched and cached for instant navigation.
-- **Client Components** are rendered entirely on the client, without the server-rendered HTML.
+- É feito o prefetch do **RSC Payload**, que fica armazenado em cache para uma navegação instantânea.
+- **Client Components** são renderizados inteiramente no cliente, sem o HTML renderizado no servidor.
 
-## Examples
+## Exemplos \{#examples}
 
-### Using Client Components
+### Usando Client Components \{#using-client-components}
 
-You can create a Client Component by adding the [`"use client"`](https://react.dev/reference/rsc/use-client) directive at the top of the file, above your imports.
+Você pode criar um Client Component adicionando a diretiva [`"use client"`](https://react.dev/reference/rsc/use-client) no topo do arquivo, acima dos imports.
 
 ```tsx filename="app/ui/counter.tsx" highlight={1} switcher
 'use client'
@@ -175,19 +175,19 @@ export default function Counter() {
 }
 ```
 
-`"use client"` is used to declare a **boundary** between the Server and Client module graphs (trees).
+`"use client"` é usado para declarar uma **fronteira** entre os grafos de módulos (árvores) do Server e do Client.
 
-Once a file is marked with `"use client"`, **all of its imports and the components it directly renders are included in the client bundle**. This means you don’t need to add the directive to every component that is intended for the client.
+Depois que um arquivo é marcado com `"use client"`, **todos os seus imports e os componentes que ele renderiza diretamente são incluídos no bundle do cliente**. Isso significa que você não precisa adicionar a diretiva em todo componente destinado ao cliente.
 
-This behavior applies to components that are part of the Client Component’s [module graph](/docs/app/glossary#module-graph), which includes the modules it imports and the components it renders directly. It does not apply to Server Components passed as children or other props. Those components are not imported into the Client Component’s module graph. They are rendered on the server and passed to the Client Component as rendered output.
+Esse comportamento se aplica aos componentes que fazem parte do [grafo de módulos](/docs/app/glossary#module-graph) de um Client Component, que inclui os módulos que ele importa e os componentes que ele renderiza diretamente. Não se aplica a Server Components passados como `children` ou outras props. Esses componentes não são importados para o grafo de módulos do Client Component. Eles são renderizados no servidor e passados ao Client Component como saída já renderizada.
 
-See [Interleaving Server and Client Components](/docs/app/getting-started/server-and-client-components#interleaving-server-and-client-components) for how Server and Client Components can be combined.
+Veja [Intercalando Server e Client Components](/docs/app/getting-started/server-and-client-components#interleaving-server-and-client-components) para saber como Server e Client Components podem ser combinados.
 
-### Reducing JS bundle size
+### Reduzindo o tamanho do bundle JS \{#reducing-js-bundle-size}
 
-To reduce the size of your client JavaScript bundles, add `'use client'` at the top of the files that define your interactive components instead of marking large parts of your UI as Client Components.
+Para reduzir o tamanho dos bundles JavaScript do cliente, adicione `'use client'` no topo dos arquivos que definem seus componentes interativos, em vez de marcar grandes partes da UI como Client Components.
 
-For example, the `<Layout>` component contains mostly static elements like a logo and navigation links, but includes an interactive search bar. `<Search />` needs to be a Client Component, while the rest of the layout can stay a Server Component.
+Por exemplo, o componente `<Layout>` contém principalmente elementos estáticos, como um logo e links de navegação, mas inclui uma barra de busca interativa. `<Search />` precisa ser um Client Component, enquanto o restante do layout pode continuar sendo um Server Component.
 
 ```tsx filename="app/layout.tsx" highlight={12} switcher
 // Client Component
@@ -245,9 +245,9 @@ export default function Search() {
 }
 ```
 
-### Passing data from Server to Client Components
+### Passando dados do Server para Client Components \{#passing-data-from-server-to-client-components}
 
-You can pass data from Server Components to Client Components using props.
+Você pode passar dados de Server Components para Client Components usando props.
 
 ```tsx filename="app/[id]/page.tsx" highlight={1,12} switcher
 import LikeButton from '@/app/ui/like-button'
@@ -293,15 +293,15 @@ export default function LikeButton({ likes }) {
 }
 ```
 
-Alternatively, you can stream data from a Server Component to a Client Component with the [`use` API](https://react.dev/reference/react/use). See an [example](/docs/app/getting-started/fetching-data#streaming-data-with-the-use-api).
+Alternativamente, você pode transmitir dados de um Server Component para um Client Component com a [API `use`](https://react.dev/reference/react/use). Veja um [exemplo](/docs/app/getting-started/fetching-data#streaming-data-with-the-use-api).
 
-> **Good to know**: Props passed to Client Components need to be [serializable](https://react.dev/reference/react/use-server#serializable-parameters-and-return-values) by React.
+> **Bom saber**: props passadas para Client Components precisam ser [serializáveis](https://react.dev/reference/react/use-server#serializable-parameters-and-return-values) pelo React.
 
-### Interleaving Server and Client Components
+### Intercalando Server e Client Components \{#interleaving-server-and-client-components}
 
-You can pass Server Components as a prop to a Client Component. This allows you to visually nest server-rendered UI within Client components.
+Você pode passar Server Components como prop para um Client Component. Isso permite aninhar visualmente UI renderizada no servidor dentro de Client Components.
 
-A common pattern is to use `children` to create a _slot_ in a `<ClientComponent>`. For example, a `<Cart>` component that fetches data on the server, inside a `<Modal>` component that uses client state to toggle visibility.
+Um padrão comum é usar `children` para criar um _slot_ em um `<ClientComponent>`. Por exemplo, um componente `<Cart>` que busca dados no servidor, dentro de um componente `<Modal>` que usa estado do cliente para alternar a visibilidade.
 
 ```tsx filename="app/ui/modal.tsx" switcher
 'use client'
@@ -319,7 +319,7 @@ export default function Modal({ children }) {
 }
 ```
 
-Then, in a parent Server Component (e.g.`<Page>`), you can pass a `<Cart>` as the child of the `<Modal>`:
+Depois, em um Server Component pai (por exemplo, `<Page>`), você pode passar um `<Cart>` como filho do `<Modal>`:
 
 ```tsx filename="app/page.tsx"  highlight={7} switcher
 import Modal from './ui/modal'
@@ -347,13 +347,13 @@ export default function Page() {
 }
 ```
 
-In this pattern, Server Components are rendered on the server ahead of time, even when passed as props to Client Components. The React Server Component Payload contains the rendered result of those Server Components, plus placeholders for where Client Components should be rendered and references to their JavaScript files.
+Nesse padrão, Server Components são renderizados no servidor antecipadamente, mesmo quando passados como props para Client Components. O React Server Component Payload contém o resultado renderizado desses Server Components, além de placeholders indicando onde os Client Components devem ser renderizados e referências aos seus arquivos JavaScript.
 
-### Context providers
+### Providers de context \{#context-providers}
 
-[React context](https://react.dev/learn/passing-data-deeply-with-context) is commonly used to share global state like the current theme. However, React context is not supported in Server Components.
+[Context do React](https://react.dev/learn/passing-data-deeply-with-context) é comumente usado para compartilhar estado global, como o tema atual. No entanto, o context do React não tem suporte em Server Components.
 
-To use context, create a Client Component that accepts `children`:
+Para usar context, crie um Client Component que aceite `children`:
 
 ```tsx filename="app/theme-provider.tsx" switcher
 'use client'
@@ -383,7 +383,7 @@ export default function ThemeProvider({ children }) {
 }
 ```
 
-Then, import it into a Server Component (e.g. `layout`):
+Depois, importe-o em um Server Component (por exemplo, `layout`):
 
 ```tsx filename="app/layout.tsx" switcher
 import ThemeProvider from './theme-provider'
@@ -417,19 +417,19 @@ export default function RootLayout({ children }) {
 }
 ```
 
-Your Server Component will now be able to directly render your provider, and all other Client Components throughout your app will be able to consume this context.
+Seu Server Component agora poderá renderizar o provider diretamente, e todos os outros Client Components do seu app poderão consumir esse context.
 
-> **Good to know**: You should render providers as deep as possible in the tree – notice how `ThemeProvider` only wraps `{children}` instead of the entire `<html>` document. This makes it easier for Next.js to optimize the static parts of your Server Components.
+> **Bom saber**: renderize providers o mais fundo possível na árvore. Repare que `ThemeProvider` envolve apenas `{children}`, em vez de todo o documento `<html>`. Isso facilita para o Next.js otimizar as partes estáticas dos seus Server Components.
 
-To pass server-fetched data through context and read it in Client Components with `use()`, see [Using React's `use` within a Context Provider](/docs/app/guides/single-page-applications#using-reacts-use-within-a-context-provider).
+Para passar dados buscados no servidor por meio de context e lê-los em Client Components com `use()`, veja [Usando o `use` do React dentro de um Context Provider](/docs/app/guides/single-page-applications#using-reacts-use-within-a-context-provider).
 
-### Third-party components
+### Componentes de terceiros \{#third-party-components}
 
-When using a third-party component that relies on client-only features, you can wrap it in a Client Component to ensure it works as expected.
+Ao usar um componente de terceiros que depende de recursos exclusivos do cliente, você pode envolvê-lo em um Client Component para garantir que ele funcione como esperado.
 
-For example, the `<Carousel />` can be imported from the `acme-carousel` package. This component uses `useState`, but the module that defines it doesn't yet have the `"use client"` directive.
+Por exemplo, o `<Carousel />` pode ser importado do pacote `acme-carousel`. Esse componente usa `useState`, mas o módulo que o define ainda não tem a diretiva `"use client"`.
 
-If you use `<Carousel />` within a Client Component, it will work as expected:
+Se você usar `<Carousel />` dentro de um Client Component, ele funcionará como esperado:
 
 ```tsx filename="app/gallery.tsx" switcher
 'use client'
@@ -469,9 +469,9 @@ export default function Gallery() {
 }
 ```
 
-However, if you try to use it directly within a Server Component, you'll see an error. This is because Next.js doesn't know `<Carousel />` is using client-only features.
+No entanto, se você tentar usá-lo diretamente dentro de um Server Component, verá um erro. Isso acontece porque o Next.js não sabe que o `<Carousel />` usa recursos exclusivos do cliente.
 
-To fix this, you can wrap third-party components that rely on client-only features in your own Client Components:
+Para resolver, envolva os componentes de terceiros que dependem de recursos exclusivos do cliente em seus próprios Client Components:
 
 ```tsx filename="app/carousel.tsx" switcher
 'use client'
@@ -489,7 +489,7 @@ import { Carousel } from 'acme-carousel'
 export default Carousel
 ```
 
-Now, you can use `<Carousel />` directly within a Server Component:
+Agora você pode usar `<Carousel />` diretamente dentro de um Server Component:
 
 ```tsx filename="app/page.tsx" switcher
 import Carousel from './carousel'
@@ -519,15 +519,15 @@ export default function Page() {
 }
 ```
 
-> **Advice for Library Authors**
+> **Recomendação para autores de bibliotecas**
 >
-> If you’re building a component library, add the `"use client"` directive to entry points that rely on client-only features. This lets your users import components into Server Components without needing to create wrappers.
+> Se você estiver criando uma biblioteca de componentes, adicione a diretiva `"use client"` nos entry points que dependem de recursos exclusivos do cliente. Assim, seus usuários podem importar os componentes em Server Components sem precisar criar wrappers.
 >
-> It's worth noting some bundlers might strip out `"use client"` directives. You can find an example of how to configure esbuild to include the `"use client"` directive in the [React Wrap Balancer](https://github.com/shuding/react-wrap-balancer/blob/main/tsup.config.ts#L10-L13) and [Vercel Analytics](https://github.com/vercel/analytics/blob/main/packages/web/tsup.config.js#L26-L30) repositories.
+> Vale notar que alguns bundlers podem remover as diretivas `"use client"`. Você pode encontrar um exemplo de como configurar o esbuild para incluir a diretiva `"use client"` nos repositórios do [React Wrap Balancer](https://github.com/shuding/react-wrap-balancer/blob/main/tsup.config.ts#L10-L13) e do [Vercel Analytics](https://github.com/vercel/analytics/blob/main/packages/web/tsup.config.js#L26-L30).
 
-### Preventing environment poisoning
+### Evitando contaminação de ambiente \{#preventing-environment-poisoning}
 
-JavaScript modules can be shared between both Server and Client Components modules. This means it's possible to accidentally import server-only code into the client. For example, consider the following function:
+Módulos JavaScript podem ser compartilhados entre os módulos de Server e de Client Components. Isso significa que é possível importar acidentalmente código exclusivo do servidor no cliente. Por exemplo, considere a seguinte função:
 
 ```ts filename="lib/data.ts" switcher
 export async function getData() {
@@ -553,15 +553,15 @@ export async function getData() {
 }
 ```
 
-This function contains an `API_KEY` that should never be exposed to the client.
+Essa função contém uma `API_KEY` que nunca deve ser exposta ao cliente.
 
-In Next.js, only environment variables prefixed with `NEXT_PUBLIC_` are included in the client bundle. If variables are not prefixed, Next.js replaces them with an empty string.
+No Next.js, apenas variáveis de ambiente com o prefixo `NEXT_PUBLIC_` são incluídas no bundle do cliente. Se as variáveis não tiverem esse prefixo, o Next.js as substitui por uma string vazia.
 
-As a result, even though `getData()` can be imported and executed on the client, it won't work as expected.
+Como resultado, mesmo que `getData()` possa ser importada e executada no cliente, ela não funcionará como esperado.
 
-To prevent accidental usage in Client Components, you can use the [`server-only` package](https://www.npmjs.com/package/server-only).
+Para evitar o uso acidental em Client Components, você pode usar o [pacote `server-only`](https://www.npmjs.com/package/server-only).
 
-Then, import the package into a file that contains server-only code:
+Depois, importe o pacote em um arquivo que contém código exclusivo do servidor:
 
 ```js filename="lib/data.js"
 import 'server-only'
@@ -577,11 +577,11 @@ export async function getData() {
 }
 ```
 
-Now, if you try to import the module into a Client Component, there will be a build-time error.
+Agora, se você tentar importar o módulo em um Client Component, haverá um erro em tempo de build.
 
-The corresponding [`client-only` package](https://www.npmjs.com/package/client-only) can be used to mark modules that contain client-only logic like code that accesses the `window` object.
+O pacote [`client-only`](https://www.npmjs.com/package/client-only) correspondente pode ser usado para marcar módulos que contêm lógica exclusiva do cliente, como código que acessa o objeto `window`.
 
-In Next.js, installing `server-only` or `client-only` is **optional**. However, if your linting rules flag extraneous dependencies, you may install them to avoid issues.
+No Next.js, instalar `server-only` ou `client-only` é **opcional**. No entanto, se suas regras de lint apontarem dependências extras, você pode instalá-los para evitar problemas.
 
 ```bash package="npm"
 npm install server-only
@@ -599,6 +599,8 @@ pnpm add server-only
 bun add server-only
 ```
 
-Next.js handles `server-only` and `client-only` imports internally to provide clearer error messages when a module is used in the wrong environment. The contents of these packages from NPM are not used by Next.js.
+O Next.js trata os imports de `server-only` e `client-only` internamente para fornecer mensagens de erro mais claras quando um módulo é usado no ambiente errado. O conteúdo desses pacotes do NPM não é usado pelo Next.js.
 
-Next.js also provides its own type declarations for `server-only` and `client-only`, for TypeScript configurations where [`noUncheckedSideEffectImports`](https://www.typescriptlang.org/tsconfig/#noUncheckedSideEffectImports) is active.
+O Next.js também fornece suas próprias declarações de tipo para `server-only` e `client-only`, para configurações de TypeScript em que [`noUncheckedSideEffectImports`](https://www.typescriptlang.org/tsconfig/#noUncheckedSideEffectImports) está ativo.
+
+{/* ia-translate: true */}

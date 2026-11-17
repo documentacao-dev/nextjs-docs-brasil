@@ -1,21 +1,21 @@
 ---
-title: Image Optimization
-description: Learn how to optimize images in Next.js
+title: Otimização de imagens
+description: Aprenda a otimizar imagens no Next.js
 related:
-  title: API Reference
-  description: See the API Reference for the full feature set of Next.js Image.
+  title: Referência da API
+  description: Veja a Referência da API com todos os recursos do Next.js Image.
   links:
     - app/api-reference/components/image
 ---
 
-The Next.js [`<Image>`](/docs/app/api-reference/components/image) component extends the HTML `<img>` element to provide:
+O componente [`<Image>`](/docs/app/api-reference/components/image) do Next.js estende o elemento HTML `<img>` para oferecer:
 
-- **Size optimization:** Automatically serving correctly sized images for each device, using modern image formats like WebP.
-- **Visual stability:** Preventing [layout shift](https://web.dev/articles/cls) automatically when images are loading.
-- **Faster page loads:** Only loading images when they enter the viewport using native browser lazy loading, with optional blur-up placeholders.
-- **Asset flexibility:** Resizing images on-demand, even images stored on remote servers.
+- **Otimização de tamanho:** Serve automaticamente imagens com o tamanho certo para cada dispositivo, usando formatos modernos como WebP.
+- **Estabilidade visual:** Evita automaticamente o [layout shift](https://web.dev/articles/cls) enquanto as imagens carregam.
+- **Carregamento de página mais rápido:** Carrega imagens somente quando entram na viewport, usando o lazy loading nativo do navegador, com placeholders opcionais de blur-up.
+- **Flexibilidade de assets:** Redimensiona imagens sob demanda, inclusive imagens armazenadas em servidores remotos.
 
-To start using `<Image>`, import it from `next/image` and render it within your component.
+Para começar a usar `<Image>`, importe-o de `next/image` e renderize-o dentro de um componente.
 
 ```tsx filename="app/page.tsx" switcher
 import Image from 'next/image'
@@ -33,16 +33,16 @@ export default function Page() {
 }
 ```
 
-The `src` property can be a [local](#local-images) or [remote](#remote-images) image.
+A propriedade `src` pode ser uma imagem [local](#local-images) ou [remota](#remote-images).
 
-> **🎥 Watch:** Learn more about how to use `next/image` → [YouTube (9 minutes)](https://youtu.be/IU_qq_c_lKA).
+> **🎥 Assista:** Saiba mais sobre como usar `next/image` → [YouTube (9 minutos)](https://youtu.be/IU_qq_c_lKA).
 
-## Local images
+## Imagens locais \{#local-images}
 
-You can store static files, like images and fonts, under a folder called [`public`](/docs/app/api-reference/file-conventions/public-folder) in the root directory. Files inside `public` can then be referenced by your code starting from the base URL (`/`).
+Você pode armazenar arquivos estáticos, como imagens e fontes, em uma pasta chamada [`public`](/docs/app/api-reference/file-conventions/public-folder) na raiz do projeto. Os arquivos dentro de `public` podem ser referenciados no código a partir da URL base (`/`).
 
 <Image
-  alt="Folder structure showing app and public folders"
+  alt="Estrutura de pastas mostrando as pastas app e public"
   srcLight="/docs/light/public-folder.png"
   srcDark="/docs/dark/public-folder.png"
   width="1600"
@@ -79,7 +79,7 @@ export default function Page() {
 }
 ```
 
-If the image is statically imported, Next.js will automatically determine the intrinsic [`width`](/docs/app/api-reference/components/image#width-and-height) and [`height`](/docs/app/api-reference/components/image#width-and-height). These values are used to determine the image ratio and prevent [Cumulative Layout Shift](https://web.dev/articles/cls) while your image is loading.
+Se a imagem for importada estaticamente, o Next.js determina automaticamente a [`width`](/docs/app/api-reference/components/image#width-and-height) e a [`height`](/docs/app/api-reference/components/image#width-and-height) intrínsecas. Esses valores são usados para calcular a proporção da imagem e evitar o [Cumulative Layout Shift](https://web.dev/articles/cls) enquanto ela carrega.
 
 ```tsx filename="app/page.tsx" switcher
 import Image from 'next/image'
@@ -117,9 +117,9 @@ export default function Page() {
 }
 ```
 
-### Images without static imports
+### Imagens sem importação estática \{#images-without-static-imports}
 
-If you can't use a static `import` for your images, you can use a dynamic `import()` in a Server Component to still get automatic `width`, `height`, and `blurDataURL`:
+Se você não puder usar um `import` estático para suas imagens, pode usar um `import()` dinâmico em um Server Component para continuar obtendo `width`, `height` e `blurDataURL` automaticamente:
 
 ```tsx filename="app/blog/[slug]/page.tsx" switcher
 import Image from 'next/image'
@@ -151,7 +151,7 @@ async function PostImage({ imageFilename, alt }) {
 }
 ```
 
-If you have a [path alias](https://www.typescriptlang.org/tsconfig/#paths) configured (e.g. `@/`), you can use it instead of a relative path:
+Se você tiver um [alias de caminho](https://www.typescriptlang.org/tsconfig/#paths) configurado (por exemplo `@/`), pode usá-lo no lugar de um caminho relativo:
 
 ```tsx
 const { default: image } = await import(
@@ -159,11 +159,11 @@ const { default: image } = await import(
 )
 ```
 
-The path must include a static prefix (like `../content/blog/images/`). Be as specific as possible, since **all** files matching that prefix are bundled. Only files in your specified directory are included, so external input cannot reach outside of it.
+O caminho deve incluir um prefixo estático (como `../content/blog/images/`). Seja o mais específico possível, pois **todos** os arquivos que correspondem a esse prefixo são empacotados. Somente os arquivos do diretório especificado são incluídos, então uma entrada externa não consegue sair dele.
 
-## Remote images
+## Imagens remotas \{#remote-images}
 
-To use a remote image, you can provide a URL string for the `src` property.
+Para usar uma imagem remota, forneça uma string de URL na propriedade `src`.
 
 ```tsx filename="app/page.tsx" switcher
 import Image from 'next/image'
@@ -195,9 +195,9 @@ export default function Page() {
 }
 ```
 
-Since Next.js does not have access to remote files during the build process, you'll need to provide the [`width`](/docs/app/api-reference/components/image#width-and-height), [`height`](/docs/app/api-reference/components/image#width-and-height) and optional [`blurDataURL`](/docs/app/api-reference/components/image#blurdataurl) props manually. The `width` and `height` are used to infer the correct aspect ratio of image and avoid layout shift from the image loading in. Alternatively, you can use the [`fill` property](/docs/app/api-reference/components/image#fill) to make the image fill the size of the parent element.
+Como o Next.js não tem acesso a arquivos remotos durante o processo de build, você precisa fornecer manualmente as props [`width`](/docs/app/api-reference/components/image#width-and-height), [`height`](/docs/app/api-reference/components/image#width-and-height) e, opcionalmente, [`blurDataURL`](/docs/app/api-reference/components/image#blurdataurl). `width` e `height` são usados para inferir a proporção correta da imagem e evitar o layout shift causado pelo carregamento. Como alternativa, você pode usar a [propriedade `fill`](/docs/app/api-reference/components/image#fill) para fazer a imagem preencher o tamanho do elemento pai.
 
-To safely allow images from remote servers, you need to define a list of supported URL patterns in [`next.config.js`](/docs/app/api-reference/config/next-config-js). Be as specific as possible to prevent malicious usage. For example, the following configuration will only allow images from a specific AWS S3 bucket:
+Para permitir com segurança imagens de servidores remotos, você precisa definir uma lista de padrões de URL aceitos em [`next.config.js`](/docs/app/api-reference/config/next-config-js). Seja o mais específico possível para evitar uso malicioso. Por exemplo, a configuração a seguir permite somente imagens de um bucket específico do AWS S3:
 
 ```ts filename="next.config.ts" switcher
 import type { NextConfig } from 'next'
@@ -234,3 +234,5 @@ module.exports = {
   },
 }
 ```
+
+{/* ia-translate: true */}

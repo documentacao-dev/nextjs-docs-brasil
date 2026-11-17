@@ -1,48 +1,48 @@
 ---
 title: Proxy
 nav_title: Proxy
-description: Use Next.js Proxy to rewrite, redirect, modify headers, or respond directly before a request completes.
+description: Use o Proxy do Next.js para reescrever, redirecionar, modificar headers ou responder diretamente antes de a requisição ser concluída.
 related:
-  title: API Reference
-  description: Learn more about Proxy
+  title: Referência da API
+  description: Saiba mais sobre o Proxy
   links:
     - app/api-reference/file-conventions/proxy
     - app/guides/backend-for-frontend
 ---
 
-## Proxy
+## Proxy \{#proxy}
 
-> **Good to know**: Starting with Next.js 16, Middleware is now called Proxy to better reflect its purpose. The functionality remains the same.
+> **Bom saber**: A partir do Next.js 16, o Middleware passou a se chamar Proxy, para refletir melhor seu propósito. A funcionalidade continua a mesma.
 
-Proxy allows you to run code before a request is completed. Then, based on the incoming request, you can modify the response by rewriting, redirecting, modifying the request or response headers, or responding directly.
+O Proxy permite executar código antes de uma requisição ser concluída. Depois, com base na requisição recebida, você pode modificar a resposta: reescrevendo, redirecionando, alterando os headers da requisição ou da resposta, ou respondendo diretamente.
 
-### Use cases
+### Casos de uso \{#use-cases}
 
-Some common scenarios where Proxy is effective include:
+Alguns cenários comuns em que o Proxy é eficaz:
 
-- Modifying headers for all pages or a subset of pages
-- Rewriting to different pages based on A/B tests or experiments
-- Programmatic redirects based on incoming request properties
+- Modificar headers para todas as páginas ou para um subconjunto delas
+- Reescrever para páginas diferentes com base em testes A/B ou experimentos
+- Redirecionamentos programáticos com base em propriedades da requisição recebida
 
-For simple redirects, consider using the [`redirects`](/docs/app/api-reference/config/next-config-js/redirects) configuration in `next.config.ts` first. Proxy should be used when you need access to request data or more complex logic.
+Para redirecionamentos simples, considere primeiro usar a configuração [`redirects`](/docs/app/api-reference/config/next-config-js/redirects) no `next.config.ts`. Use o Proxy quando precisar acessar os dados da requisição ou quando tiver uma lógica mais complexa.
 
-### Limitations
+### Limitações \{#limitations}
 
-Proxy is _not_ intended for slow data fetching. While Proxy can be helpful for [optimistic checks](/docs/app/guides/authentication#optimistic-checks-with-proxy-optional) such as permission-based redirects, it should not be used as a full session management or authorization solution.
+O Proxy _não_ foi feito para buscas de dados lentas. Embora ele possa ajudar em [verificações otimistas](/docs/app/guides/authentication#optimistic-checks-with-proxy-optional), como redirecionamentos baseados em permissão, não deve ser usado como solução completa de gerenciamento de sessão ou de autorização.
 
-Directives such as [`use cache`](/docs/app/api-reference/directives/use-cache) and [`use server`](/docs/app/api-reference/directives/use-server) have no effect in Proxy, because Proxy does not apply [directive transforms](/docs/app/api-reference/directives).
+Diretivas como [`use cache`](/docs/app/api-reference/directives/use-cache) e [`use server`](/docs/app/api-reference/directives/use-server) não têm efeito no Proxy, porque ele não aplica [transformações de diretivas](/docs/app/api-reference/directives).
 
-`fetch` options such as `cache`, `next.revalidate`, and `next.tags` also do not cache responses. To reuse cached data in Proxy, use an [external cache or data store](/docs/app/guides/redirecting#managing-redirects-at-scale-advanced). Alternatively, move the work to a supported context, such as a Server Component or Route Handler.
+Opções de `fetch` como `cache`, `next.revalidate` e `next.tags` também não armazenam respostas em cache. Para reutilizar dados em cache no Proxy, use um [cache ou armazenamento de dados externo](/docs/app/guides/redirecting#managing-redirects-at-scale-advanced). Como alternativa, mova o trabalho para um contexto que tenha suporte, como um Server Component ou um Route Handler.
 
-### Convention
+### Convenção \{#convention}
 
-Create a `proxy.ts` (or `.js`) file in the project root, or inside `src` if applicable, so that it is located at the same level as `pages` or `app`.
+Crie um arquivo `proxy.ts` (ou `.js`) na raiz do projeto, ou dentro de `src`, se for o caso, para que ele fique no mesmo nível de `pages` ou `app`.
 
-> **Note**: While only one `proxy.ts` file is supported per project, you can still organize your proxy logic into modules. Break out proxy functionalities into separate `.ts` or `.js` files and import them into your main `proxy.ts` file. This allows for cleaner management of route-specific proxy, aggregated in the `proxy.ts` for centralized control. By enforcing a single proxy file, it simplifies configuration, prevents potential conflicts, and optimizes performance by avoiding multiple proxy layers.
+> **Observação**: Como só há suporte para um arquivo `proxy.ts` por projeto, você ainda pode organizar a lógica do proxy em módulos. Separe as funcionalidades do proxy em arquivos `.ts` ou `.js` distintos e importe-os no seu `proxy.ts` principal. Assim fica mais fácil gerenciar o proxy específico de cada rota, centralizado no `proxy.ts`. Ao impor um único arquivo de proxy, a configuração fica mais simples, conflitos potenciais são evitados e o desempenho é otimizado, já que não há várias camadas de proxy.
 
-### Example
+### Exemplo \{#example}
 
-You can export your proxy function as either a default export or a named `proxy` export:
+Você pode exportar a função do proxy como exportação padrão ou como exportação nomeada `proxy`:
 
 ```ts filename="proxy.ts" switcher
 import { NextResponse } from 'next/server'
@@ -77,6 +77,8 @@ export const config = {
 }
 ```
 
-The `matcher` config allows you to filter Proxy to run on specific paths. See the [Matcher](/docs/app/api-reference/file-conventions/proxy#matcher) documentation for more details on path matching.
+A configuração `matcher` permite filtrar o Proxy para rodar apenas em caminhos específicos. Veja a documentação de [Matcher](/docs/app/api-reference/file-conventions/proxy#matcher) para mais detalhes sobre a correspondência de caminhos.
 
-Read more about [using `proxy`](/docs/app/guides/backend-for-frontend#proxy), or refer to the `proxy` [API reference](/docs/app/api-reference/file-conventions/proxy).
+Leia mais sobre [como usar o `proxy`](/docs/app/guides/backend-for-frontend#proxy), ou consulte a [referência da API](/docs/app/api-reference/file-conventions/proxy) de `proxy`.
+
+{/* ia-translate: true */}

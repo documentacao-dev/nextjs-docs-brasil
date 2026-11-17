@@ -1,9 +1,9 @@
 ---
-title: Error Handling
-description: Learn how to display expected errors and handle uncaught exceptions.
+title: Tratamento de erros
+description: Aprenda a exibir erros esperados e a tratar exceções não capturadas.
 related:
-  title: API Reference
-  description: Learn more about the features mentioned in this page by reading the API Reference.
+  title: Referência da API
+  description: Saiba mais sobre os recursos mencionados nesta página lendo a Referência da API.
   links:
     - app/api-reference/functions/redirect
     - app/api-reference/file-conventions/error
@@ -12,17 +12,17 @@ related:
     - app/api-reference/file-conventions/not-found
 ---
 
-Errors can be divided into two categories: [expected errors](#handling-expected-errors) and [uncaught exceptions](#handling-uncaught-exceptions). This page will walk you through how you can handle these errors in your Next.js application.
+Os erros podem ser divididos em duas categorias: [erros esperados](#handling-expected-errors) e [exceções não capturadas](#handling-uncaught-exceptions). Esta página mostra como tratar esses erros no seu app Next.js.
 
-## Handling expected errors
+## Tratamento de erros esperados \{#handling-expected-errors}
 
-Expected errors are those that can occur during the normal operation of the application, such as those from [server-side form validation](/docs/app/guides/forms) or failed requests. These errors should be handled explicitly and returned to the client.
+Erros esperados são aqueles que podem acontecer durante a operação normal do app, como os da [validação de formulário no servidor](/docs/app/guides/forms) ou de requisições que falham. Esses erros devem ser tratados explicitamente e retornados ao cliente.
 
-### Server Functions
+### Server Functions \{#server-functions}
 
-You can use the [`useActionState`](https://react.dev/reference/react/useActionState) hook to handle expected errors in [Server Functions](https://react.dev/reference/rsc/server-functions).
+Você pode usar o hook [`useActionState`](https://react.dev/reference/react/useActionState) para tratar erros esperados em [Server Functions](https://react.dev/reference/rsc/server-functions).
 
-For these errors, avoid using `try`/`catch` blocks and throw errors. Instead, model expected errors as return values.
+Para esses erros, evite usar blocos `try`/`catch` e lançar erros. Em vez disso, modele os erros esperados como valores de retorno.
 
 ```ts filename="app/actions.ts" switcher
 'use server'
@@ -62,7 +62,7 @@ export async function createPost(prevState, formData) {
 }
 ```
 
-You can pass your action to the `useActionState` hook and use the returned `state` to display an error message.
+Você pode passar sua action para o hook `useActionState` e usar o `state` retornado para exibir uma mensagem de erro.
 
 ```tsx filename="app/ui/form.tsx" highlight={11,19} switcher
 'use client'
@@ -116,9 +116,9 @@ export function Form() {
 }
 ```
 
-### Server Components
+### Server Components \{#server-components}
 
-When fetching data inside of a Server Component, you can use the response to conditionally render an error message or [`redirect`](/docs/app/api-reference/functions/redirect).
+Ao buscar dados dentro de um Server Component, você pode usar a resposta para renderizar condicionalmente uma mensagem de erro ou um [`redirect`](/docs/app/api-reference/functions/redirect).
 
 ```tsx filename="app/page.tsx" switcher
 export default async function Page() {
@@ -146,9 +146,9 @@ export default async function Page() {
 }
 ```
 
-### Not found
+### Não encontrado \{#not-found}
 
-You can call the [`notFound`](/docs/app/api-reference/functions/not-found) function within a route segment and use the [`not-found.js`](/docs/app/api-reference/file-conventions/not-found) file to show a 404 UI.
+Você pode chamar a função [`notFound`](/docs/app/api-reference/functions/not-found) dentro de um segmento de rota e usar o arquivo [`not-found.js`](/docs/app/api-reference/file-conventions/not-found) para mostrar uma interface de 404.
 
 ```tsx filename="app/blog/[slug]/page.tsx" switcher
 import { notFound } from 'next/navigation'
@@ -198,15 +198,15 @@ export default function NotFound() {
 }
 ```
 
-## Handling uncaught exceptions
+## Tratamento de exceções não capturadas \{#handling-uncaught-exceptions}
 
-Uncaught exceptions are unexpected errors that indicate bugs or issues that should not occur during the normal flow of your application. These should be handled by throwing errors, which will then be caught by error boundaries.
+Exceções não capturadas são erros inesperados que indicam bugs ou problemas que não deveriam acontecer no fluxo normal do seu app. Eles devem ser tratados lançando erros, que serão capturados pelos error boundaries.
 
-### Nested error boundaries
+### Error boundaries aninhados \{#nested-error-boundaries}
 
-Next.js uses error boundaries to handle uncaught exceptions. Error boundaries catch errors in their child components and display a fallback UI instead of the component tree that crashed.
+O Next.js usa error boundaries para tratar exceções não capturadas. Error boundaries capturam erros nos componentes filhos e exibem uma interface de fallback no lugar da árvore de componentes que quebrou.
 
-Create an error boundary by adding an [`error.js`](/docs/app/api-reference/file-conventions/error) file inside a route segment and exporting a React component:
+Crie um error boundary adicionando um arquivo [`error.js`](/docs/app/api-reference/file-conventions/error) dentro de um segmento de rota e exportando um componente React:
 
 ```tsx filename="app/dashboard/error.tsx" switcher
 'use client' // Error boundaries must be Client Components
@@ -268,17 +268,17 @@ export default function ErrorPage({ error, retry }) {
 }
 ```
 
-Errors will bubble up to the nearest parent error boundary. This allows for granular error handling by placing `error.tsx` files at different levels in the [route hierarchy](/docs/app/getting-started/project-structure#component-hierarchy).
+Os erros sobem até o error boundary pai mais próximo. Isso permite um tratamento de erros granular, ao colocar arquivos `error.tsx` em diferentes níveis da [hierarquia de rotas](/docs/app/getting-started/project-structure#component-hierarchy).
 
 <Image
-  alt="Nested Error Component Hierarchy"
+  alt="Hierarquia de componentes de erro aninhados"
   srcLight="/docs/light/nested-error-component-hierarchy.png"
   srcDark="/docs/dark/nested-error-component-hierarchy.png"
   width="1600"
   height="687"
 />
 
-For component-level error recovery, the [`catchError`](/docs/app/api-reference/functions/catchError) function lets you create error boundaries that can wrap any part of your component tree:
+Para a recuperação de erros em nível de componente, a função [`catchError`](/docs/app/api-reference/functions/catchError) permite criar error boundaries que podem envolver qualquer parte da árvore de componentes:
 
 ```tsx filename="app/custom-error-boundary.tsx" switcher
 'use client'
@@ -320,7 +320,7 @@ function ErrorFallback(props, { error, retry }) {
 export default catchError(ErrorFallback)
 ```
 
-Then use the returned component as a wrapper in any layout or page:
+Depois, use o componente retornado para envolver qualquer layout ou página:
 
 ```tsx filename="app/some-component.tsx" switcher
 import ErrorBoundary from './custom-error-boundary'
@@ -338,11 +338,11 @@ export default function Component({ children }) {
 }
 ```
 
-Error boundaries don't catch errors inside event handlers. They're designed to catch errors [during rendering](https://react.dev/reference/react/Component#static-getderivedstatefromerror) to show a **fallback UI** instead of crashing the whole app.
+Error boundaries não capturam erros dentro de manipuladores de eventos. Eles foram feitos para capturar erros [durante a renderização](https://react.dev/reference/react/Component#static-getderivedstatefromerror) e mostrar uma **interface de fallback** em vez de derrubar o app inteiro.
 
-In general, errors in event handlers or async code aren’t handled by error boundaries because they run after rendering.
+Em geral, erros em manipuladores de eventos ou em código assíncrono não são tratados por error boundaries, porque são executados depois da renderização.
 
-To handle these cases, catch the error manually and store it using `useState` or `useReducer`, then update the UI to inform the user.
+Para tratar esses casos, capture o erro manualmente e armazene-o com `useState` ou `useReducer`, depois atualize a interface para informar o usuário.
 
 ```tsx
 'use client'
@@ -373,7 +373,7 @@ export function Button() {
 }
 ```
 
-Note that unhandled errors inside `startTransition` from `useTransition`, will bubble up to the nearest error boundary.
+Observe que erros não tratados dentro de `startTransition`, do `useTransition`, vão se propagar até o error boundary mais próximo.
 
 ```tsx
 'use client'
@@ -396,9 +396,9 @@ export function Button() {
 }
 ```
 
-### Global errors
+### Erros globais \{#global-errors}
 
-While less common, you can handle errors in the root layout using the [`global-error.js`](/docs/app/api-reference/file-conventions/error#global-error) file, located in the root app directory, even when leveraging [internationalization](/docs/app/guides/internationalization). Global error UI must define its own `<html>` and `<body>` tags, since it is replacing the root layout or template when active.
+Embora sejam menos comuns, você pode tratar erros no layout raiz usando o arquivo [`global-error.js`](/docs/app/api-reference/file-conventions/error#global-error), localizado na pasta raiz do app, mesmo ao usar [internacionalização](/docs/app/guides/internationalization). A interface de erro global precisa definir suas próprias tags `<html>` e `<body>`, já que ela substitui o layout ou template raiz quando está ativa.
 
 ```tsx filename="app/global-error.tsx" switcher
 'use client' // Error boundaries must be Client Components
@@ -437,3 +437,5 @@ export default function GlobalError({ error, retry }) {
   )
 }
 ```
+
+{/* ia-translate: true */}

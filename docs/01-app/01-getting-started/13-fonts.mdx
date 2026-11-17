@@ -1,20 +1,20 @@
 ---
-title: Font Optimization
-description: Learn how to optimize fonts in Next.js
+title: Otimização de fontes
+description: Aprenda a otimizar fontes no Next.js
 related:
-  title: API Reference
-  description: See the API Reference for the full feature set of Next.js Font
+  title: Referência da API
+  description: Veja a Referência da API com o conjunto completo de recursos do Next.js Font
   links:
     - app/api-reference/components/font
 ---
 
-The [`next/font`](/docs/app/api-reference/components/font) module automatically optimizes your fonts and removes external network requests for improved privacy and performance.
+O módulo [`next/font`](/docs/app/api-reference/components/font) otimiza automaticamente suas fontes e remove requisições de rede externas, para mais privacidade e desempenho.
 
-It includes **built-in self-hosting** for any font file. This means you can optimally load web fonts with no layout shift.
+Ele inclui **hospedagem própria integrada** para qualquer arquivo de fonte. Isso significa que você pode carregar fontes web de forma otimizada, sem deslocamento de layout.
 
 <AppOnly>
 
-To start using `next/font`, import it from [`next/font/local`](#local-fonts) or [`next/font/google`](#google-fonts), call it as a function with the appropriate options, and set the `className` of the element you want to apply the font to. For example:
+Para começar a usar o `next/font`, importe-o de [`next/font/local`](#local-fonts) ou [`next/font/google`](#google-fonts), chame-o como uma função com as opções apropriadas e defina o `className` do elemento ao qual você quer aplicar a fonte. Por exemplo:
 
 ```tsx filename="app/layout.tsx" highlight={1,3-5,9} switcher
 import { Geist } from 'next/font/google'
@@ -48,13 +48,13 @@ export default function Layout({ children }) {
 }
 ```
 
-Fonts are scoped to the component they're used in. To apply a font to your entire application, add it to the [Root Layout](/docs/app/api-reference/file-conventions/layout#root-layout).
+As fontes têm escopo no componente em que são usadas. Para aplicar uma fonte a todo o app, adicione-a ao [Layout raiz](/docs/app/api-reference/file-conventions/layout#root-layout).
 
 </AppOnly>
 
 <PagesOnly>
 
-To start using `next/font`, import it from [`next/font/local`](#local-fonts) or [`next/font/google`](#google-fonts), call it as a function with the appropriate options, and set the `className` of the element you want to apply the font to. For example, you can apply fonts globally in your [Custom App](/docs/pages/building-your-application/routing/custom-app) (`pages/_app`):
+Para começar a usar o `next/font`, importe-o de [`next/font/local`](#local-fonts) ou [`next/font/google`](#google-fonts), chame-o como uma função com as opções apropriadas e defina o `className` do elemento ao qual você quer aplicar a fonte. Por exemplo, você pode aplicar fontes globalmente no seu [App personalizado](/docs/pages/building-your-application/routing/custom-app) (`pages/_app`):
 
 ```tsx filename="pages/_app.tsx" highlight={1,4-6,10} switcher
 import { Geist } from 'next/font/google'
@@ -91,11 +91,11 @@ export default function MyApp({ Component, pageProps }) {
 
 </PagesOnly>
 
-## Google fonts
+## Google Fonts \{#google-fonts}
 
-You can automatically self-host any Google Font. Fonts are included as static assets and served from the same domain as your deployment, meaning no requests are sent to Google by the browser when the user visits your site.
+Você pode hospedar qualquer Google Font por conta própria, de forma automática. As fontes são incluídas como arquivos estáticos e servidas a partir do mesmo domínio do seu deploy, o que significa que o navegador não envia requisições ao Google quando o usuário visita seu site.
 
-To start using a Google Font, import your chosen font from `next/font/google`:
+Para começar a usar uma Google Font, importe a fonte escolhida de `next/font/google`:
 
 <AppOnly>
 
@@ -174,7 +174,7 @@ export default function MyApp({ Component, pageProps }) {
 
 </PagesOnly>
 
-We recommend using [variable fonts](https://fonts.google.com/variablefonts) for the best performance and flexibility. But if you can't use a variable font, you will need to specify a weight:
+Recomendamos usar [fontes variáveis](https://fonts.google.com/variablefonts) para o melhor desempenho e flexibilidade. Mas, se não puder usar uma fonte variável, será necessário especificar um peso:
 
 <AppOnly>
 
@@ -257,11 +257,11 @@ export default function MyApp({ Component, pageProps }) {
 
 </PagesOnly>
 
-## Local fonts
+## Fontes locais \{#local-fonts}
 
 <AppOnly>
 
-To use a local font, import the `localFont` function from `next/font/local` and specify the [`src`](/docs/app/api-reference/components/font#src) of your local font file. The path is resolved relative to the file where `localFont` is called. Fonts can be stored anywhere in the project, including the [`public`](/docs/app/api-reference/file-conventions/public-folder) folder or co-located inside the `app` folder. For example, to use a font stored in `app/fonts/`:
+Para usar uma fonte local, importe a função `localFont` de `next/font/local` e especifique o [`src`](/docs/app/api-reference/components/font#src) do arquivo da fonte local. O caminho é relativo ao arquivo em que você chama `localFont`. Você pode guardar as fontes em qualquer lugar do projeto, inclusive na pasta [`public`](/docs/app/api-reference/file-conventions/public-folder) ou junto do código, dentro da pasta `app`. Por exemplo, para usar uma fonte armazenada em `app/fonts/`:
 
 ```tsx filename="app/layout.tsx" switcher
 import localFont from 'next/font/local'
@@ -303,7 +303,7 @@ export default function RootLayout({ children }) {
 
 <PagesOnly>
 
-To use a local font, import your font from `next/font/local` and specify the [`src`](/docs/pages/api-reference/components/font#src) of your local font file. Fonts can be stored in the [`public`](/docs/pages/api-reference/file-conventions/public-folder) folder or inside the `pages` folder. For example:
+Para usar uma fonte local, importe sua fonte de `next/font/local` e especifique o [`src`](/docs/pages/api-reference/components/font#src) do arquivo da fonte local. Você pode guardar as fontes na pasta [`public`](/docs/pages/api-reference/file-conventions/public-folder) ou dentro da pasta `pages`. Por exemplo:
 
 ```tsx filename="pages/_app.tsx" switcher
 import localFont from 'next/font/local'
@@ -340,7 +340,7 @@ export default function MyApp({ Component, pageProps }) {
 
 </PagesOnly>
 
-If you want to use multiple files for a single font family, `src` can be an array:
+Se você quiser usar vários arquivos para uma única família de fontes, `src` pode ser um array:
 
 ```js
 const roboto = localFont({
@@ -368,3 +368,5 @@ const roboto = localFont({
   ],
 })
 ```
+
+{/* ia-translate: true */}

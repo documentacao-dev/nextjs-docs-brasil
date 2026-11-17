@@ -1,9 +1,9 @@
 ---
-title: Metadata and OG images
-description: Learn how to add metadata to your pages and create dynamic OG images.
+title: Metadata e imagens OG
+description: Aprenda a adicionar metadados às suas páginas e a criar imagens OG dinâmicas.
 related:
-  title: API Reference
-  description: Learn more about the Metadata APIs mentioned in this page.
+  title: Referência da API
+  description: Saiba mais sobre as APIs de Metadata mencionadas nesta página.
   links:
     - app/api-reference/functions/generate-metadata
     - app/api-reference/functions/generate-viewport
@@ -16,33 +16,33 @@ related:
     - app/api-reference/config/next-config-js/htmlLimitedBots
 ---
 
-The Metadata APIs can be used to define your application metadata for improved SEO and web shareability and include:
+As APIs de Metadata podem ser usadas para definir os metadados do app, para melhorar o SEO e a compartilhabilidade na web, e incluem:
 
-1. [The static `metadata` object](#static-metadata)
-2. [The dynamic `generateMetadata` function](#generated-metadata)
-3. Special [file conventions](/docs/app/api-reference/file-conventions/metadata) that can be used to add static or dynamically generated [favicons](#favicons) and [OG images](#static-open-graph-images).
+1. [O objeto `metadata` estático](#static-metadata)
+2. [A função `generateMetadata` dinâmica](#generated-metadata)
+3. [Convenções de arquivo](/docs/app/api-reference/file-conventions/metadata) especiais que podem ser usadas para adicionar [favicons](#favicons) e [imagens OG](#static-open-graph-images) estáticos ou gerados dinamicamente.
 
-With all the options above, Next.js will automatically generate the relevant `<head>` tags for your page, which can be inspected in the browser's developer tools.
+Com todas as opções acima, o Next.js gera automaticamente as tags `<head>` relevantes para a página, que podem ser inspecionadas nas ferramentas de desenvolvedor do navegador.
 
-The `metadata` object and `generateMetadata` function exports are only supported in Server Components.
+As exportações do objeto `metadata` e da função `generateMetadata` só funcionam em Server Components.
 
-## Default fields
+## Campos padrão \{#default-fields}
 
-There are two default `meta` tags that are always added even if a route doesn't define metadata:
+Há duas tags `meta` padrão que são sempre adicionadas, mesmo que uma rota não defina metadados:
 
-- The [meta charset tag](https://developer.mozilla.org/docs/Web/HTML/Element/meta#attr-charset) sets the character encoding for the website.
-- The [meta viewport tag](https://developer.mozilla.org/docs/Web/HTML/Viewport_meta_tag) sets the viewport width and scale for the website to adjust for different devices.
+- A [tag meta charset](https://developer.mozilla.org/docs/Web/HTML/Element/meta#attr-charset) define a codificação de caracteres do site.
+- A [tag meta viewport](https://developer.mozilla.org/docs/Web/HTML/Viewport_meta_tag) define a largura e a escala da viewport do site para se adaptar a diferentes dispositivos.
 
 ```html
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 ```
 
-The other metadata fields can be defined with the `Metadata` object (for [static metadata](#static-metadata)) or the `generateMetadata` function (for [generated metadata](#generated-metadata)).
+Os demais campos de metadados podem ser definidos com o objeto `Metadata` (para [metadados estáticos](#static-metadata)) ou com a função `generateMetadata` (para [metadados gerados](#generated-metadata)).
 
-## Static metadata
+## Metadados estáticos \{#static-metadata}
 
-To define static metadata, export a [`Metadata` object](/docs/app/api-reference/functions/generate-metadata#metadata-object) from a static [`layout.js`](/docs/app/api-reference/file-conventions/layout) or [`page.js`](/docs/app/api-reference/file-conventions/page) file. For example, to add a title and description to the blog route:
+Para definir metadados estáticos, exporte um [objeto `Metadata`](/docs/app/api-reference/functions/generate-metadata#metadata-object) de um arquivo [`layout.js`](/docs/app/api-reference/file-conventions/layout) ou [`page.js`](/docs/app/api-reference/file-conventions/page) estático. Por exemplo, para adicionar um título e uma descrição à rota do blog:
 
 ```tsx filename="app/blog/layout.tsx" switcher
 import type { Metadata } from 'next'
@@ -64,11 +64,11 @@ export const metadata = {
 export default function Layout() {}
 ```
 
-You can view a full list of available options, in the [`generateMetadata` documentation](/docs/app/api-reference/functions/generate-metadata#metadata-fields).
+Você pode ver a lista completa de opções disponíveis na [documentação de `generateMetadata`](/docs/app/api-reference/functions/generate-metadata#metadata-fields).
 
-## Generated metadata
+## Metadados gerados \{#generated-metadata}
 
-You can use [`generateMetadata`](/docs/app/api-reference/functions/generate-metadata) function to `fetch` metadata that depends on data. For example, to fetch the title and description for a specific blog post:
+Você pode usar a função [`generateMetadata`](/docs/app/api-reference/functions/generate-metadata) para fazer `fetch` de metadados que dependem de dados. Por exemplo, para buscar o título e a descrição de um post específico do blog:
 
 ```tsx filename="app/blog/[slug]/page.tsx" switcher
 import type { Metadata, ResolvingMetadata } from 'next'
@@ -116,23 +116,23 @@ export async function generateMetadata({ params, searchParams }, parent) {
 export default function Page({ params, searchParams }) {}
 ```
 
-### Streaming metadata
+### Metadados em streaming \{#streaming-metadata}
 
-For dynamically rendered pages, Next.js streams metadata separately, injecting it into the HTML once `generateMetadata` resolves, without blocking UI rendering.
+Em páginas renderizadas dinamicamente, o Next.js faz streaming dos metadados separadamente, injetando-os no HTML assim que `generateMetadata` resolve, sem bloquear a renderização da interface.
 
-Streaming metadata improves perceived performance by allowing visual content to stream first.
+Fazer streaming dos metadados melhora a performance percebida, pois permite que o conteúdo visual chegue primeiro.
 
-Streaming metadata is **disabled for bots and crawlers** that expect metadata to be in the `<head>` tag (e.g. `Twitterbot`, `Slackbot`, `Bingbot`). These are detected by using the User Agent header from the incoming request.
+O streaming de metadados é **desativado para bots e crawlers** que esperam que os metadados estejam na tag `<head>` (por exemplo, `Twitterbot`, `Slackbot`, `Bingbot`). Eles são detectados pelo header User Agent da requisição recebida.
 
-You can customize or **disable** streaming metadata completely, with the [`htmlLimitedBots`](/docs/app/api-reference/config/next-config-js/htmlLimitedBots#disabling) option in your Next.js config file.
+Você pode personalizar ou **desativar** completamente o streaming de metadados com a opção [`htmlLimitedBots`](/docs/app/api-reference/config/next-config-js/htmlLimitedBots#disabling) no arquivo de configuração do Next.js.
 
-Prerendered pages don’t use streaming since metadata is resolved at build time.
+Páginas com prerendering não usam streaming, já que os metadados são resolvidos no build.
 
-Learn more about [streaming metadata](/docs/app/api-reference/functions/generate-metadata#streaming-metadata).
+Saiba mais sobre [streaming de metadados](/docs/app/api-reference/functions/generate-metadata#streaming-metadata).
 
-### Memoizing data requests
+### Memoização de requisições de dados \{#memoizing-data-requests}
 
-There may be cases where you need to fetch the **same** data for metadata and the page itself. To avoid duplicate requests, you can use React's [`cache` function](https://react.dev/reference/react/cache) to memoize the return value and only fetch the data once. For example, to fetch the blog post information for both the metadata and the page:
+Pode haver casos em que você precisa buscar os **mesmos** dados para os metadados e para a própria página. Para evitar requisições duplicadas, você pode usar a função [`cache` do React](https://react.dev/reference/react/cache) para memoizar o valor retornado e buscar os dados só uma vez. Por exemplo, para buscar as informações do post do blog tanto para os metadados quanto para a página:
 
 ```ts filename="app/lib/data.ts" highlight={5} switcher
 import { cache } from 'react'
@@ -202,62 +202,62 @@ export default async function Page({ params }) {
 }
 ```
 
-## File-based metadata
+## Metadados baseados em arquivos \{#file-based-metadata}
 
-The following special files are available for metadata:
+Os seguintes arquivos especiais estão disponíveis para metadados:
 
-- [favicon.ico, apple-icon.jpg, and icon.jpg](/docs/app/api-reference/file-conventions/metadata/app-icons)
-- [opengraph-image.jpg and twitter-image.jpg](/docs/app/api-reference/file-conventions/metadata/opengraph-image)
+- [favicon.ico, apple-icon.jpg e icon.jpg](/docs/app/api-reference/file-conventions/metadata/app-icons)
+- [opengraph-image.jpg e twitter-image.jpg](/docs/app/api-reference/file-conventions/metadata/opengraph-image)
 - [robots.txt](/docs/app/api-reference/file-conventions/metadata/robots)
 - [sitemap.xml](/docs/app/api-reference/file-conventions/metadata/sitemap)
 
-You can use these for static metadata, or you can programmatically generate these files with code.
+Você pode usá-los para metadados estáticos ou gerar esses arquivos programaticamente com código.
 
-## Favicons
+## Favicons \{#favicons}
 
-Favicons are small icons that represent your site in bookmarks and search results. To add a favicon to your application, create a `favicon.ico` and add to the root of the app folder.
+Favicons são pequenos ícones que representam o site em favoritos e resultados de busca. Para adicionar um favicon ao app, crie um `favicon.ico` e adicione-o na raiz da pasta app.
 
 <Image
-  alt="Favicon Special File inside the App Folder with sibling layout and page files"
+  alt="Arquivo especial favicon dentro da pasta App, com arquivos layout e page irmãos"
   srcLight="/docs/light/favicon-ico.png"
   srcDark="/docs/dark/favicon-ico.png"
   width="1600"
   height="444"
 />
 
-> You can also programmatically generate favicons using code. See the [favicon docs](/docs/app/api-reference/file-conventions/metadata/app-icons) for more information.
+> Você também pode gerar favicons programaticamente com código. Veja a [documentação de favicons](/docs/app/api-reference/file-conventions/metadata/app-icons) para mais informações.
 
-## Static Open Graph images
+## Imagens Open Graph estáticas \{#static-open-graph-images}
 
-Open Graph (OG) images are images that represent your site in social media. To add a static OG image to your application, create a `opengraph-image.jpg` file in the root of the app folder.
+Imagens Open Graph (OG) são imagens que representam o site nas redes sociais. Para adicionar uma imagem OG estática ao app, crie um arquivo `opengraph-image.jpg` na raiz da pasta app.
 
 <Image
-  alt="OG image special file inside the App folder with sibling layout and page files"
+  alt="Arquivo especial de imagem OG dentro da pasta App, com arquivos layout e page irmãos"
   srcLight="/docs/light/opengraph-image.png"
   srcDark="/docs/dark/opengraph-image.png"
   width="1600"
   height="444"
 />
 
-You can also add OG images for specific routes by creating a `opengraph-image.jpg` deeper down the folder structure. For example, to create an OG image specific to the `/blog` route, add a `opengraph-image.jpg` file inside the `blog` folder.
+Você também pode adicionar imagens OG para rotas específicas criando um `opengraph-image.jpg` mais fundo na estrutura de pastas. Por exemplo, para criar uma imagem OG específica para a rota `/blog`, adicione um arquivo `opengraph-image.jpg` dentro da pasta `blog`.
 
 <Image
-  alt="OG image special file inside the blog folder"
+  alt="Arquivo especial de imagem OG dentro da pasta blog"
   srcLight="/docs/light/opengraph-image-blog.png"
   srcDark="/docs/dark/opengraph-image-blog.png"
   width="1600"
   height="525"
 />
 
-The more specific image will take precedence over any OG images above it in the folder structure.
+A imagem mais específica terá precedência sobre as imagens OG acima dela na estrutura de pastas.
 
-> Other image formats such as `jpeg`, `png`, and `gif` are also supported. See the [Open Graph Image docs](/docs/app/api-reference/file-conventions/metadata/opengraph-image) for more information.
+> Outros formatos de imagem, como `jpeg`, `png` e `gif`, também são aceitos. Veja a [documentação de imagens Open Graph](/docs/app/api-reference/file-conventions/metadata/opengraph-image) para mais informações.
 
-## Generated Open Graph images
+## Imagens Open Graph geradas \{#generated-open-graph-images}
 
-The [`ImageResponse` constructor](/docs/app/api-reference/functions/image-response) allows you to generate dynamic images using JSX and CSS. This is useful for OG images that depend on data.
+O [construtor `ImageResponse`](/docs/app/api-reference/functions/image-response) permite gerar imagens dinâmicas usando JSX e CSS. Isso é útil para imagens OG que dependem de dados.
 
-For example, to generate a unique OG image for each blog post, add an `opengraph-image.tsx` file inside the `blog/[slug]` folder, and import the `ImageResponse` constructor from `next/og`:
+Por exemplo, para gerar uma imagem OG única para cada post do blog, adicione um arquivo `opengraph-image.tsx` dentro da pasta `blog/[slug]` e importe o construtor `ImageResponse` de `next/og`:
 
 ```tsx filename="app/blog/[slug]/opengraph-image.tsx" switcher
 import { ImageResponse } from 'next/og'
@@ -339,10 +339,12 @@ export default async function Image({ params }) {
 }
 ```
 
-`ImageResponse` supports common CSS properties including flexbox and absolute positioning, custom fonts, text wrapping, centering, and nested images. [See the full list of supported CSS properties](/docs/app/api-reference/functions/image-response).
+`ImageResponse` oferece suporte às propriedades CSS comuns, incluindo flexbox e posicionamento absoluto, fontes personalizadas, quebra de texto, centralização e imagens aninhadas. [Veja a lista completa de propriedades CSS com suporte](/docs/app/api-reference/functions/image-response).
 
-> **Good to know**:
+> **Bom saber**:
 >
-> - Examples are available in the [Vercel OG Playground](https://og-playground.vercel.app/).
-> - `ImageResponse` uses [`@vercel/og`](https://vercel.com/docs/og-image-generation), [`satori`](https://github.com/vercel/satori), and `resvg` to convert HTML and CSS into PNG.
-> - Only flexbox and a subset of CSS properties are supported. Advanced layouts (e.g. `display: grid`) will not work.
+> - Exemplos estão disponíveis no [Vercel OG Playground](https://og-playground.vercel.app/).
+> - `ImageResponse` usa [`@vercel/og`](https://vercel.com/docs/og-image-generation), [`satori`](https://github.com/vercel/satori) e `resvg` para converter HTML e CSS em PNG.
+> - Só há suporte a flexbox e a um subconjunto de propriedades CSS. Layouts avançados (por exemplo, `display: grid`) não funcionam.
+
+{/* ia-translate: true */}

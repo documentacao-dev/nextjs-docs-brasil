@@ -1,18 +1,18 @@
 ---
-title: Upgrading
-description: Learn how to upgrade your Next.js application to the latest version or canary.
+title: Atualização
+description: Aprenda a atualizar seu app Next.js para a versão mais recente ou para o canary.
 related:
-  title: Version guides
-  description: See the version guides for in-depth upgrade instructions.
+  title: Guias de versão
+  description: Veja os guias de versão para instruções detalhadas de atualização.
   links:
     - app/guides/upgrading/version-16
     - app/guides/upgrading/version-15
     - app/guides/upgrading/version-14
 ---
 
-## Latest version
+## Versão mais recente \{#latest-version}
 
-To update to the latest version of Next.js, you can use the `upgrade` command:
+Para atualizar para a versão mais recente do Next.js, use o comando `upgrade`:
 
 ```bash package="pnpm"
 pnpm next upgrade
@@ -30,21 +30,21 @@ yarn next upgrade
 bunx next upgrade
 ```
 
-Versions before Next.js 16.1.0 do not support the `upgrade` command and need to use a separate package instead:
+Versões anteriores ao Next.js 16.1.0 não têm suporte ao comando `upgrade` e precisam usar um pacote separado:
 
 ```bash filename="Terminal"
 npx @next/codemod@canary upgrade latest
 ```
 
-To have a coding agent perform and verify the upgrade, run:
+Para que um agente de código faça e verifique a atualização, execute:
 
 ```bash filename="Terminal"
 npx next@canary upgrade --agent=latest
 ```
 
-See [Upgrade with a coding agent](/docs/app/guides/upgrading/agent-upgrade) for other policies and upgrade reminders.
+Veja [Atualizar com um agente de código](/docs/app/guides/upgrading/agent-upgrade) para outras políticas e lembretes de atualização.
 
-If you prefer to upgrade manually, install the latest Next.js and React versions:
+Se você preferir atualizar manualmente, instale a versão mais recente do Next.js e do React:
 
 ```bash package="pnpm"
 pnpm i next@latest react@latest react-dom@latest eslint-config-next@latest
@@ -62,9 +62,9 @@ yarn add next@latest react@latest react-dom@latest eslint-config-next@latest
 bun add next@latest react@latest react-dom@latest eslint-config-next@latest
 ```
 
-## Canary version
+## Versão canary \{#canary-version}
 
-To update to the latest canary, make sure you're on the latest version of Next.js and everything is working as expected. Then, run the following command:
+Para atualizar para o canary mais recente, confirme que você está na versão mais recente do Next.js e que tudo está funcionando como esperado. Depois, execute o comando a seguir:
 
 ```bash package="pnpm"
 pnpm add next@canary
@@ -82,14 +82,16 @@ yarn add next@canary
 bun add next@canary
 ```
 
-### Features available in canary
+### Recursos disponíveis no canary \{#features-available-in-canary}
 
-The following features are currently available in canary:
+No momento, os recursos a seguir estão disponíveis no canary:
 
-**Authentication**:
+**Autenticação**:
 
 - [`forbidden`](/docs/app/api-reference/functions/forbidden)
 - [`unauthorized`](/docs/app/api-reference/functions/unauthorized)
 - [`forbidden.js`](/docs/app/api-reference/file-conventions/forbidden)
 - [`unauthorized.js`](/docs/app/api-reference/file-conventions/unauthorized)
 - [`authInterrupts`](/docs/app/api-reference/config/next-config-js/authInterrupts)
+
+{/* ia-translate: true */}
