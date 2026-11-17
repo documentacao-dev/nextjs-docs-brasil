@@ -5,6 +5,7 @@ use turbo_rcstr::RcStr;
 use turbo_tasks::{
     NonLocalValue, ReadRef, TryJoinIterExt, ValueToString, Vc, debug::ValueDebugFormat,
 };
+use turbo_tasks_hash::hash_xxh3_hash128;
 use turbopack_core::{
     chunk::{ChunkItem, ChunkItemExt, MangleType, MinifyType, ModuleId},
     code_builder::Code,
@@ -58,20 +59,24 @@ async fn code_module_id_and_path(
     // all); only the per-item mode asks for the factory to be minified now. A strict factory keeps
     // its `"use strict"` directive either way; the chunk drops it where it places the factory in a
     // strict context (see `write_module_factories`).
-    let (code, strict) = if let Ok(ChunkItemFactoryContent::Minified { factory, strict }) =
+    let (code, hash, strict) = if let Ok(ChunkItemFactoryContent::Minified { factory, strict }) =
         chunk_item_factory_content(item.chunk_item, async_info, false, minify, source_maps).await
     {
-        (factory.await?, strict)
+        (factory.await?, None, strict)
     } else {
         // Not minified per item, or the content failed to generate. Dropping that error is
         // intentional: `code` reports it as an issue and returns a factory that throws it, so the
         // chunk still builds.
         let factory = item.chunk_item.code(async_info).await?;
-        (factory.code.to_code().await?, factory.strict)
+        let code = factory.code.to_code().await?;
+        // The same hash as the chunk version's, taken from the code this factory is written from.
+        let hash = hash_xxh3_hash128(code.source_code());
+        (code, Some(hash), factory.strict)
     };
     Ok(CodeModuleIdAndPath {
         id: item.chunk_item.id().await?,
         code,
+        hash,
         path: item.chunk_item.asset_ident().to_string().owned().await?,
         strict,
     })
@@ -81,6 +86,10 @@ async fn code_module_id_and_path(
 pub struct CodeModuleIdAndPath {
     pub id: ModuleId,
     pub code: ReadRef<Code>,
+    /// The hash of the item's code, as in
+    /// [`EcmascriptChunkVersion`](crate::hmr::version::EcmascriptChunkVersion). Not known for a
+    /// factory minified on its own, whose code differs from the hashed one.
+    pub hash: Option<u128>,
     pub path: RcStr,
     pub strict: bool,
 }
