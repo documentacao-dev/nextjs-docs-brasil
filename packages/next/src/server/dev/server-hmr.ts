@@ -66,9 +66,8 @@ function chunkDir(chunkPath: string) {
  * - otherwise nothing is needed: the route's chunks install them when they
  *   load.
  *
- * What is kept here is only a cache: the hashes of the chunks reported last,
- * and which chunks were compared with which runtime since it last installed a
- * factory. Losing it only causes extra work.
+ * What is kept here is only a cache of the hashes of the chunks reported last.
+ * Losing it only causes extra work.
  */
 export function setupServerHmr(
   project: Pick<Project, 'getServerHmrRoute' | 'getServerHmrModules'>,
@@ -89,11 +88,6 @@ export function setupServerHmr(
   const chunkHashes = new Map<
     string,
     { versionId: string; hashes: Map<ServerHmrModuleId, string> }
-  >()
-  /** The chunks compared with a runtime that needed nothing since. */
-  const compared = new WeakMap<
-    ServerHmrRuntimeState,
-    Map<string, { versionId: string; installCount: number; started: boolean }>
   >()
 
   async function recover() {
@@ -175,70 +169,40 @@ export function setupServerHmr(
       // whatever they hold when they load.
       if (!runtime) continue
       const { installedHash } = runtime
-      let comparedChunks = compared.get(runtime)
-      const isCompared = (chunk: (typeof dirChunks)[number]) => {
-        const previous = comparedChunks?.get(chunk.path)
-        return (
-          previous?.versionId === chunk.versionId &&
-          previous.installCount === runtime.installCount &&
-          previous.started === started
-        )
-      }
+      const moduleHashes = dirChunks.map(
+        (chunk) => [chunk.path, chunkHashes.get(chunk.path)!.hashes] as const
+      )
 
-      // Modules the runtime holds at other code are shipped. A compared chunk
-      // has none.
-      let outdated = false
-      for (const chunk of dirChunks) {
-        if (isCompared(chunk)) continue
-        for (const [id, hash] of chunkHashes.get(chunk.path)!.hashes) {
+      // Modules the runtime holds at other code are shipped.
+      const outdated = moduleHashes.some(([, hashes]) => {
+        for (const [id, hash] of hashes) {
           if (installedHash.has(id) && installedHash.get(id) !== hash) {
-            outdated = true
-            break
+            return true
           }
         }
-        if (outdated) break
-      }
+        return false
+      })
 
       // Missing modules are shipped too when the route started, or when
       // outdated modules are shipped: a shipped module can run right away,
       // e.g. when it accepts itself, and require modules that are new to the
-      // runtime before the route's chunks load.
-      const shipMissing = started || outdated
+      // runtime before the route's chunks load. Otherwise the route's chunks
+      // install them when they load.
+      if (!started && !outdated) continue
       const request = new Map<string, ServerHmrModuleId[]>()
-      if (shipMissing) {
-        const shipped = new Set<ServerHmrModuleId>()
-        for (const chunk of dirChunks) {
-          // Compared chunks hold no outdated modules, and no missing ones of a
-          // started route.
-          if (!outdated && isCompared(chunk)) continue
-          const ids: ServerHmrModuleId[] = []
-          for (const [id, hash] of chunkHashes.get(chunk.path)!.hashes) {
-            // Every module is shipped once per runtime.
-            if (shipped.has(id)) continue
-            if (!installedHash.has(id) || installedHash.get(id) !== hash) {
-              ids.push(id)
-              shipped.add(id)
-            }
+      const shipped = new Set<ServerHmrModuleId>()
+      for (const [chunkPath, hashes] of moduleHashes) {
+        const ids: ServerHmrModuleId[] = []
+        for (const [id, hash] of hashes) {
+          // Every module is shipped once per runtime.
+          if (!shipped.has(id) && installedHash.get(id) !== hash) {
+            ids.push(id)
+            shipped.add(id)
           }
-          if (ids.length > 0) request.set(chunk.path, ids)
         }
+        if (ids.length > 0) request.set(chunkPath, ids)
       }
-      if (request.size > 0) {
-        plans.set(dir, { runtime, request })
-        continue
-      }
-      // Nothing is needed until a chunk or the runtime changes.
-      if (!comparedChunks) {
-        comparedChunks = new Map()
-        compared.set(runtime, comparedChunks)
-      }
-      for (const chunk of dirChunks) {
-        comparedChunks.set(chunk.path, {
-          versionId: chunk.versionId,
-          installCount: runtime.installCount,
-          started,
-        })
-      }
+      if (request.size > 0) plans.set(dir, { runtime, request })
     }
     if (plans.size === 0) return true
 
@@ -282,8 +246,7 @@ export function setupServerHmr(
           !modules ||
           !expected ||
           modules.versionId !== versionIds.get(chunkPath) ||
-          modules.versionId !== expected.versionId ||
-          modules.missing.length > 0
+          modules.versionId !== expected.versionId
         ) {
           return 'stale'
         }

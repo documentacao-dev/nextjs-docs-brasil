@@ -2106,7 +2106,7 @@ pub struct NapiServerHmrRouteChunk {
     /// Changes whenever a module of the chunk changes, or which modules the chunk holds.
     pub version_id: RcStr,
     /// The hash of every module of the chunk, unless the caller already knows this version.
-    #[napi(ts_type = "Array<[string | number, string]> | undefined")]
+    #[napi(ts_type = "Array<[string, string]> | undefined")]
     pub hashes: Option<serde_json::Value>,
 }
 
@@ -2164,8 +2164,8 @@ pub async fn project_get_server_hmr_route(
 #[napi(object, object_to_js = false)]
 pub struct NapiServerHmrModuleRequest {
     pub chunk_path: RcStr,
-    #[napi(ts_type = "Array<string | number>")]
-    pub ids: serde_json::Value,
+    /// Development chunks use named module ids.
+    pub ids: Vec<RcStr>,
 }
 
 #[napi(object, object_from_js = false)]
@@ -2174,14 +2174,8 @@ pub struct NapiServerHmrChunkModules {
     /// The id of the chunk's version the code was read from.
     pub version_id: RcStr,
     /// The update entry of every requested module the chunk holds, with the hash of its code.
-    #[napi(
-        ts_type = "Array<[string | number, { code: string; url: string; map?: string; hash: \
-                   string }]>"
-    )]
+    #[napi(ts_type = "Array<[string, { code: string; url: string; map?: string; hash: string }]>")]
     pub entries: serde_json::Value,
-    /// Requested modules the chunk doesn't hold.
-    #[napi(ts_type = "Array<string | number>")]
-    pub missing: serde_json::Value,
 }
 
 /// The code of the requested modules of the current chunks of the route of `entry_paths`.
@@ -2193,24 +2187,13 @@ pub async fn project_get_server_hmr_modules(
     entry_paths: Vec<RcStr>,
     request: Vec<NapiServerHmrModuleRequest>,
 ) -> napi::Result<TurbopackResult<Vec<NapiServerHmrChunkModules>>> {
-    let mut requested = FxIndexMap::default();
-    for request in request {
-        let serde_json::Value::Array(ids) = request.ids else {
-            return Err(napi::Error::from_reason("module ids must be an array"));
-        };
-        let ids = ids
-            .into_iter()
-            .map(|id| match id {
-                serde_json::Value::String(id) => Ok(ModuleId::String(id.into())),
-                serde_json::Value::Number(id) => id
-                    .as_u64()
-                    .map(ModuleId::Number)
-                    .ok_or_else(|| napi::Error::from_reason(format!("invalid module id {id}"))),
-                id => Err(napi::Error::from_reason(format!("invalid module id {id}"))),
-            })
-            .collect::<napi::Result<Vec<_>>>()?;
-        requested.insert(request.chunk_path, ids);
-    }
+    let requested = request
+        .into_iter()
+        .map(|request| {
+            let ids = request.ids.into_iter().map(ModuleId::String).collect();
+            (request.chunk_path, ids)
+        })
+        .collect::<FxIndexMap<_, _>>();
     let (project_vc, read) = read_server_hmr_snapshot(project, entry_paths, false).await?;
     let issues = napi_issues(&read.issues);
     let code = project
@@ -2257,7 +2240,6 @@ pub async fn project_get_server_hmr_modules(
             chunk_path: chunk.chunk_path.clone(),
             version_id: chunk.version_id.clone(),
             entries: serde_json::to_value(entries).map_err(json_error)?,
-            missing: serde_json::to_value(&chunk.missing).map_err(json_error)?,
         });
     }
     Ok(TurbopackResult { result, issues })

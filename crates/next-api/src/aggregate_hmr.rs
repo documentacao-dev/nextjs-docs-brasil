@@ -111,10 +111,8 @@ pub struct ServerHmrChunkModules {
     /// The id of the chunk's version the code was read from.
     pub version_id: RcStr,
     /// The update entry of every requested module the chunk holds, with the hash of exactly its
-    /// code.
+    /// code. Requested modules the chunk doesn't hold are left out.
     pub entries: Vec<(ModuleId, EcmascriptModuleEntry, u128)>,
-    /// Requested modules the chunk doesn't hold (anymore).
-    pub missing: Vec<ModuleId>,
 }
 
 /// The result of [`server_hmr_module_code_operation`].
@@ -139,10 +137,8 @@ pub async fn server_hmr_module_code_operation(
         let chunk_path = &chunk.version.chunk_path;
         let chunk_entries = chunk.content.entries().await?;
         let mut entries = Vec::new();
-        let mut missing = Vec::new();
         for id in ids {
             let Some(entry) = chunk_entries.get(id) else {
-                missing.push(id.clone());
                 continue;
             };
             let entry = EcmascriptModuleEntry::from_code(id, *entry.code, chunk_path).await?;
@@ -154,7 +150,6 @@ pub async fn server_hmr_module_code_operation(
             chunk_path: chunk_path.clone(),
             version_id: chunk.version_id.clone(),
             entries,
-            missing,
         });
     }
     Ok(Vc::cell(result))

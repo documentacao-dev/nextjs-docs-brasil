@@ -273,8 +273,8 @@ export interface NodeJsPartialHmrUpdate {
   instruction: NodeJsEcmascriptMergedUpdate | NodeJsChunkListUpdate
 }
 
-/** A module id, as chunks and the runtimes hold it. */
-export type ServerHmrModuleId = string | number
+/** A module id, as development chunks and runtimes hold it (always named). */
+export type ServerHmrModuleId = string
 
 /** A JavaScript chunk of a route, as a server HMR query reports it. */
 export interface ServerHmrRouteChunk {
@@ -300,15 +300,16 @@ export interface ServerHmrChunkModules {
   chunkPath: string
   /** The id of the chunk's version the code was read from. */
   versionId: string
-  /** The update entry of every requested module, with the hash of its code. */
+  /**
+   * The update entry of every requested module the chunk holds, with the hash
+   * of its code.
+   */
   entries: Array<
     [
       ServerHmrModuleId,
       { code: string; url: string; map?: string; hash: string },
     ]
   >
-  /** Requested modules the chunk doesn't hold. */
-  missing: ServerHmrModuleId[]
 }
 
 export interface HmrChunkNames {

@@ -499,15 +499,14 @@ export interface NapiServerHmrChunkModules {
   versionId: RcStr
   /** The update entry of every requested module the chunk holds, with the hash of its code. */
   entries: Array<
-    [string | number, { code: string; url: string; map?: string; hash: string }]
+    [string, { code: string; url: string; map?: string; hash: string }]
   >
-  /** Requested modules the chunk doesn't hold. */
-  missing: Array<string | number>
 }
 
 export interface NapiServerHmrModuleRequest {
   chunkPath: RcStr
-  ids: Array<string | number>
+  /** Development chunks use named module ids. */
+  ids: Array<RcStr>
 }
 
 export interface NapiServerHmrRoute {
@@ -522,7 +521,7 @@ export interface NapiServerHmrRouteChunk {
   /** Changes whenever a module of the chunk changes, or which modules the chunk holds. */
   versionId: RcStr
   /** The hash of every module of the chunk, unless the caller already knows this version. */
-  hashes?: Array<[string | number, string]> | undefined
+  hashes?: Array<[string, string]> | undefined
 }
 
 export interface NapiSource {
