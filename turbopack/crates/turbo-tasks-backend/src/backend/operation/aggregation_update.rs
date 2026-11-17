@@ -530,7 +530,7 @@ impl AggregatedDataUpdate {
             let mut collectibles_update = CollectiblesUpdateVec::with_capacity(
                 task.collectibles_len() + task.aggregated_collectibles_len(),
             );
-            collectibles_update.extend(task.iter_collectibles().map(|(&k, &v)| (k, v)));
+            collectibles_update.extend(task.iter_collectibles().map(|k| (k, 1)));
             for (collectible, count) in task.iter_aggregated_collectibles() {
                 if *count > 0 {
                     collectibles_update.push((*collectible, 1));
@@ -538,7 +538,7 @@ impl AggregatedDataUpdate {
             }
             collectibles_update
         } else {
-            task.iter_collectibles().map(|(&k, &v)| (k, v)).collect()
+            task.iter_collectibles().map(|k| (k, 1)).collect()
         };
         let (dirty, current_session_clean) = task.dirty_state();
         if dirty {
@@ -4314,7 +4314,7 @@ mod follower_debt_tests {
                     effective: aggregation_number,
                 });
                 if emit {
-                    let _ = task.update_collectibles_positive_crossing(collectible(), 1);
+                    let _ = task.add_collectibles(collectible());
                 }
             }
         }
@@ -5564,7 +5564,7 @@ mod deferred_removal_tests {
     fn emit(tt: &TurboTasks<TurboTasksBackend>, task: u32) {
         let mut ctx = ExecuteContext::new(tt.backend(), tt);
         let mut task = ctx.task(id(task), TaskDataCategory::All);
-        let _ = task.update_collectibles_positive_crossing(collectible(), 1);
+        let _ = task.add_collectibles(collectible());
     }
 
     /// Registers `READER` as a dependent of the collectibles of `upper`.
@@ -5911,10 +5911,7 @@ mod overtake_benchmark {
             for i in 0..EDGES {
                 let mut task =
                     ctx.task(super::follower_debt_tests::id(i + 2), TaskDataCategory::All);
-                let _ = task.update_collectibles_positive_crossing(
-                    super::follower_debt_tests::collectible(),
-                    1,
-                );
+                let _ = task.add_collectibles(super::follower_debt_tests::collectible());
             }
         }
         run(&tt, (0..EDGES).map(|i| add(1, i + 2)));

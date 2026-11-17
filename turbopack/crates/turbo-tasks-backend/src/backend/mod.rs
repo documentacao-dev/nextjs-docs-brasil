@@ -2277,34 +2277,10 @@ impl TurboTasksBackend {
             )));
             debug_assert!(old.is_none(), "InProgress already exists");
 
-            // Make all current collectibles outdated (remove left-over outdated collectibles)
-            enum Collectible {
-                Current(CollectibleRef, i32),
-                Outdated(CollectibleRef),
-            }
-            let collectibles = task
-                .iter_collectibles()
-                .map(|(&collectible, &value)| Collectible::Current(collectible, value))
-                .chain(
-                    task.iter_outdated_collectibles()
-                        .map(|(collectible, _count)| Collectible::Outdated(*collectible)),
-                )
-                .collect::<Vec<_>>();
-            for collectible in collectibles {
-                match collectible {
-                    Collectible::Current(collectible, value) => {
-                        let _ = task.insert_outdated_collectible(collectible, value);
-                    }
-                    Collectible::Outdated(collectible) => {
-                        if task
-                            .collectibles()
-                            .is_none_or(|m| m.get(&collectible).is_none())
-                        {
-                            task.remove_outdated_collectibles(&collectible);
-                        }
-                    }
-                }
-            }
+            // Make all current collectibles outdated (replacing the left-over outdated
+            // collectibles, which the previous execution's completion already removed)
+            let outdated_collectibles = task.iter_collectibles().collect();
+            task.set_outdated_collectibles(outdated_collectibles);
 
             if self.should_track_dependencies() {
                 // Make all dependencies outdated
@@ -2708,7 +2684,7 @@ impl TurboTasksBackend {
 
         old_edges.extend(
             task.iter_outdated_collectibles()
-                .map(|(&collectible, &count)| OutdatedEdge::Collectible(collectible, count)),
+                .map(OutdatedEdge::Collectible),
         );
 
         if self.should_track_dependencies() {
@@ -3566,14 +3542,14 @@ impl TurboTasksBackend {
                     .or_insert(0) += 1;
             }
         }
-        for (&collectible, &count) in task.iter_collectibles() {
+        for collectible in task.iter_collectibles() {
             if collectible.collectible_type == collectible_type {
                 *collectibles
                     .entry(RawVc::task_cell(
                         collectible.cell.task,
                         collectible.cell.cell,
                     ))
-                    .or_insert(0) += count;
+                    .or_insert(0) += 1;
             }
         }
         if let Some(reader_id) = reader_id {
@@ -3812,8 +3788,8 @@ impl TurboTasksBackend {
                         .push(task_id);
                 }
 
-                for (&collectible, &value) in task.iter_collectibles() {
-                    if value > 0 {
+                for collectible in task.iter_collectibles() {
+                    {
                         if let Some((flag, _)) = collectibles.get_mut(&collectible) {
                             *flag = true
                         } else {
