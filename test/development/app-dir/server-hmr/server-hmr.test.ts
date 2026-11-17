@@ -719,13 +719,15 @@ export async function GET() {
 }
 `,
             async () => {
+              // The first request to the new route compiles it, which can take
+              // most of the default retry duration.
               await retry(async () => {
                 expect(await fetchJson('/api/new-export/gamma')).toEqual({
                   result: 'gamma:h',
                   // The unmodified module should NOT have been re-evaluated
                   evaluatedAt: initial.evaluatedAt,
                 })
-              })
+              }, 10000)
               expect(
                 next.cliOutput.slice(outputLengthBeforePatch)
               ).not.toContain('is not a function')

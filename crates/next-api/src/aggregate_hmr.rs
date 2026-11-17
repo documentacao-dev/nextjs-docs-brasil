@@ -65,21 +65,43 @@ impl ServerHmrChunkLists {
     }
 }
 
+/// The code of a factory a runtime holds, as known from applied updates or retained modules.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueDebugFormat, NonLocalValue)]
+pub enum InstalledHash {
+    /// The factory runs the code with this hash.
+    Exact(u128),
+    /// The runtime holds a factory, but which code it runs isn't known.
+    Unknown,
+}
+
 /// Module hashes installed by applied updates, by chunk output directory.
 ///
 /// Every output directory is served by its own runtime, with its own module
 /// cache. A chunk that loads after an update keeps the updated factories, so
-/// these take precedence over the versions of loaded chunks.
+/// these take precedence over the versions of loaded chunks. This also holds the
+/// factories of modules that were deleted from loaded chunks: the runtime keeps
+/// them, even though no loaded chunk lists them anymore.
 #[derive(Clone, Debug, Default, PartialEq, Eq, ValueDebugFormat, NonLocalValue)]
-pub struct ServerHmrAppliedModules(FxIndexMap<RcStr, FxIndexMap<ModuleId, u128>>);
+pub struct ServerHmrAppliedModules(FxIndexMap<RcStr, FxIndexMap<ModuleId, InstalledHash>>);
 
 impl ServerHmrAppliedModules {
-    fn get(&self, dir: &str, id: &ModuleId) -> Option<u128> {
+    fn get(&self, dir: &str, id: &ModuleId) -> Option<InstalledHash> {
         self.0.get(dir).and_then(|modules| modules.get(id)).copied()
     }
 
     fn insert(&mut self, dir: &str, id: ModuleId, hash: u128) {
-        self.0.entry(dir.into()).or_default().insert(id, hash);
+        self.0
+            .entry(dir.into())
+            .or_default()
+            .insert(id, InstalledHash::Exact(hash));
+    }
+
+    #[cfg(test)]
+    fn insert_unknown(&mut self, dir: &str, id: ModuleId) {
+        self.0
+            .entry(dir.into())
+            .or_default()
+            .insert(id, InstalledHash::Unknown);
     }
 
     /// Forgets what was applied to the runtimes of `dirs`, e.g. because they were replaced by new
@@ -276,7 +298,7 @@ pub async fn server_hmr_loaded_update_operation(
         );
     }
 
-    let applied = applied_after_update(&loaded.applied, &shipped, &entries);
+    let applied = applied_after_update(loaded, &plans, &shipped, &entries);
 
     // Membership changes alone don't change what runs: added modules are either installed or
     // shipped, and the Node.js runtime keeps factories of deleted modules.
@@ -317,12 +339,49 @@ fn chunk_dir(chunk_path: &str) -> &str {
 /// The code of an entry is read after the snapshot and may be newer than the chunk versions, and
 /// a module shipped for several runtime directories is sent once, so the hashes are taken from
 /// the code that is actually sent.
+///
+/// A module that `plans` delete from a loaded chunk without shipping it keeps its factory in the
+/// runtime, while the chunk is recorded at its new version. So its code is kept here: the hash
+/// it has already, or the one every loaded chunk agrees on. When loaded chunks disagree, or its
+/// runtime directory has uncertain chunks that may have installed any code, the runtime's
+/// factory counts as unknown until an update ships it.
 fn applied_after_update(
-    applied: &ServerHmrAppliedModules,
+    loaded: &ServerHmrLoadedState,
+    plans: &FxIndexMap<RcStr, ChunkPlan>,
     shipped: &[(&str, ModuleId)],
     entries: &FxIndexMap<ModuleId, EcmascriptModuleEntry>,
 ) -> ServerHmrAppliedModules {
-    let mut applied = applied.clone();
+    let mut applied = loaded.applied.clone();
+    let shipped_modules = shipped
+        .iter()
+        .map(|(dir, id)| (*dir, id))
+        .collect::<FxIndexSet<_>>();
+    let uncertain_dirs = uncertain_dirs(loaded);
+    let mut loaded_hashes = None;
+    for (chunk_path, plan) in plans {
+        let dir = chunk_dir(chunk_path);
+        for id in &plan.deleted {
+            if applied.get(dir, id).is_some() || shipped_modules.contains(&(dir, id)) {
+                continue;
+            }
+            let loaded_hashes =
+                loaded_hashes.get_or_insert_with(|| loaded_hashes_by_module(loaded));
+            let retained = match loaded_hashes.get(&(dir, id)).map(Vec::as_slice) {
+                Some([hash, rest @ ..])
+                    if !uncertain_dirs.contains(dir) && rest.iter().all(|other| other == hash) =>
+                {
+                    InstalledHash::Exact(*hash)
+                }
+                // Loaded chunks disagree, or an uncertain chunk may have installed other code.
+                _ => InstalledHash::Unknown,
+            };
+            applied
+                .0
+                .entry(dir.into())
+                .or_default()
+                .insert(id.clone(), retained);
+        }
+    }
     for (dir, id) in shipped {
         if let Some(entry) = entries.get(id) {
             applied.insert(dir, id.clone(), hash_xxh3_hash128(&entry.code));
@@ -368,6 +427,31 @@ fn hashes_by_module<'a>(
     hashes
 }
 
+/// The loaded chunks of `loaded`, by path.
+fn loaded_by_path(loaded: &ServerHmrLoadedState) -> FxIndexMap<&str, &EcmascriptChunkVersion> {
+    let mut loaded_by_path = FxIndexMap::default();
+    for version in &loaded.chunks {
+        loaded_by_path.insert(&*version.chunk_path, &**version);
+    }
+    loaded_by_path
+}
+
+/// The hashes of every module of the loaded chunks, by chunk directory and module id.
+fn loaded_hashes_by_module(
+    loaded: &ServerHmrLoadedState,
+) -> FxIndexMap<(&str, &ModuleId), Vec<u128>> {
+    hashes_by_module(loaded_by_path(loaded).into_values())
+}
+
+/// The runtime directories of uncertain chunks.
+fn uncertain_dirs(loaded: &ServerHmrLoadedState) -> FxIndexSet<&str> {
+    loaded
+        .uncertain_chunks
+        .iter()
+        .map(|path| chunk_dir(path))
+        .collect()
+}
+
 /// Decides which modules of the requested chunks must be shipped.
 ///
 /// A module is shipped when the runtime of its chunk's directory may run other code than its
@@ -385,19 +469,12 @@ fn plan_server_hmr_update<'a>(
     requested: impl IntoIterator<Item = &'a EcmascriptChunkVersion>,
     loaded: &ServerHmrLoadedState,
 ) -> FxIndexMap<RcStr, ChunkPlan> {
-    let mut loaded_by_path = FxIndexMap::default();
-    for version in &loaded.chunks {
-        loaded_by_path.insert(&*version.chunk_path, &**version);
-    }
+    let loaded_by_path = loaded_by_path(loaded);
     let loaded_hashes = hashes_by_module(loaded_by_path.values().copied());
-    let uncertain_dirs = loaded
-        .uncertain_chunks
-        .iter()
-        .map(|path| chunk_dir(path))
-        .collect::<FxIndexSet<_>>();
+    let uncertain_dirs = uncertain_dirs(loaded);
     let runtime_module = |dir: &str, id: &ModuleId, hash: u128| {
         if let Some(applied) = loaded.applied.get(dir, id) {
-            return if applied == hash {
+            return if applied == InstalledHash::Exact(hash) {
                 RuntimeModule::Current
             } else {
                 RuntimeModule::Outdated
@@ -474,8 +551,8 @@ mod tests {
     };
 
     use super::{
-        ChunkPlan, ServerHmrAppliedModules, ServerHmrLoadedState, applied_after_update,
-        plan_server_hmr_update,
+        ChunkPlan, InstalledHash, ServerHmrAppliedModules, ServerHmrLoadedState,
+        applied_after_update, plan_server_hmr_update,
     };
 
     fn id(name: &str) -> ModuleId {
@@ -654,16 +731,150 @@ mod tests {
         let entries = FxIndexMap::from_iter([(id("shared"), entry.clone())]);
         // The module is sent once, for both runtime directories.
         let applied = applied_after_update(
-            &ServerHmrAppliedModules::default(),
+            &ServerHmrLoadedState::default(),
+            &FxIndexMap::default(),
             &[
                 ("server/chunks", id("shared")),
                 ("server/chunks/ssr", id("shared")),
             ],
             &entries,
         );
-        let hash = hash_xxh3_hash128(&entry.code);
+        let hash = InstalledHash::Exact(hash_xxh3_hash128(&entry.code));
         assert_eq!(applied.get("server/chunks", &id("shared")), Some(hash));
         assert_eq!(applied.get("server/chunks/ssr", &id("shared")), Some(hash));
+    }
+
+    /// The applied modules once an update for `requested` that ships nothing is applied.
+    fn applied_after_unshipped_update(
+        requested: &[ReadRef<EcmascriptChunkVersion>],
+        loaded: &ServerHmrLoadedState,
+    ) -> ServerHmrAppliedModules {
+        let plans = plan_server_hmr_update(requested.iter().map(|version| &**version), loaded);
+        assert!(plans.values().all(|plan| plan.ship.is_empty()));
+        applied_after_update(loaded, &plans, &[], &FxIndexMap::default())
+    }
+
+    #[test]
+    fn module_deleted_from_a_loaded_chunk_keeps_its_retained_hash() {
+        // The runtime keeps the factories of deleted modules.
+        let loaded = loaded_chunks(&[chunk("server/chunks/a.js", &[("a", 1), ("shared", 1)])]);
+        let applied =
+            applied_after_unshipped_update(&[chunk("server/chunks/a.js", &[("a", 1)])], &loaded);
+        assert_eq!(
+            applied.get("server/chunks", &id("shared")),
+            Some(InstalledHash::Exact(1))
+        );
+        assert_eq!(applied.get("server/chunks", &id("a")), None);
+    }
+
+    #[test]
+    fn retained_module_is_shipped_to_a_new_chunk_only_when_changed() {
+        let loaded = loaded_chunks(&[chunk("server/chunks/a.js", &[("a", 1), ("shared", 1)])]);
+        let applied =
+            applied_after_unshipped_update(&[chunk("server/chunks/a.js", &[("a", 1)])], &loaded);
+        // Once the update is applied, the loaded chunk is recorded at its new version.
+        let state = || ServerHmrLoadedState {
+            applied: applied.clone(),
+            ..loaded_chunks(&[chunk("server/chunks/a.js", &[("a", 1)])])
+        };
+
+        let requested = [chunk("server/chunks/b.js", &[("shared", 2), ("b", 1)])];
+        assert_eq!(
+            plan(&requested, state()),
+            FxIndexMap::from_iter([("server/chunks/b.js".into(), ship(&["shared"]))])
+        );
+        let requested = [chunk("server/chunks/b.js", &[("shared", 1), ("b", 1)])];
+        assert!(plan(&requested, state()).is_empty());
+    }
+
+    #[test]
+    fn retained_module_with_conflicting_loaded_hashes_is_outdated() {
+        // The runtime kept one of the factories, but which one isn't known.
+        let loaded = loaded_chunks(&[
+            chunk("server/chunks/a.js", &[("a", 1), ("shared", 1)]),
+            chunk("server/chunks/c.js", &[("shared", 2)]),
+        ]);
+        let applied =
+            applied_after_unshipped_update(&[chunk("server/chunks/a.js", &[("a", 1)])], &loaded);
+        assert_eq!(
+            applied.get("server/chunks", &id("shared")),
+            Some(InstalledHash::Unknown)
+        );
+        for hash in [1, 2] {
+            let requested = [chunk("server/chunks/b.js", &[("shared", hash)])];
+            let state = ServerHmrLoadedState {
+                applied: applied.clone(),
+                ..loaded_chunks(&[
+                    chunk("server/chunks/a.js", &[("a", 1)]),
+                    chunk("server/chunks/c.js", &[("shared", 2)]),
+                ])
+            };
+            assert_eq!(
+                plan(&requested, state),
+                FxIndexMap::from_iter([("server/chunks/b.js".into(), ship(&["shared"]))])
+            );
+        }
+    }
+
+    #[test]
+    fn retained_module_in_an_uncertain_directory_is_unknown() {
+        // An uncertain chunk may have installed the module at any code, so the loaded hash
+        // isn't promoted to an exact one.
+        let mut applied = ServerHmrAppliedModules::default();
+        // Kept current, so that the update ships nothing.
+        applied.insert("server/chunks", id("a"), 1);
+        let loaded = ServerHmrLoadedState {
+            uncertain_chunks: FxIndexSet::from_iter([RcStr::from("server/chunks/lazy.js")]),
+            applied,
+            ..loaded_chunks(&[chunk("server/chunks/a.js", &[("a", 1), ("shared", 1)])])
+        };
+        let applied =
+            applied_after_unshipped_update(&[chunk("server/chunks/a.js", &[("a", 1)])], &loaded);
+        assert_eq!(
+            applied.get("server/chunks", &id("shared")),
+            Some(InstalledHash::Unknown)
+        );
+    }
+
+    #[test]
+    fn retained_module_keeps_its_applied_hash() {
+        let mut applied = ServerHmrAppliedModules::default();
+        applied.insert("server/chunks", id("shared"), 3);
+        let loaded = ServerHmrLoadedState {
+            applied,
+            ..loaded_chunks(&[chunk("server/chunks/a.js", &[("a", 1), ("shared", 1)])])
+        };
+        let applied =
+            applied_after_unshipped_update(&[chunk("server/chunks/a.js", &[("a", 1)])], &loaded);
+        assert_eq!(
+            applied.get("server/chunks", &id("shared")),
+            Some(InstalledHash::Exact(3))
+        );
+    }
+
+    #[test]
+    fn shipped_module_replaces_an_unknown_retained_hash() {
+        let entry = EcmascriptModuleEntry {
+            code: Rope::from("shipped code"),
+            url: "server/chunks/b.js?id=shared".into(),
+            map: None,
+        };
+        let mut applied = ServerHmrAppliedModules::default();
+        applied.insert_unknown("server/chunks", id("shared"));
+        let loaded = ServerHmrLoadedState {
+            applied,
+            ..Default::default()
+        };
+        let applied = applied_after_update(
+            &loaded,
+            &FxIndexMap::default(),
+            &[("server/chunks", id("shared"))],
+            &FxIndexMap::from_iter([(id("shared"), entry.clone())]),
+        );
+        assert_eq!(
+            applied.get("server/chunks", &id("shared")),
+            Some(InstalledHash::Exact(hash_xxh3_hash128(&entry.code)))
+        );
     }
 
     #[test]
