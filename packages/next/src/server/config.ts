@@ -574,6 +574,9 @@ function assignDefaultsAndValidate(
   // Enable per-module minification by default on canary releases.
   result.experimental.turbopackMinifyBeforeChunking ??= !isStableBuild()
 
+  // Durable cache entries are only supported by Turbopack.
+  result.experimental.durableUseCacheEntries ??= Boolean(process.env.TURBOPACK)
+
   // Normalize experimental.browserDebugInfoInTerminal to logging.browserToTerminal
   if (
     result.logging !== false &&

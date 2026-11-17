@@ -2,6 +2,7 @@ import { mkdtemp, rm, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import {
+  PHASE_DEVELOPMENT_SERVER,
   PHASE_INFO,
   PHASE_PRODUCTION_BUILD,
   PHASE_PRODUCTION_SERVER,
@@ -396,6 +397,42 @@ describe('loadConfig', () => {
         process.env.TURBOPACK = originalTurbopack
       }
     })
+
+    describe.each([PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD])(
+      '%s',
+      (phase) => {
+        it.each([undefined, '1'])(
+          'defaults to whether Turbopack is enabled (TURBOPACK=%s)',
+          async (turbopack) => {
+            if (turbopack === undefined) {
+              delete process.env.TURBOPACK
+            } else {
+              process.env.TURBOPACK = turbopack
+            }
+
+            const result = await loadConfig(phase, __dirname, {
+              customConfig: {},
+            })
+
+            expect(result.experimental.durableUseCacheEntries).toBe(
+              Boolean(turbopack)
+            )
+          }
+        )
+
+        it('preserves an explicit opt-out when using Turbopack', async () => {
+          process.env.TURBOPACK = '1'
+
+          const result = await loadConfig(phase, __dirname, {
+            customConfig: {
+              experimental: { durableUseCacheEntries: false },
+            },
+          })
+
+          expect(result.experimental.durableUseCacheEntries).toBe(false)
+        })
+      }
+    )
 
     it('throws when using webpack', async () => {
       delete process.env.TURBOPACK
