@@ -1,0 +1,49 @@
+name: Deploy nextjs.documentacao.dev
+
+# Tradução PT-BR: confere as páginas traduzidas (tool/traducao/verificar.py), gera o site
+# estático (tool/site/build.sh: MDX -> HTML + busca Pagefind) e publica no site Firebase
+# nextjs-documentacao (projeto transliteradu). Precisa do secret FIREBASE_SERVICE_ACCOUNT.
+# Os workflows do upstream (vercel/next.js) ficam desligados neste fork.
+
+on:
+  push:
+    branches: [canary]
+    paths: ['docs/**', 'tool/**', 'firebase.json', '.github/workflows/deploy-firebase.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.repository == 'documentacao-dev/nextjs-docs-brasil'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            docs
+            tool
+            .github
+      - name: Conferir traduções
+        run: python3 tool/traducao/verificar.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tool/site/package-lock.json
+      - name: Build do site
+        run: tool/site/build.sh
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: transliteradu
+          channelId: live

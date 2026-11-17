@@ -1,0 +1,23 @@
+{
+  "name": "nextjs-docs-brasil-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs && pagefind --site ../../site --silent"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "github-slugger": "^2.0.0",
+    "hast-util-to-string": "^3.0.1",
+    "js-yaml": "^5.5.0",
+    "pagefind": "^1.6.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^4.6.0",
+    "unist-util-visit": "^5.2.0"
+  }
+}
