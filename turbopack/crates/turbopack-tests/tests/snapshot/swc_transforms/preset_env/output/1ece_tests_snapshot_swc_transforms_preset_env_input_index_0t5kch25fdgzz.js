@@ -735,9 +735,6 @@ contextPrototype.r = commonJsRequire;
     return request;
 }
 /**
- * An absolute Windows path with `\` separators: drive-qualified (`C:\`) or UNC (`\\server\`).
- */ var WINDOWS_ABSOLUTE_PATH = /^(?:[a-zA-Z]:\\|\\\\)/;
-/**
  * `require.context` and require/import expression runtime.
  */ function moduleContextFactory(ids) {
     var _loop = function(i) {
@@ -776,46 +773,20 @@ contextPrototype.r = commonJsRequire;
                 };
             }
         }
-        var key = ids[i];
-        map[key] = {
+        map[ids[i]] = {
             id: id,
             module: module
         };
-        if (WINDOWS_ABSOLUTE_PATH.test(key)) {
-            if (slashKeyMap === undefined) {
-                slashKeyMap = {};
-            }
-            slashKeyMap[key.replace(/\\/g, '/')] = map[key];
-        }
     };
     var mode = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : 0;
     var context = this;
     var parentModule = this.m;
     var map = {};
-    // Keys computed at runtime from absolute paths (e.g. `__dirname`) use `\` as separator on
-    // Windows, while a request built from them can mix in `/` (e.g. `__dirname + '/' + name`).
-    // Such keys are therefore also looked up with `/` as separator. This is only done for absolute
-    // Windows paths (`C:\...` or `\\server\...`), so that a `\` in a POSIX file name is never
-    // treated as a separator.
-    var slashKeyMap;
     for(var i = 0; i < ids.length; i += 2)_loop(i);
-    function getEntry(id) {
-        if (hasOwnProperty.call(map, id)) {
-            return map[id];
-        }
-        if (slashKeyMap !== undefined) {
-            var slashId = id.replace(/\\/g, '/');
-            if (hasOwnProperty.call(slashKeyMap, slashId)) {
-                return slashKeyMap[slashId];
-            }
-        }
-        return undefined;
-    }
     function moduleContext(id) {
         id = parseRequest(id);
-        var entry = getEntry(id);
-        if (entry !== undefined) {
-            return entry.module();
+        if (hasOwnProperty.call(map, id)) {
+            return map[id].module();
         }
         var e = new Error(`Cannot find module '${id}'`);
         e.code = 'MODULE_NOT_FOUND';
@@ -826,9 +797,8 @@ contextPrototype.r = commonJsRequire;
     };
     moduleContext.resolve = function(id) {
         id = parseRequest(id);
-        var entry = getEntry(id);
-        if (entry !== undefined) {
-            return entry.id();
+        if (hasOwnProperty.call(map, id)) {
+            return map[id].id();
         }
         var e = new Error(`Cannot find module '${id}'`);
         e.code = 'MODULE_NOT_FOUND';

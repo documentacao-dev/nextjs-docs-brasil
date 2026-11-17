@@ -23,32 +23,3 @@ it('should read files relative to __dirname', () => {
   )
   expect(require('./nested/reader.js').read()).toBe('nested-data')
 })
-
-it('should look up runtime context keys with mixed separators', () => {
-  // On Windows, context keys computed from `__dirname` use `\` as separator,
-  // while requests built from it can mix in `/`.
-  const context = __turbopack_context__.f([
-    'C:\\project\\dir\\a.js',
-    () => 'a',
-    '/project/dir/b.js',
-    () => 'b',
-    '\\\\server\\share\\c.js',
-    () => 'c',
-    // A POSIX file name that contains a `\`
-    '/project/dir/d\\e.js',
-    () => 'd',
-  ])
-  expect(context('C:\\project\\dir\\a.js')).toBe('a')
-  expect(context('C:\\project\\dir/a.js')).toBe('a')
-  expect(context('C:/project/dir/a.js')).toBe('a')
-  expect(context.resolve('C:\\project\\dir/a.js')).toBe('a')
-  expect(context('\\\\server\\share/c.js')).toBe('c')
-  expect(context('/project/dir/b.js')).toBe('b')
-  // Only absolute Windows paths are looked up with `/` as separator.
-  expect(() => context('\\project\\dir\\b.js')).toThrow(/Cannot find module/)
-  expect(context('/project/dir/d\\e.js')).toBe('d')
-  expect(() => context('/project/dir/d/e.js')).toThrow(/Cannot find module/)
-  expect(() => context.resolve('/project/dir/d/e.js')).toThrow(
-    /Cannot find module/
-  )
-})

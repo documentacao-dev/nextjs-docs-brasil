@@ -529,20 +529,11 @@ contextPrototype.r = commonJsRequire;
     return request;
 }
 /**
- * An absolute Windows path with `\` separators: drive-qualified (`C:\`) or UNC (`\\server\`).
- */ const WINDOWS_ABSOLUTE_PATH = /^(?:[a-zA-Z]:\\|\\\\)/;
-/**
  * `require.context` and require/import expression runtime.
  */ function moduleContextFactory(ids, mode = 0) {
     const context = this;
     const parentModule = this.m;
     const map = {};
-    // Keys computed at runtime from absolute paths (e.g. `__dirname`) use `\` as separator on
-    // Windows, while a request built from them can mix in `/` (e.g. `__dirname + '/' + name`).
-    // Such keys are therefore also looked up with `/` as separator. This is only done for absolute
-    // Windows paths (`C:\...` or `\\server\...`), so that a `\` in a POSIX file name is never
-    // treated as a separator.
-    let slashKeyMap;
     for(let i = 0; i < ids.length; i += 2){
         const entry = ids[i + 1];
         let id;
@@ -567,35 +558,15 @@ contextPrototype.r = commonJsRequire;
                 module = ()=>asyncLoader.call(context, entry);
             }
         }
-        const key = ids[i];
-        map[key] = {
+        map[ids[i]] = {
             id,
             module
         };
-        if (WINDOWS_ABSOLUTE_PATH.test(key)) {
-            if (slashKeyMap === undefined) {
-                slashKeyMap = {};
-            }
-            slashKeyMap[key.replace(/\\/g, '/')] = map[key];
-        }
-    }
-    function getEntry(id) {
-        if (hasOwnProperty.call(map, id)) {
-            return map[id];
-        }
-        if (slashKeyMap !== undefined) {
-            const slashId = id.replace(/\\/g, '/');
-            if (hasOwnProperty.call(slashKeyMap, slashId)) {
-                return slashKeyMap[slashId];
-            }
-        }
-        return undefined;
     }
     function moduleContext(id) {
         id = parseRequest(id);
-        const entry = getEntry(id);
-        if (entry !== undefined) {
-            return entry.module();
+        if (hasOwnProperty.call(map, id)) {
+            return map[id].module();
         }
         const e = new Error(`Cannot find module '${id}'`);
         e.code = 'MODULE_NOT_FOUND';
@@ -606,9 +577,8 @@ contextPrototype.r = commonJsRequire;
     };
     moduleContext.resolve = (id)=>{
         id = parseRequest(id);
-        const entry = getEntry(id);
-        if (entry !== undefined) {
-            return entry.id();
+        if (hasOwnProperty.call(map, id)) {
+            return map[id].id();
         }
         const e = new Error(`Cannot find module '${id}'`);
         e.code = 'MODULE_NOT_FOUND';

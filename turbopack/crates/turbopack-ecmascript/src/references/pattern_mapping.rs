@@ -13,7 +13,6 @@ use turbo_tasks::{
     FxIndexMap, NonLocalValue, ResolvedVc, TryJoinIterExt, ValueToString, Vc,
     debug::ValueDebugFormat,
 };
-use turbo_tasks_fs::FileSystemPath;
 use turbopack_core::{
     chunk::{ChunkableModule, ChunkingContext, ModuleChunkItemIdExt, ModuleId},
     issue::{
@@ -35,8 +34,7 @@ use crate::{
     },
     runtime_functions::{
         TURBOPACK_ASYNC_LOADER, TURBOPACK_EXTERNAL_IMPORT, TURBOPACK_EXTERNAL_REQUIRE,
-        TURBOPACK_IMPORT, TURBOPACK_MODULE_CONTEXT, TURBOPACK_REQUIRE,
-        TURBOPACK_RESOLVE_ABSOLUTE_PATH,
+        TURBOPACK_IMPORT, TURBOPACK_MODULE_CONTEXT, TURBOPACK_REQUIRE, TURBOPACK_TO_PROJECT_PATH,
     },
     utils::module_id_to_lit,
 };
@@ -71,22 +69,6 @@ pub(crate) enum SinglePatternMapping {
     Dropped,
 }
 
-/// An entry of a [`PatternMapping::Map`].
-#[derive(PartialEq, Eq, ValueDebugFormat, NonLocalValue, Encode, Decode)]
-pub(crate) struct PatternMappingEntry {
-    mapping: SinglePatternMapping,
-    /// When the output runs in Node.js and the request is an absolute project path
-    /// (`/ROOT/<path>`, see [`as_abs_path`][crate::references::as_abs_path]), the same path
-    /// relative to the chunking root path.
-    ///
-    /// The analyzer evaluates `__dirname` and `__filename` to `/ROOT/<path>` values, but in
-    /// Node.js they are the real absolute path at runtime (see
-    /// [`InputRelativeCodeGen`][crate::references::input_relative::InputRelativeCodeGen]). The
-    /// entry is therefore also keyed by that runtime absolute path, which is computed the same
-    /// way.
-    root_relative_path: Option<RcStr>,
-}
-
 /// A mapping from a request pattern (e.g. "./module", `./images/${name}.png`)
 /// to corresponding module ids. The same pattern can map to multiple module ids
 /// at runtime when using variable interpolation.
@@ -105,7 +87,21 @@ pub(crate) enum PatternMapping {
     /// ```js
     /// require(`./images/${name}.png`)
     /// ```
-    Map(#[bincode(with = "turbo_bincode::indexmap")] FxIndexMap<RcStr, PatternMappingEntry>),
+    Map {
+        #[bincode(with = "turbo_bincode::indexmap")]
+        map: FxIndexMap<RcStr, SinglePatternMapping>,
+        /// Set when the output runs in Node.js and the request is an absolute project path
+        /// (`/ROOT/<path>`, see [`as_abs_path`][crate::references::as_abs_path]), e.g.
+        /// `path.join(__dirname, name)`. It is the path of the chunking root path relative to
+        /// the root of its filesystem.
+        ///
+        /// The analyzer evaluates `__dirname` and `__filename` to `/ROOT/<path>` values, so the
+        /// keys of the map have that form. In Node.js they are the real absolute path at runtime
+        /// though (see
+        /// [`InputRelativeCodeGen`][crate::references::input_relative::InputRelativeCodeGen]), so
+        /// the request is translated back to a `/ROOT/<path>` key at runtime.
+        project_path_root: Option<RcStr>,
+    },
 }
 
 #[turbo_tasks::task_input]
@@ -241,7 +237,7 @@ enum ImportMode {
 /// loaded that way, as `undefined` when it is ignored, and otherwise as a function
 /// that returns it, e.g. one that throws for a request that can't be resolved.
 fn create_context(
-    map: &FxIndexMap<RcStr, PatternMappingEntry>,
+    map: &FxIndexMap<RcStr, SinglePatternMapping>,
     key_expr: &Expr,
     import_mode: ImportMode,
 ) -> Expr {
@@ -252,7 +248,7 @@ fn create_context(
         ImportMode::Import => {
             if map
                 .values()
-                .any(|entry| matches!(entry.mapping, SinglePatternMapping::ModuleLoader(_)))
+                .any(|entry| matches!(entry, SinglePatternMapping::ModuleLoader(_)))
             {
                 CONTEXT_MODE_ASYNC_LOADER
             } else {
@@ -262,14 +258,7 @@ fn create_context(
     };
 
     let mut elems = Vec::with_capacity(map.len() * 2);
-    for (
-        key,
-        PatternMappingEntry {
-            mapping: entry,
-            root_relative_path,
-        },
-    ) in map
-    {
+    for (key, entry) in map {
         let module = match (mode, entry) {
             (_, SinglePatternMapping::Ignored | SinglePatternMapping::Dropped) => {
                 quote!("undefined" as Expr)
@@ -286,20 +275,6 @@ fn create_context(
                 }
             ),
         };
-        if let Some(root_relative_path) = root_relative_path {
-            elems.push(Some(ExprOrSpread {
-                spread: None,
-                expr: Box::new(quote!(
-                    "$turbopack_resolve_absolute_path($path)" as Expr,
-                    turbopack_resolve_absolute_path: Expr = TURBOPACK_RESOLVE_ABSOLUTE_PATH.into(),
-                    path: Expr = root_relative_path.as_str().into(),
-                )),
-            }));
-            elems.push(Some(ExprOrSpread {
-                spread: None,
-                expr: Box::new(module.clone()),
-            }));
-        }
         elems.push(Some(ExprOrSpread {
             spread: None,
             expr: Box::new(Expr::Lit(Lit::Str(key.as_str().into()))),
@@ -338,16 +313,32 @@ const CONTEXT_MODE_REQUIRE: u8 = 0;
 const CONTEXT_MODE_IMPORT: u8 = 1;
 const CONTEXT_MODE_ASYNC_LOADER: u8 = 2;
 
+/// The key a context is looked up with at runtime, see [`PatternMapping::Map::project_path_root`].
+fn context_key(key_expr: Expr, project_path_root: &Option<RcStr>) -> Expr {
+    match project_path_root {
+        Some(project_path_root) => quote!(
+            "$turbopack_to_project_path($key, $root)" as Expr,
+            turbopack_to_project_path: Expr = TURBOPACK_TO_PROJECT_PATH.into(),
+            key: Expr = key_expr,
+            root: Expr = project_path_root.as_str().into(),
+        ),
+        None => key_expr,
+    }
+}
+
 impl PatternMapping {
     pub fn create_id(&self, key_expr: Expr) -> Expr {
         match self {
             PatternMapping::Single(pm) => pm.create_id(Cow::Owned(key_expr)),
-            PatternMapping::Map(map) => {
+            PatternMapping::Map {
+                map,
+                project_path_root,
+            } => {
                 let module_context = create_context(map, &key_expr, ImportMode::Require);
 
                 quote!("$module_context.resolve($key)" as Expr,
                     module_context: Expr = module_context,
-                    key: Expr = key_expr
+                    key: Expr = context_key(key_expr, project_path_root)
                 )
             }
         }
@@ -356,12 +347,15 @@ impl PatternMapping {
     pub fn create_require(&self, key_expr: Expr) -> Expr {
         match self {
             PatternMapping::Single(pm) => pm.create_require(Cow::Owned(key_expr)),
-            PatternMapping::Map(map) => {
+            PatternMapping::Map {
+                map,
+                project_path_root,
+            } => {
                 let module_context = create_context(map, &key_expr, ImportMode::Require);
 
                 quote!("$module_context($key)" as Expr,
                     module_context: Expr = module_context,
-                    key: Expr = key_expr
+                    key: Expr = context_key(key_expr, project_path_root)
                 )
             }
         }
@@ -370,12 +364,15 @@ impl PatternMapping {
     pub fn create_import(&self, key_expr: Expr) -> Expr {
         match self {
             PatternMapping::Single(pm) => pm.create_import(Cow::Owned(key_expr)),
-            PatternMapping::Map(map) => {
+            PatternMapping::Map {
+                map,
+                project_path_root,
+            } => {
                 let module_context = create_context(map, &key_expr, ImportMode::Import);
 
                 quote!("$module_context.import($key)" as Expr,
                     module_context: Expr = module_context,
-                    key: Expr = key_expr
+                    key: Expr = context_key(key_expr, project_path_root)
                 )
             }
         }
@@ -532,15 +529,6 @@ impl PatternMapping {
             }
             _ => {
                 let primary = &result.primary;
-                // Paths are only resolved at runtime when running in Node.js, see
-                // `PatternMappingEntry::root_relative_path`.
-                let root_path = if *chunking_context.environment().node_externals().await? {
-                    let root_path = chunking_context.root_path().owned().await?;
-                    let fs_root = root_path.root().owned().await?;
-                    Some((fs_root, root_path))
-                } else {
-                    None
-                };
                 let mut set = HashSet::new();
                 let items: Vec<(RcStr, &ModuleResolveResultItem)> = primary
                     .iter()
@@ -561,38 +549,27 @@ impl PatternMapping {
                             dropped_targets,
                         )
                         .await?;
-                        let root_relative_path = match &root_path {
-                            Some((fs_root, root_path)) => {
-                                project_path_relative_to_root(fs_root, root_path, &k)
-                            }
-                            None => None,
-                        };
-                        Ok((
-                            k,
-                            PatternMappingEntry {
-                                mapping: single_pattern_mapping,
-                                root_relative_path,
-                            },
-                        ))
+                        Ok((k, single_pattern_mapping))
                     })
                     .try_join()
                     .await?
                     .into_iter()
-                    .collect();
-                Ok(PatternMapping::Map(map).cell())
+                    .collect::<FxIndexMap<_, _>>();
+                // Paths are only resolved at runtime when running in Node.js, see
+                // `InputRelativeCodeGen`.
+                let project_path_root = if map.keys().any(|key| key.starts_with("/ROOT/"))
+                    && *chunking_context.environment().node_externals().await?
+                {
+                    Some(chunking_context.root_path().await?.path.clone())
+                } else {
+                    None
+                };
+                Ok(PatternMapping::Map {
+                    map,
+                    project_path_root,
+                }
+                .cell())
             }
         }
     }
-}
-
-/// Returns the path of a `/ROOT/<path>` request relative to `root_path`, or `None` when the
-/// request is not an absolute project path.
-fn project_path_relative_to_root(
-    fs_root: &FileSystemPath,
-    root_path: &FileSystemPath,
-    request: &str,
-) -> Option<RcStr> {
-    let path = fs_root.join(request.strip_prefix("/ROOT/")?).ok()?;
-    let relative_path = root_path.get_relative_path_to(&path)?;
-    Some(relative_path.trim_start_matches("./").into())
 }
