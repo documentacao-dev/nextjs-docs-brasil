@@ -1,9 +1,26 @@
 import type {
+  NodeJsEcmascriptMergedUpdate,
   NodeJsPartialHmrUpdate,
   Project,
-  ServerHmrApplied,
-  ServerHmrChunkVersion,
+  ServerHmrModuleId,
 } from '../../build/swc/types'
+
+/**
+ * Which code the module factories of a development runtime run.
+ *
+ * Sync with `turbopack/crates/turbopack-ecmascript-runtime/js/src/nodejs/runtime/nodejs-globals.d.ts`.
+ */
+interface ServerHmrRuntimeState {
+  /**
+   * The hash of the code of every module that has a factory, `null` when the
+   * module has a factory whose code isn't known.
+   */
+  installedHash: Map<ServerHmrModuleId, string | null>
+  /** The entry chunks (relative to the output root) that use the runtime. */
+  enteredEntries: Set<string>
+  /** Increments whenever a factory is installed or replaced. */
+  installCount: number
+}
 
 declare global {
   /**
@@ -13,98 +30,48 @@ declare global {
   var __turbopack_server_hmr_apply__:
     | ((update: NodeJsPartialHmrUpdate) => void)
     | undefined
-  var __turbopack_on_chunk_loaded__:
-    | ((
-        chunkPath: string,
-        versionId: string | undefined
-      ) => void | Promise<void>)
+  var __turbopack_server_hmr_runtimes__:
+    | Map<string, ServerHmrRuntimeState>
     | undefined
-  var __turbopack_on_runtime_loaded__: ((chunkDir: string) => void) | undefined
 }
 
 /**
- * How often a server HMR update is pulled again because chunks loaded while it
- * was computed, before falling back to re-evaluating all modules.
+ * How often a server HMR update is planned again because the route or the
+ * runtimes changed while it was computed, before falling back to
+ * re-evaluating all modules.
  */
 const MAX_SERVER_HMR_PULLS = 3
 
-/**
- * How many reported versions of a chunk path are kept, so that a chunk that
- * loads a file written a few versions ago still finds its version. A chunk
- * whose version isn't known anymore counts as uncertain.
- */
-const VERSIONS_PER_CHUNK = 8
+type ChunkEntries = NonNullable<NodeJsEcmascriptMergedUpdate['entries']>
 
-/**
- * Collects the output chunk paths touched by a partial HMR update. Both
- * single-chunk `EcmascriptMergedUpdate`s and `ChunkListUpdate`s (which nest
- * per-chunk deltas inside `merged`) are flattened so the manifest cache can be
- * invalidated for every affected chunk after a successful apply.
- */
-export function collectUpdatedChunkPaths(
-  instruction: NodeJsPartialHmrUpdate['instruction']
-): string[] {
-  const paths = new Set<string>()
-  if (instruction.type === 'EcmascriptMergedUpdate') {
-    for (const chunkPath of Object.keys(instruction.chunks ?? {})) {
-      paths.add(chunkPath)
-    }
-  } else if (instruction.type === 'ChunkListUpdate') {
-    for (const chunkPath of Object.keys(instruction.chunks ?? {})) {
-      paths.add(chunkPath)
-    }
-    for (const merged of instruction.merged ?? []) {
-      for (const chunkPath of Object.keys(merged.chunks ?? {})) {
-        paths.add(chunkPath)
-      }
-    }
-  } else {
-    throw new Error(
-      `[Server HMR] unreachable: unknown HMR instruction type ${(instruction as { type: string }).type}`
-    )
-  }
-  return Array.from(paths)
+/** The output directory of a chunk. Each directory has its own runtime. */
+function chunkDir(chunkPath: string) {
+  const index = chunkPath.lastIndexOf('/')
+  return index === -1 ? '' : chunkPath.slice(0, index)
 }
-
-/** Whether `chunkPath` is a chunk directly inside `chunkDir`. */
-function isInDir(chunkPath: string, chunkDir: string) {
-  const prefix = chunkDir + '/'
-  return (
-    chunkPath.startsWith(prefix) &&
-    !chunkPath.slice(prefix.length).includes('/')
-  )
-}
-
-type Version = ServerHmrChunkVersion['version']
 
 /**
  * Keeps the server runtimes up to date with the routes that run in them.
  *
  * Every route that runs in a server runtime shares its module cache, and a
- * chunk that loads keeps the factories the runtime already has. So updates are
- * computed against what the runtimes actually installed, not against what the
- * requested route saw before:
- * - Development chunks report the version id of their factories when they
- *   load. `versionsById` holds the versions Turbopack reported recently, so the
- *   version of a loaded chunk is known exactly.
- * - `loadedChunkVersions` holds the version of every chunk a runtime installed:
- *   the one it reported when it loaded, or the one an applied update brought it
- *   to.
- * - `uncertainChunks` holds chunks whose version isn't known, e.g. because it
- *   was never reported. They may have installed any module of their runtime
- *   directory at any code, until that runtime is replaced.
- * - `applied` holds the module hashes installed by applied updates, and
- *   `replacedRuntimeDirs` the generation of every directory whose runtime was
- *   replaced since, so that nothing applied to the old runtimes counts for the
- *   new ones.
- * - `routes` holds the chunks each route reported last, and `routesByChunk` the
- *   routes that ever reported a chunk. A dynamic import can still load a chunk
- *   its route no longer has, e.g. after the import's target was compiled on
- *   demand. Such a load waits for the route to be updated against what it
- *   installed before any of its modules is evaluated.
+ * chunk that loads keeps the factories the runtime already has. So each
+ * development runtime records which code its factories run, and a pull compares
+ * that with the current code of the requested route's modules. For the modules
+ * of the route's chunks in the runtime of each output directory:
+ * - those installed at another hash, or at unknown code, are shipped;
+ * - those not installed yet are shipped if the route already started in that
+ *   runtime, e.g. for a chunk it gained since its entry ran or an outdated lazy
+ *   import, or if outdated modules are shipped, which may run right away and
+ *   require them;
+ * - otherwise nothing is needed: the route's chunks install them when they
+ *   load.
+ *
+ * What is kept here is only a cache: the hashes of the chunks reported last,
+ * and which chunks were compared with which runtime since it last installed a
+ * factory. Losing it only causes extra work.
  */
 export function setupServerHmr(
-  project: Pick<Project, 'getServerHmrUpdate'>,
+  project: Pick<Project, 'getServerHmrRoute' | 'getServerHmrModules'>,
   {
     reEvaluateAllModulesExpensive,
     onApplied,
@@ -117,134 +84,21 @@ export function setupServerHmr(
   }
 ) {
   let pending = Promise.resolve()
-  const versionsById = new Map<string, Version>()
-  const versionIdsByChunk = new Map<string, string[]>()
-  const loadedChunkVersions = new Map<string, Version>()
-  const uncertainChunks = new Set<string>()
-  let applied: ServerHmrApplied | undefined
-  const replacedRuntimeDirs = new Map<string, number>()
-  let runtimeGeneration = 0
-  const routes = new Map<
-    string,
-    { entryPaths: string[]; chunks: Set<string> }
-  >()
-  const routesByChunk = new Map<string, Set<string>>()
-  // Counts chunk loads, to detect loads that race with a pull.
-  let chunkLoadCount = 0
   let needsReEvaluation = false
-
-  function clearLoadedState() {
-    loadedChunkVersions.clear()
-    uncertainChunks.clear()
-    applied = undefined
-    replacedRuntimeDirs.clear()
-  }
-
-  function recordReportedVersion({ path, id, version }: ServerHmrChunkVersion) {
-    let ids = versionIdsByChunk.get(path)
-    if (!ids) {
-      ids = []
-      versionIdsByChunk.set(path, ids)
-    }
-    // A version reported again (e.g. after a revert) counts as recent again.
-    const index = ids.indexOf(id)
-    if (index !== -1) {
-      ids.splice(index, 1)
-    } else {
-      versionsById.set(id, version)
-    }
-    ids.push(id)
-    if (ids.length > VERSIONS_PER_CHUNK) {
-      versionsById.delete(ids.shift()!)
-    }
-  }
-
-  function routeKey(entryPaths: string[]) {
-    return [...entryPaths].sort().join('\0')
-  }
-
-  function recordRouteChunks(entryPaths: string[], chunkPaths: string[]) {
-    const key = routeKey(entryPaths)
-    routes.set(key, { entryPaths, chunks: new Set(chunkPaths) })
-    for (const chunkPath of chunkPaths) {
-      let keys = routesByChunk.get(chunkPath)
-      if (!keys) {
-        keys = new Set()
-        routesByChunk.set(chunkPath, keys)
-      }
-      keys.add(key)
-    }
-  }
-
-  /** Routes that reported `chunkPath` before, but not in their last pull. */
-  function routesThatDropped(chunkPath: string) {
-    const keys = routesByChunk.get(chunkPath)
-    if (!keys) return []
-    return Array.from(keys)
-      .map((key) => routes.get(key)!)
-      .filter((route) => !route.chunks.has(chunkPath))
-  }
-
-  const previousOnChunkLoaded = globalThis.__turbopack_on_chunk_loaded__
-  const previousOnRuntimeLoaded = globalThis.__turbopack_on_runtime_loaded__
-  const onChunkLoaded = (
-    chunkPath: string,
-    versionId: string | undefined
-  ): void | Promise<void> => {
-    // Loading a chunk again (e.g. after `require.cache` was cleared for it)
-    // doesn't replace the factories it installed before.
-    if (loadedChunkVersions.has(chunkPath) || uncertainChunks.has(chunkPath)) {
-      return
-    }
-    const version =
-      versionId === undefined ? undefined : versionsById.get(versionId)
-    if (version) {
-      loadedChunkVersions.set(chunkPath, version)
-    } else {
-      uncertainChunks.add(chunkPath)
-    }
-    chunkLoadCount++
-
-    const outdatedRoutes = routesThatDropped(chunkPath)
-    if (outdatedRoutes.length === 0) return
-    // The chunk is no longer part of these routes, so it may have installed
-    // outdated factories, e.g. an inactive lazy-compilation proxy. Update the
-    // routes before the load's modules are evaluated. Failures are handled by
-    // `apply`, so they never reject the load.
-    return Promise.all(
-      outdatedRoutes.map((route) => apply(route.entryPaths))
-    ).then(() => {})
-  }
-  const onRuntimeLoaded = (chunkDir: string) => {
-    // A new runtime has none of the factories of the old one.
-    for (const chunkPath of loadedChunkVersions.keys()) {
-      if (isInDir(chunkPath, chunkDir)) {
-        loadedChunkVersions.delete(chunkPath)
-      }
-    }
-    for (const chunkPath of uncertainChunks) {
-      if (isInDir(chunkPath, chunkDir)) {
-        uncertainChunks.delete(chunkPath)
-      }
-    }
-    replacedRuntimeDirs.set(chunkDir, ++runtimeGeneration)
-  }
-  globalThis.__turbopack_on_chunk_loaded__ = onChunkLoaded
-  globalThis.__turbopack_on_runtime_loaded__ = onRuntimeLoaded
-
-  function dispose() {
-    if (globalThis.__turbopack_on_chunk_loaded__ === onChunkLoaded) {
-      globalThis.__turbopack_on_chunk_loaded__ = previousOnChunkLoaded
-    }
-    if (globalThis.__turbopack_on_runtime_loaded__ === onRuntimeLoaded) {
-      globalThis.__turbopack_on_runtime_loaded__ = previousOnRuntimeLoaded
-    }
-  }
+  /** The module hashes of every chunk, by path, as last reported. */
+  const chunkHashes = new Map<
+    string,
+    { versionId: string; hashes: Map<ServerHmrModuleId, string> }
+  >()
+  /** The chunks compared with a runtime that needed nothing since. */
+  const compared = new WeakMap<
+    ServerHmrRuntimeState,
+    Map<string, { versionId: string; installCount: number; started: boolean }>
+  >()
 
   async function recover() {
     try {
       await reEvaluateAllModulesExpensive()
-      clearLoadedState()
       needsReEvaluation = false
     } catch (error) {
       console.error('[Server HMR] Re-evaluating modules failed:', error)
@@ -252,106 +106,222 @@ export function setupServerHmr(
   }
 
   /**
-   * Pulls the update for one entry against what the runtimes installed and
-   * applies it. Returns `false` when the update could not be applied and all
-   * modules need to be re-evaluated, `'stale'` when chunks loaded while the
-   * update was computed, so it may miss modules they installed.
+   * Brings the runtimes up to date with the route of `entryPaths`. Returns
+   * `false` when an update could not be applied and all modules need to be
+   * re-evaluated, `'stale'` when the route or the runtimes changed while the
+   * update was computed, so it has to be planned again.
    */
   async function pull(entryPaths: string[]): Promise<boolean | 'stale'> {
-    const loadedVersions = new Map(loadedChunkVersions)
-    const runtimeDirsReplaced = new Map(replacedRuntimeDirs)
-    const previousRouteChunks = routes.get(routeKey(entryPaths))?.chunks
-    const chunkLoadCountBefore = chunkLoadCount
-    // `issues` is intentionally dropped: this pull scans project-wide chunk
-    // lists, so its issues may belong to an unrelated or removed route, and
-    // endpoint writes already report route-scoped issues.
-    const { value: update } = await project.getServerHmrUpdate(
-      {
-        chunks: Array.from(loadedVersions.values()),
-        uncertainChunks: Array.from(uncertainChunks),
-        applied,
-        replacedRuntimeDirs: Array.from(runtimeDirsReplaced.keys()),
-        previousRouteChunks: previousRouteChunks
-          ? Array.from(previousRouteChunks)
-          : undefined,
-      },
-      entryPaths
+    const knownVersionIds: Record<string, string> = {}
+    for (const [path, { versionId }] of chunkHashes) {
+      knownVersionIds[path] = versionId
+    }
+    // `issues` is intentionally dropped: endpoint writes already report
+    // route-scoped issues.
+    const { value: route } = await project.getServerHmrRoute(
+      entryPaths,
+      knownVersionIds
     )
-    for (const chunkVersion of update.chunkVersions) {
-      recordReportedVersion(chunkVersion)
-    }
-    const result = () =>
-      chunkLoadCount === chunkLoadCountBefore ? true : 'stale'
-    const advanceLoadedState = () => {
-      recordRouteChunks(
-        entryPaths,
-        update.chunkVersions.map(({ path }) => path)
-      )
-      const installedChunks = new Set(update.installedChunks)
-      // The update brought the chunks of the entry that were loaded when it
-      // was computed up to date. Chunks that loaded since keep their version,
-      // and uncertain chunks stay uncertain.
-      for (const { path, version } of update.chunkVersions) {
-        if (
-          (loadedVersions.has(path) &&
-            loadedChunkVersions.get(path) === loadedVersions.get(path)) ||
-          (installedChunks.has(path) &&
-            !loadedChunkVersions.has(path) &&
-            !uncertainChunks.has(path))
-        ) {
-          loadedChunkVersions.set(path, version)
-        }
+    for (const chunk of route.chunks) {
+      if (chunk.hashes) {
+        chunkHashes.set(chunk.path, {
+          versionId: chunk.versionId,
+          hashes: new Map(chunk.hashes),
+        })
+      } else if (chunkHashes.get(chunk.path)?.versionId !== chunk.versionId) {
+        // Its hashes were left out for a version that isn't known anymore.
+        chunkHashes.delete(chunk.path)
+        return 'stale'
       }
-      applied = update.applied
-      // Runtimes replaced while the update was computed keep their record.
-      for (const [dir, generation] of runtimeDirsReplaced) {
-        if (replacedRuntimeDirs.get(dir) === generation) {
-          replacedRuntimeDirs.delete(dir)
-        }
-      }
-      return result()
     }
-    switch (update.kind) {
-      case 'none':
-        return advanceLoadedState()
-      case 'partial': {
-        const handlers = globalThis.__turbopack_server_hmr_handlers__
-        // No runtime is loaded, so there is nothing to update.
-        if (!handlers || handlers.size === 0) {
-          recordRouteChunks(
-            entryPaths,
-            update.chunkVersions.map(({ path }) => path)
-          )
-          return result()
-        }
 
-        const payload: NodeJsPartialHmrUpdate = {
-          type: 'partial',
-          instruction: update.instruction,
-        }
-        const applyUpdate = globalThis.__turbopack_server_hmr_apply__
-        if (typeof applyUpdate === 'function') {
-          try {
-            applyUpdate(payload)
-            const pullResult = advanceLoadedState()
-            mirrorApply?.(payload)
+    type Plan = {
+      runtime: ServerHmrRuntimeState
+      /** The modules to ship, by chunk path. */
+      request: Map<string, ServerHmrModuleId[]>
+    }
+    const plans = new Map<string, Plan>()
+    const runtimes = globalThis.__turbopack_server_hmr_runtimes__
+    /** The runtime of every directory of the route, as planned against. */
+    const observed = new Map<
+      string,
+      {
+        runtime: ServerHmrRuntimeState | undefined
+        installCount: number
+        started: boolean
+      }
+    >()
+    const chunksByDir = new Map<string, typeof route.chunks>()
+    for (const chunk of route.chunks) {
+      const dir = chunkDir(chunk.path)
+      let dirChunks = chunksByDir.get(dir)
+      if (!dirChunks) {
+        dirChunks = []
+        chunksByDir.set(dir, dirChunks)
+      }
+      dirChunks.push(chunk)
+    }
+    for (const [dir, dirChunks] of chunksByDir) {
+      const runtime = runtimes?.get(dir)
+      const started =
+        runtime !== undefined &&
+        route.entryChunkPaths.some((path) => runtime.enteredEntries.has(path))
+      observed.set(dir, {
+        runtime,
+        installCount: runtime?.installCount ?? 0,
+        started,
+      })
+      // No runtime runs the chunk's directory yet, so its chunks install
+      // whatever they hold when they load.
+      if (!runtime) continue
+      const { installedHash } = runtime
+      let comparedChunks = compared.get(runtime)
+      const isCompared = (chunk: (typeof dirChunks)[number]) => {
+        const previous = comparedChunks?.get(chunk.path)
+        return (
+          previous?.versionId === chunk.versionId &&
+          previous.installCount === runtime.installCount &&
+          previous.started === started
+        )
+      }
 
-            const updatedChunkPaths = collectUpdatedChunkPaths(
-              update.instruction
-            )
-            if (updatedChunkPaths.length > 0) {
-              await onApplied(updatedChunkPaths)
+      // Modules the runtime holds at other code are shipped. A compared chunk
+      // has none.
+      let outdated = false
+      for (const chunk of dirChunks) {
+        if (isCompared(chunk)) continue
+        for (const [id, hash] of chunkHashes.get(chunk.path)!.hashes) {
+          if (installedHash.has(id) && installedHash.get(id) !== hash) {
+            outdated = true
+            break
+          }
+        }
+        if (outdated) break
+      }
+
+      // Missing modules are shipped too when the route started, or when
+      // outdated modules are shipped: a shipped module can run right away,
+      // e.g. when it accepts itself, and require modules that are new to the
+      // runtime before the route's chunks load.
+      const shipMissing = started || outdated
+      const request = new Map<string, ServerHmrModuleId[]>()
+      if (shipMissing) {
+        const shipped = new Set<ServerHmrModuleId>()
+        for (const chunk of dirChunks) {
+          // Compared chunks hold no outdated modules, and no missing ones of a
+          // started route.
+          if (!outdated && isCompared(chunk)) continue
+          const ids: ServerHmrModuleId[] = []
+          for (const [id, hash] of chunkHashes.get(chunk.path)!.hashes) {
+            // Every module is shipped once per runtime.
+            if (shipped.has(id)) continue
+            if (!installedHash.has(id) || installedHash.get(id) !== hash) {
+              ids.push(id)
+              shipped.add(id)
             }
-            return pullResult
-          } catch {}
+          }
+          if (ids.length > 0) request.set(chunk.path, ids)
         }
+      }
+      if (request.size > 0) {
+        plans.set(dir, { runtime, request })
+        continue
+      }
+      // Nothing is needed until a chunk or the runtime changes.
+      if (!comparedChunks) {
+        comparedChunks = new Map()
+        compared.set(runtime, comparedChunks)
+      }
+      for (const chunk of dirChunks) {
+        comparedChunks.set(chunk.path, {
+          versionId: chunk.versionId,
+          installCount: runtime.installCount,
+          started,
+        })
+      }
+    }
+    if (plans.size === 0) return true
+
+    const versionIds = new Map(
+      route.chunks.map((chunk) => [chunk.path, chunk.versionId])
+    )
+    const { value: chunkModules } = await project.getServerHmrModules(
+      entryPaths,
+      Array.from(plans.values()).flatMap((plan) =>
+        Array.from(plan.request, ([chunkPath, ids]) => ({ chunkPath, ids }))
+      )
+    )
+    const modulesByChunk = new Map(
+      chunkModules.map((chunk) => [chunk.chunkPath, chunk])
+    )
+
+    // Nothing is applied unless the update is exactly what was planned: the
+    // code must have the hashes it was planned with, and no runtime of the
+    // route may have installed a factory or been replaced since. Otherwise an
+    // applied update could run modules against outdated dependencies.
+    const currentRuntimes = globalThis.__turbopack_server_hmr_runtimes__
+    for (const [dir, { runtime, installCount, started }] of observed) {
+      const current = currentRuntimes?.get(dir)
+      if (
+        current !== runtime ||
+        (current?.installCount ?? 0) !== installCount ||
+        (current !== undefined &&
+          route.entryChunkPaths.some((path) =>
+            current.enteredEntries.has(path)
+          ) !== started)
+      ) {
+        return 'stale'
+      }
+    }
+    const entriesByChunk = new Map<string, ChunkEntries>()
+    for (const plan of plans.values()) {
+      for (const [chunkPath, ids] of plan.request) {
+        const modules = modulesByChunk.get(chunkPath)
+        const expected = chunkHashes.get(chunkPath)
+        if (
+          !modules ||
+          !expected ||
+          modules.versionId !== versionIds.get(chunkPath) ||
+          modules.versionId !== expected.versionId ||
+          modules.missing.length > 0
+        ) {
+          return 'stale'
+        }
+        const entries: ChunkEntries = {}
+        for (const [id, entry] of modules.entries) {
+          if (entry.hash !== expected.hashes.get(id)) return 'stale'
+          entries[id] = entry
+        }
+        if (ids.some((id) => !Object.hasOwn(entries, id))) return 'stale'
+        entriesByChunk.set(chunkPath, entries)
+      }
+    }
+
+    const applyUpdate = globalThis.__turbopack_server_hmr_apply__
+    if (typeof applyUpdate !== 'function') return false
+    const updatedChunkPaths: string[] = []
+    for (const plan of plans.values()) {
+      const entries: ChunkEntries = {}
+      const chunks: NonNullable<NodeJsEcmascriptMergedUpdate['chunks']> = {}
+      for (const chunkPath of plan.request.keys()) {
+        Object.assign(entries, entriesByChunk.get(chunkPath))
+        // Routes the update to the chunk's runtime.
+        chunks[chunkPath] = { type: 'partial' }
+        updatedChunkPaths.push(chunkPath)
+      }
+      const payload: NodeJsPartialHmrUpdate = {
+        type: 'partial',
+        instruction: { type: 'EcmascriptMergedUpdate', entries, chunks },
+      }
+      try {
+        applyUpdate(payload)
+      } catch {
         return false
       }
-      default:
-        throw new Error(
-          `Unknown server HMR update kind: ${(update as { kind: string }).kind}`
-        )
+      mirrorApply?.(payload)
     }
+    await onApplied(updatedChunkPaths)
+    return true
   }
 
   function apply(entryPaths: string[]): Promise<void> {
@@ -362,9 +332,6 @@ export function setupServerHmr(
       }
 
       try {
-        // Chunks that load while an update is computed may install outdated
-        // modules it doesn't know of, so pull again until no chunk loads in
-        // between.
         for (let attempt = 0; attempt < MAX_SERVER_HMR_PULLS; attempt++) {
           const result = await pull(entryPaths)
           if (result === true) return
@@ -386,7 +353,7 @@ export function setupServerHmr(
 
   function reset(): Promise<void> {
     const resetState = () => {
-      clearLoadedState()
+      chunkHashes.clear()
       needsReEvaluation = false
     }
     const resetPromise = pending.then(resetState, resetState)
@@ -394,5 +361,5 @@ export function setupServerHmr(
     return resetPromise
   }
 
-  return { apply, reset, dispose }
+  return { apply, reset }
 }

@@ -29,23 +29,46 @@ declare global {
     | ((chunkPath: ChunkPath) => void | Promise<void>)
     | undefined
   /**
-   * Called synchronously when a runtime installed the factories of a chunk,
-   * with the chunk's path relative to the output root and, for development
-   * chunks, the version id of the chunk's factories. For async loads, a
-   * returned promise is awaited before any module of the load is evaluated.
+   * Which code the module factories of a development runtime run, as server
+   * HMR compares it with the current code of the modules.
    */
-  var __turbopack_on_chunk_loaded__:
-    | ((
-        chunkPath: ChunkPath,
-        versionId: string | undefined
-      ) => void | Promise<void>)
+  interface ServerHmrRuntimeState {
+    /**
+     * The hash of the code of every module that has a factory. `null` when
+     * the module has a factory whose code isn't known. Never removed, since a
+     * factory stays when its module is removed from a chunk.
+     */
+    installedHash: Map<ModuleId, string | null>
+    /** The entry chunks (relative to the output root) that use this runtime. */
+    enteredEntries: Set<ChunkPath>
+    /** Increments whenever a factory is installed or replaced. */
+    installCount: number
+  }
+  /**
+   * The state of every development runtime, keyed by the output directory
+   * (relative to the output root) of the chunks it serves. A runtime that
+   * replaces another one registers a new state object.
+   */
+  var __turbopack_server_hmr_runtimes__:
+    | Map<string, ServerHmrRuntimeState>
     | undefined
   /**
-   * Called when a development runtime is evaluated, with the output directory
-   * (relative to the output root) of the chunks it serves. A new runtime
-   * starts without any installed factories.
+   * The hash of the code of development factories, by the module ids they
+   * were listed under. See `dev-base.ts`.
    */
-  var __turbopack_on_runtime_loaded__: ((chunkDir: string) => void) | undefined
+  var __turbopack_factory_hashes__:
+    | WeakMap<Function, Map<ModuleId, string>>
+    | undefined
+  /**
+   * Called by development chunks with their factories and the hash of the
+   * code of each of their modules. Defined by the development runtime.
+   */
+  var __turbopack_register_module_hashes__:
+    | ((
+        chunkModules: CompressedModuleFactories,
+        hashes: Array<[ModuleId, string]>
+      ) => void)
+    | undefined
 }
 
 export {}

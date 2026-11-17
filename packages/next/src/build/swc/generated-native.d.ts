@@ -9,8 +9,6 @@ import type {
 
 export type TurboTasks = { readonly __tag: unique symbol }
 export type ExternalEndpoint = { readonly __tag: unique symbol }
-export type ServerHmrChunkVersion = { readonly __tag: unique symbol }
-export type ServerHmrApplied = { readonly __tag: unique symbol }
 export type NextTurboTasks = { readonly __tag: unique symbol }
 export type RefCell<_T = unknown> = { readonly __tag: unique symbol }
 export type FlushGuard = { readonly __tag: unique symbol }
@@ -495,41 +493,36 @@ export interface NapiRoute {
   dataEndpoint?: ExternalObject<ExternalEndpoint>
 }
 
-export interface NapiServerHmrChunkVersion {
+export interface NapiServerHmrChunkModules {
+  chunkPath: RcStr
+  /** The id of the chunk's version the code was read from. */
+  versionId: RcStr
+  /** The update entry of every requested module the chunk holds, with the hash of its code. */
+  entries: Array<
+    [string | number, { code: string; url: string; map?: string; hash: string }]
+  >
+  /** Requested modules the chunk doesn't hold. */
+  missing: Array<string | number>
+}
+
+export interface NapiServerHmrModuleRequest {
+  chunkPath: RcStr
+  ids: Array<string | number>
+}
+
+export interface NapiServerHmrRoute {
+  /** The paths of the route's entry chunks, relative to the output root. */
+  entryChunkPaths: Array<RcStr>
+  chunks: Array<NapiServerHmrRouteChunk>
+}
+
+export interface NapiServerHmrRouteChunk {
   /** The chunk's path, relative to the output root (the runtime's chunk path). */
   path: RcStr
-  /** The version's id, as the chunk file reports it when it loads. */
-  id: RcStr
-  version: ExternalObject<ServerHmrChunkVersion>
-}
-
-/** What the server runtimes have loaded, as recorded by the caller. */
-export interface NapiServerHmrLoadedState {
-  /** The version of every chunk a runtime loaded. */
-  chunks: ExternalObject<ServerHmrChunkVersion>[]
-  /** The paths of chunks a runtime installed at a version that isn't known. */
-  uncertainChunks: Array<RcStr>
-  /** The module hashes installed by applied updates. */
-  applied?: ExternalObject<ServerHmrApplied>
-  /**
-   * Output directories whose runtimes were replaced since `applied` was returned. Nothing
-   * that was applied to the replaced runtimes is installed in the new ones.
-   */
-  replacedRuntimeDirs: Array<RcStr>
-  /** The chunk paths the requested route reported in its previous pull, if any. */
-  previousRouteChunks?: Array<RcStr>
-}
-
-export interface NapiServerHmrUpdate {
-  kind: 'none' | 'partial'
-  /** `unknown` forces the TypeScript boundary to narrow the payload. */
-  instruction?: unknown
-  /** The current versions of the requested route's chunks. */
-  chunkVersions: Array<NapiServerHmrChunkVersion>
-  /** The module hashes installed by applied updates, once this update is applied. */
-  applied: ExternalObject<ServerHmrApplied>
-  /** The chunks whose factories this update installs, to record as loaded once it is applied. */
-  installedChunks: Array<RcStr>
+  /** Changes whenever a module of the chunk changes, or which modules the chunk holds. */
+  versionId: RcStr
+  /** The hash of every module of the chunk, unless the caller already knows this version. */
+  hashes?: Array<[string | number, string]> | undefined
 }
 
 export interface NapiSource {
@@ -686,14 +679,24 @@ export declare function projectGetAllCompilationIssues(project: {
 }): Promise<TurbopackResult<undefined>>
 
 /**
- * Computes the server HMR update for the route of `entry_paths` against what the server
- * runtimes have loaded.
+ * The code of the requested modules of the current chunks of the route of `entry_paths`.
+ * Requested chunks that aren't chunks of the route are left out.
  */
-export declare function projectGetServerHmrUpdate(
+export declare function projectGetServerHmrModules(
   project: { __napiType: 'Project' },
-  loaded: NapiServerHmrLoadedState,
-  entryPaths: Array<RcStr>
-): Promise<TurbopackResult<NapiServerHmrUpdate>>
+  entryPaths: Array<RcStr>,
+  request: Array<NapiServerHmrModuleRequest>
+): Promise<TurbopackResult<Array<NapiServerHmrChunkModules>>>
+
+/**
+ * The current chunks of the route of `entry_paths`, with the hashes of their modules.
+ * `known_version_ids` maps chunk paths to the version id whose hashes the caller already has.
+ */
+export declare function projectGetServerHmrRoute(
+  project: { __napiType: 'Project' },
+  entryPaths: Array<RcStr>,
+  knownVersionIds: Record<string, string>
+): Promise<TurbopackResult<NapiServerHmrRoute>>
 
 export declare function projectGetSourceForAsset(
   project: { __napiType: 'Project' },

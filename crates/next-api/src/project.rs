@@ -2948,6 +2948,24 @@ impl Project {
         Ok(chunk_lists.cell())
     }
 
+    /// The paths of the entry chunks of server HMR `entry_paths`, relative to the node root (the
+    /// output root the server runtimes resolve chunk paths against).
+    #[turbo_tasks::function]
+    pub async fn server_hmr_entry_chunk_paths(
+        self: Vc<Self>,
+        entry_paths: Vec<RcStr>,
+    ) -> Result<Vc<Vec<RcStr>>> {
+        let node_root = self.node_root().owned().await?;
+        let root = self.server_hmr_root_path().owned().await?;
+        let mut paths = Vec::with_capacity(entry_paths.len());
+        for entry_path in entry_paths {
+            if let Some(path) = node_root.get_path_to(&root.join(&entry_path)?) {
+                paths.push(path.into());
+            }
+        }
+        Ok(Vc::cell(paths))
+    }
+
     /// Gets a list of all client HMR chunk names that can be subscribed to.
     #[turbo_tasks::function]
     pub async fn hmr_chunk_names(self: Vc<Self>) -> Result<Vc<Vec<RcStr>>> {

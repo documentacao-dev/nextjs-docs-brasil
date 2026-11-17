@@ -33,8 +33,9 @@ import type {
   ProjectOptions,
   RawEntrypoints,
   Route,
-  ServerHmrUpdate,
-  ServerHmrLoadedState,
+  ServerHmrChunkModules,
+  ServerHmrModuleId,
+  ServerHmrRoute,
   TurboEngineOptions,
   TurbopackResult,
   TurbopackStackFrame,
@@ -774,16 +775,26 @@ function bindingToApi(
       })()
     }
 
-    async getServerHmrUpdate(
-      loaded: ServerHmrLoadedState,
-      entryPaths: string[]
-    ): Promise<TurbopackResult<ServerHmrUpdate>> {
-      // napi cannot express the field correlation.
-      return binding.projectGetServerHmrUpdate(
+    async getServerHmrRoute(
+      entryPaths: string[],
+      knownVersionIds: Record<string, string>
+    ): Promise<TurbopackResult<ServerHmrRoute>> {
+      return binding.projectGetServerHmrRoute(
         this._nativeProject,
-        loaded,
-        entryPaths
-      ) as Promise<TurbopackResult<ServerHmrUpdate>>
+        entryPaths,
+        knownVersionIds
+      ) as Promise<TurbopackResult<ServerHmrRoute>>
+    }
+
+    async getServerHmrModules(
+      entryPaths: string[],
+      request: Array<{ chunkPath: string; ids: ServerHmrModuleId[] }>
+    ): Promise<TurbopackResult<ServerHmrChunkModules[]>> {
+      return binding.projectGetServerHmrModules(
+        this._nativeProject,
+        entryPaths,
+        request
+      ) as Promise<TurbopackResult<ServerHmrChunkModules[]>>
     }
 
     clientHmrEvents(

@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": [],
-  "debugId": "1de4c94c-8719-ad89-e856-b25ef780c0d0",
+  "debugId": "ed61e8c9-5aa6-a205-fc1f-1596f100147d",
   "sections": [
     {"offset": {"line": 3, "column": 0}, "map": {"version":3,"sources":["../../../../../../../../turbopack/crates/turbopack-tests/tests/snapshot/debug-ids/node/input/index.js"],"sourcesContent":["console.log('Hello World')\n"],"names":["console","log"],"mappings":"AAAAA,QAAQC,GAAG,CAAC"}}]
 }

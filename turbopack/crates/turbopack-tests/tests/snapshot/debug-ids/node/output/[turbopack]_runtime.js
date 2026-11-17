@@ -815,17 +815,6 @@ function clearChunkCache() {
     chunkCache.clear();
     loadedChunks.clear();
 }
-/**
- * Tells tooling that tracks which chunks are loaded (e.g. to compute server
- * HMR updates against them) that the factories of a chunk were installed.
- *
- * The tooling may return a promise, e.g. to bring the installed factories up
- * to date. Async loads wait for it before any module they load is evaluated.
- */ function reportChunkLoaded(chunkPath, chunkModules) {
-    // Development chunks carry the version of their factories.
-    const version = chunkModules.__turbopack_chunk_version__;
-    return globalThis.__turbopack_on_chunk_loaded__?.(chunkPath, version);
-}
 function loadRuntimeChunkPath(sourcePath, chunkPath) {
     if (!isJs(chunkPath)) {
         // We only support loading JS chunks in Node.js.
@@ -840,8 +829,6 @@ function loadRuntimeChunkPath(sourcePath, chunkPath) {
         const chunkModules = require(resolved);
         installCompressedModuleFactories(chunkModules, 0);
         loadedChunks.add(chunkPath);
-        // Runtime chunks load synchronously, so there is nothing to wait for.
-        void reportChunkLoaded(chunkPath, chunkModules);
     } catch (cause) {
         let errorMessage = `Failed to load chunk ${chunkPath}`;
         if (sourcePath) {
@@ -907,8 +894,7 @@ function requireChunk(chunkPath, sourceModuleId) {
         // However this is incompatible with hot reloading (since `import` doesn't use the require cache)
         const chunkModules = require(resolved);
         installCompressedModuleFactories(chunkModules, 0);
-        const reported = reportChunkLoaded(chunkPath, chunkModules);
-        return reported === undefined ? loadedChunk : Promise.resolve(reported);
+        return loadedChunk;
     } catch (cause) {
         const errorMessage = `Failed to load chunk ${chunkPath} from module ${sourceModuleId}`;
         const error = new Error(errorMessage, {
@@ -1660,6 +1646,61 @@ nodeDevContextPrototype.c = moduleCache;
 nodeDevContextPrototype.R = resolvePathFromModule;
 nodeDevContextPrototype.C = clearChunkCache;
 markDevModulesLoaded = true;
+/**
+ * Which code the factories of this runtime run, for server HMR to compare with
+ * the current code of the modules. Registered by `dev-nodejs.ts`.
+ */ const serverHmrRuntimeState = {
+    installedHash: new Map(),
+    enteredEntries: new Set(),
+    installCount: 0
+};
+/** Records that `id` received a factory running the code with `hash`. */ function recordInstalledFactory(id, hash) {
+    serverHmrRuntimeState.installedHash.set(id, hash);
+    serverHmrRuntimeState.installCount++;
+}
+/**
+ * The hash of the code every known factory runs, by the module ids it was
+ * listed under. Shared by all runtimes of the process, since each factory is
+ * a distinct function.
+ */ function getFactoryHashes() {
+    return globalThis.__turbopack_factory_hashes__ ??= new WeakMap();
+}
+/** Registers the factories of a development chunk, which carry hashes. */ globalThis.__turbopack_register_module_hashes__ = (chunkModules, hashes)=>{
+    const hashesById = new Map(hashes);
+    const factoryHashes = getFactoryHashes();
+    // See `installCompressedModuleFactories` for the format: module ids followed
+    // by their factory, optionally preceded by a nested array.
+    const visit = (modules)=>{
+        let ids = [];
+        for (const item of modules){
+            if (Array.isArray(item)) {
+                visit(item);
+            } else if (typeof item === 'function') {
+                const factoryHashesById = new Map();
+                for (const id of ids){
+                    const hash = hashesById.get(id);
+                    if (hash !== undefined) factoryHashesById.set(id, hash);
+                }
+                factoryHashes.set(item, factoryHashesById);
+                ids = [];
+            } else {
+                ids.push(item);
+            }
+        }
+    };
+    visit(chunkModules);
+};
+// Records which code every factory this runtime installs runs, in the same
+// step that installs it: for chunks (where the first factory wins, or an id
+// reuses the existing factory of its group) and for HMR updates (after the
+// replaced modules were disposed, before any module runs the new factory). A
+// factory runs unknown code for ids it wasn't registered under.
+const installModuleFactory = moduleFactories.set.bind(moduleFactories);
+moduleFactories.set = (id, factory)=>{
+    installModuleFactory(id, factory);
+    recordInstalledFactory(id, getFactoryHashes().get(factory)?.get(id) ?? null);
+    return moduleFactories;
+};
 function interceptDevModuleExecution(_module) {
     // There are no react refresh hooks server side so this is a no-op
     return undefined;
@@ -1694,10 +1735,13 @@ function getOrInstantiateModuleFromParent(id, sourceModule) {
     trackModuleImport(sourceModule, id, newModule);
     return newModule;
 }
-module.exports = (sourcePath)=>({
+module.exports = (sourcePath)=>{
+    serverHmrRuntimeState.enteredEntries.add(sourcePath);
+    return {
         m: (id)=>getOrInstantiateRuntimeModule(sourcePath, id),
         c: (chunkData)=>loadRuntimeChunk(sourcePath, chunkData)
-    });
+    };
+};
 /// <reference path="../../shared/runtime/dev-protocol.d.ts" />
 /// <reference path="../../shared/runtime/hmr-runtime.ts" />
 /* eslint-disable @typescript-eslint/no-unused-vars */ /**
@@ -1773,10 +1817,27 @@ function initializeServerHmr() {
 }
 function applyEcmascriptMergedUpdate(instruction) {
     const { entries = {}, chunks = {} } = instruction;
+    // The runtime records which code a factory runs when it installs it, so
+    // register the hash of every evaluated factory under its module.
+    const entryModuleIds = new Map();
+    for (const [moduleId, entry] of Object.entries(entries)){
+        entryModuleIds.set(entry, moduleId);
+    }
     const evalModuleEntry = (entry)=>{
         const code = entry.map ? inlineSourcemaps(entry) : entry.code;
         // eslint-disable-next-line no-eval
-        return (0, eval)(`(require) => ${code}`)(require);
+        const factory = (0, eval)(`(require) => ${code}`)(require);
+        const moduleId = entryModuleIds.get(entry);
+        const hash = entry.hash;
+        if (moduleId !== undefined && hash !== undefined) {
+            getFactoryHashes().set(factory, new Map([
+                [
+                    moduleId,
+                    hash
+                ]
+            ]));
+        }
+        return factory;
     };
     const { added, modified } = computeChangedModules(entries, chunks, undefined // no chunkModulesMap for Node.js
     );
@@ -1867,9 +1928,10 @@ handlers.set(__filename, {
     handler: __turbopack_server_hmr_apply__,
     chunkPrefix
 });
-// This runtime starts without any installed factories, so whatever was
-// recorded as loaded in its directory no longer is.
-globalThis.__turbopack_on_runtime_loaded__?.(chunkPrefix);
+// Replaces the state of a runtime this one replaces, e.g. after
+// `require.cache` was cleared: this runtime starts without any factories.
+globalThis.__turbopack_server_hmr_runtimes__ ??= new Map();
+globalThis.__turbopack_server_hmr_runtimes__.set(chunkPrefix, serverHmrRuntimeState);
 
 
 //# sourceMappingURL=%5Bturbopack%5D_runtime.js.map

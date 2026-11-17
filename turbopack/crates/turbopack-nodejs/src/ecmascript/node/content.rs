@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use anyhow::Result;
-use turbo_tasks::{ResolvedVc, Vc, turbobail};
+use turbo_tasks::{ResolvedVc, Vc};
 use turbo_tasks_fs::{File, FileContent};
 use turbopack_core::{
     asset::AssetContent,
@@ -17,8 +17,9 @@ use turbopack_ecmascript::{
         strict_chunk_wrapper, strict_factory_mode, write_module_factories,
     },
     hmr::{
-        EcmascriptHmrChunkContent, merger::EcmascriptChunkContentMerger,
-        version::EcmascriptChunkVersion,
+        EcmascriptHmrChunkContent,
+        merger::EcmascriptChunkContentMerger,
+        version::{EcmascriptChunkVersion, module_hash_string},
     },
     utils::StringifyJs,
 };
@@ -98,30 +99,33 @@ impl EcmascriptNodeChunkContent {
             supports_arrow_functions,
         )?;
         code += "];";
-        // In development, the chunk reports the exact version of its factories when it loads, so
-        // that updates can be computed against what a runtime actually installed. The version is
-        // computed from the very factories written here.
+        // In development, the chunk tells the runtime which code each of its factories runs, so
+        // that server HMR can compare it with the current code of the modules a runtime installed.
+        // The hashes are taken from the very factories written here.
         if matches!(
             *self.chunking_context.runtime_type().await?,
             RuntimeType::Development
         ) {
-            let output_root = self.chunking_context.output_root().owned().await?;
-            let chunk_path = self.chunk.path().owned().await?;
-            let Some(chunk_path) = output_root.get_path_to(&chunk_path) else {
-                turbobail!("chunk path {chunk_path} is not in output root {output_root}");
-            };
-            let version_id = EcmascriptChunkVersion::id_of(
-                &chunk_path.into(),
-                &*self.chunking_context.minify_type().await?,
-                chunk_items
-                    .iter()
-                    .filter_map(|item| Some((&item.id, item.hash?))),
-            );
-            write!(
-                code,
-                "module.exports.__turbopack_chunk_version__={};",
-                StringifyJs(&version_id)
-            )?;
+            // A factory minified on its own has no known hash; the runtime treats its code as
+            // unknown.
+            code += "globalThis.__turbopack_register_module_hashes__?.(module.exports,[";
+            let mut first = true;
+            for item in chunk_items.iter() {
+                let Some(hash) = item.hash else {
+                    continue;
+                };
+                if !first {
+                    code += ",";
+                }
+                first = false;
+                write!(
+                    code,
+                    "[{},{}]",
+                    StringifyJs(&item.id),
+                    StringifyJs(&module_hash_string(hash))
+                )?;
+            }
+            code += "]);";
         }
         if let Some((_, suffix)) = strict_chunk_wrapper {
             code += suffix;

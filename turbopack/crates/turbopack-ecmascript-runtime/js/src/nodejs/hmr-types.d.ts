@@ -11,7 +11,7 @@ interface NodeJsEcmascriptMergedUpdate {
   type: 'EcmascriptMergedUpdate'
   entries?: Record<
     string,
-    { code: string; url: string; map?: string | undefined }
+    { code: string; url: string; map?: string | undefined; hash?: string }
   >
   chunks?: Record<
     string,

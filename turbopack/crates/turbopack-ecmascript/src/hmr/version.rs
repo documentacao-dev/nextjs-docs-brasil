@@ -55,18 +55,17 @@ impl EcmascriptChunkVersion {
 }
 
 impl EcmascriptChunkVersion {
-    /// The id of a version with these modules and hashes, see [`Version::id`]. A chunk can
-    /// compute it from the very factories it writes, so it identifies exactly which code the
-    /// chunk installs.
-    pub fn id_of<'a>(
-        chunk_path: &RcStr,
-        minify_type: &MinifyType,
-        modules: impl IntoIterator<Item = (&'a ModuleId, u128)>,
-    ) -> RcStr {
+    /// The id of this version, without going through a task, see [`Version::id`]. It identifies
+    /// which module has which code, so a change of either changes it.
+    pub fn id_sync(&self) -> RcStr {
         let mut hasher = Xxh3Hash64Hasher::new();
-        hasher.write_ref(chunk_path);
-        hasher.write_ref(minify_type);
-        let mut sorted_modules: Vec<_> = modules.into_iter().collect();
+        hasher.write_ref(&self.chunk_path);
+        hasher.write_ref(&self.minify_type);
+        let mut sorted_modules: Vec<_> = self
+            .entries_hashes
+            .iter()
+            .map(|(id, hash)| (id, *hash))
+            .collect();
         sorted_modules.sort();
         hasher.write_value(sorted_modules.len());
         for (id, hash) in sorted_modules {
@@ -75,15 +74,12 @@ impl EcmascriptChunkVersion {
         }
         encode_base64(hasher.finish()).into()
     }
+}
 
-    /// The id of this version, without going through a task, see [`Version::id`].
-    pub fn id_sync(&self) -> RcStr {
-        Self::id_of(
-            &self.chunk_path,
-            &self.minify_type,
-            self.entries_hashes.iter().map(|(id, hash)| (id, *hash)),
-        )
-    }
+/// The string form of a module's hash, as development chunks and server HMR updates carry it.
+/// It is lossless, unlike a JavaScript number.
+pub fn module_hash_string(hash: u128) -> String {
+    format!("{hash:032x}")
 }
 
 #[turbo_tasks::value_impl]
@@ -130,21 +126,20 @@ impl Version for EcmascriptMergedChunkVersion {
 
 #[cfg(test)]
 mod tests {
-    use turbo_rcstr::RcStr;
     use turbopack_core::chunk::{MinifyType, ModuleId};
 
     use super::EcmascriptChunkVersion;
 
-    fn id_of(modules: &[(&str, u128)]) -> RcStr {
-        let ids: Vec<_> = modules
-            .iter()
-            .map(|(id, hash)| (ModuleId::String((*id).into()), *hash))
-            .collect();
-        EcmascriptChunkVersion::id_of(
-            &RcStr::from("chunks/a.js"),
-            &MinifyType::NoMinify,
-            ids.iter().map(|(id, hash)| (id, *hash)),
-        )
+    fn id_of(modules: &[(&str, u128)]) -> turbo_rcstr::RcStr {
+        EcmascriptChunkVersion {
+            chunk_path: "chunks/a.js".into(),
+            minify_type: MinifyType::NoMinify,
+            entries_hashes: modules
+                .iter()
+                .map(|(id, hash)| (ModuleId::String((*id).into()), *hash))
+                .collect(),
+        }
+        .id_sync()
     }
 
     #[test]

@@ -111,10 +111,25 @@ function applyEcmascriptMergedUpdate(
 ): void {
   const { entries = {}, chunks = {} } = instruction
 
+  // The runtime records which code a factory runs when it installs it, so
+  // register the hash of every evaluated factory under its module.
+  const entryModuleIds = new Map<EcmascriptModuleEntry, ModuleId>()
+  for (const [moduleId, entry] of Object.entries(entries)) {
+    entryModuleIds.set(entry, moduleId as ModuleId)
+  }
+
   const evalModuleEntry = (entry: EcmascriptModuleEntry) => {
     const code = entry.map ? inlineSourcemaps(entry) : entry.code
     // eslint-disable-next-line no-eval
-    return (0, eval)(`(require) => ${code}`)(require)
+    const factory: HotModuleFactoryFunction = (0, eval)(`(require) => ${code}`)(
+      require
+    )
+    const moduleId = entryModuleIds.get(entry)
+    const hash = (entry as { hash?: string }).hash
+    if (moduleId !== undefined && hash !== undefined) {
+      getFactoryHashes().set(factory, new Map([[moduleId, hash]]))
+    }
+    return factory
   }
 
   const { added, modified } = computeChangedModules(

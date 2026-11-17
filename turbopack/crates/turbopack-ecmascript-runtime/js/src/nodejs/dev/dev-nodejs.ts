@@ -101,6 +101,10 @@ handlers.set(__filename, {
   chunkPrefix,
 })
 
-// This runtime starts without any installed factories, so whatever was
-// recorded as loaded in its directory no longer is.
-globalThis.__turbopack_on_runtime_loaded__?.(chunkPrefix)
+// Replaces the state of a runtime this one replaces, e.g. after
+// `require.cache` was cleared: this runtime starts without any factories.
+globalThis.__turbopack_server_hmr_runtimes__ ??= new Map()
+globalThis.__turbopack_server_hmr_runtimes__.set(
+  chunkPrefix,
+  serverHmrRuntimeState
+)

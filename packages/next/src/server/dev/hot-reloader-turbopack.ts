@@ -2163,8 +2163,8 @@ export async function createHotReloaderTurbopack(
             })
 
             // Server HMR pulls are driven by the request being built — which is
-            // what makes evaluating a changed module lazy. The first request of
-            // an entry also pulls the entries requested before it, see
+            // what makes evaluating a changed module lazy. A pull compares the
+            // route's modules with what its runtimes installed, see
             // `setupServerHmr`.
             if (shouldPullServerHmr && serverHmrEntryPaths.length > 0) {
               await serverHmr?.apply(serverHmrEntryPaths)
@@ -2405,6 +2405,8 @@ export async function createHotReloaderTurbopack(
         // cleared from require.cache above; when they're next required they'll
         // re-register into this Map and reinstall the routing dispatcher.
         globalThis.__turbopack_server_hmr_handlers__ = new Map()
+        // The cleared runtimes no longer run anything.
+        globalThis.__turbopack_server_hmr_runtimes__ = new Map()
 
         // Clear all edge contexts
         await clearAllModuleContexts()
@@ -2439,8 +2441,6 @@ export async function createHotReloaderTurbopack(
         })
       },
     })
-    const { dispose } = serverHmr
-    opts.onDevServerCleanup?.(async () => dispose())
   }
 
   return hotReloader

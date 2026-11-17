@@ -14,8 +14,6 @@ import type {
   TraceQueryResult,
   MemoryEvictionMode,
   NapiTurbopackGcOptions,
-  ServerHmrChunkVersion as NativeServerHmrChunkVersion,
-  ServerHmrApplied as NativeServerHmrApplied,
   LockfileError,
   LockfileResult,
   projectCompilationEventsSubscribe,
@@ -254,7 +252,7 @@ export interface NodeJsEcmascriptMergedUpdate {
   type: 'EcmascriptMergedUpdate'
   entries?: Record<
     string,
-    { code: string; url: string; map?: string | undefined }
+    { code: string; url: string; map?: string | undefined; hash?: string }
   >
   chunks?: Record<
     string,
@@ -275,50 +273,43 @@ export interface NodeJsPartialHmrUpdate {
   instruction: NodeJsEcmascriptMergedUpdate | NodeJsChunkListUpdate
 }
 
-/** Opaque version of a chunk, as reported by a server HMR pull. */
-export type ServerHmrChunkVersion = {
+/** A module id, as chunks and the runtimes hold it. */
+export type ServerHmrModuleId = string | number
+
+/** A JavaScript chunk of a route, as a server HMR query reports it. */
+export interface ServerHmrRouteChunk {
   /** The chunk's path, relative to the output root. */
   path: string
-  /** The version's id, as the chunk file reports it when it loads. */
-  id: string
-  version: ExternalObject<NativeServerHmrChunkVersion>
-}
-
-/** Opaque module hashes installed by applied server HMR updates. */
-export type ServerHmrApplied = ExternalObject<NativeServerHmrApplied>
-
-/** What the server runtimes loaded, as recorded by the caller. */
-export interface ServerHmrLoadedState {
-  /** The version of every chunk a runtime loaded. */
-  chunks: ServerHmrChunkVersion['version'][]
-  /** The paths of chunks a runtime installed at a version that isn't known. */
-  uncertainChunks: string[]
-  /** The module hashes installed by applied updates. */
-  applied: ServerHmrApplied | undefined
+  /** Changes whenever a module of the chunk changes, or which modules it holds. */
+  versionId: string
   /**
-   * Output directories whose runtimes were replaced since `applied` was
-   * returned. Nothing applied to the replaced runtimes counts for the new ones.
+   * The hash of the code of every module of the chunk, as development chunks
+   * carry it. Left out when the caller already knows `versionId`.
    */
-  replacedRuntimeDirs: string[]
-  /** The chunk paths the requested route reported in its previous pull. */
-  previousRouteChunks: string[] | undefined
+  hashes?: Array<[ServerHmrModuleId, string]>
 }
 
-/** Restores the union flattened by napi. */
-export type ServerHmrUpdate = {
-  /** The current versions of the requested route's chunks. */
-  chunkVersions: ServerHmrChunkVersion[]
-  /** The module hashes installed by applied updates, once this one is applied. */
-  applied: ServerHmrApplied
-  /** The chunks this update installs, to record as loaded once it is applied. */
-  installedChunks: string[]
-} & (
-  | { kind: 'none' }
-  | {
-      kind: 'partial'
-      instruction: NodeJsPartialHmrUpdate['instruction']
-    }
-)
+export interface ServerHmrRoute {
+  /** The paths of the route's entry chunks, relative to the output root. */
+  entryChunkPaths: string[]
+  chunks: ServerHmrRouteChunk[]
+}
+
+/** The code of requested modules of a chunk. */
+export interface ServerHmrChunkModules {
+  chunkPath: string
+  /** The id of the chunk's version the code was read from. */
+  versionId: string
+  /** The update entry of every requested module, with the hash of its code. */
+  entries: Array<
+    [
+      ServerHmrModuleId,
+      { code: string; url: string; map?: string; hash: string },
+    ]
+  >
+  /** Requested modules the chunk doesn't hold. */
+  missing: ServerHmrModuleId[]
+}
 
 export interface HmrChunkNames {
   /** Relative paths to output chunks that can receive HMR updates (e.g., "server/chunks/ssr/..._.js") */
@@ -391,13 +382,20 @@ export interface Project {
   >
 
   /**
-   * Computes the server HMR update of a route against what the server
-   * runtimes loaded.
+   * The current chunks of a server HMR route, with the hashes of their modules.
+   * `knownVersionIds` maps chunk paths to the version id whose hashes the
+   * caller already has.
    */
-  getServerHmrUpdate(
-    loaded: ServerHmrLoadedState,
-    entryPaths: string[]
-  ): Promise<TurbopackResult<ServerHmrUpdate>>
+  getServerHmrRoute(
+    entryPaths: string[],
+    knownVersionIds: Record<string, string>
+  ): Promise<TurbopackResult<ServerHmrRoute>>
+
+  /** The code of the requested modules of a server HMR route's chunks. */
+  getServerHmrModules(
+    entryPaths: string[],
+    request: Array<{ chunkPath: string; ids: ServerHmrModuleId[] }>
+  ): Promise<TurbopackResult<ServerHmrChunkModules[]>>
 
   clientHmrEvents(
     identifier: string
