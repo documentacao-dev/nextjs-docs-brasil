@@ -1,34 +1,34 @@
 ---
-title: Building public pages
-description: Learn how to build public, "static" pages that share data across users, such as landing pages, list pages (products, blogs, etc.), marketing and news sites.
-nav_title: Public pages
+title: Como criar páginas públicas
+description: Aprenda a criar páginas públicas "estáticas" que compartilham dados entre usuários, como landing pages, páginas de listagem (produtos, blogs etc.), sites de marketing e de notícias.
+nav_title: Páginas públicas
 related:
   links:
     - app/guides/keeping-pages-static
     - app/guides/incremental-static-regeneration-cache-components
 ---
 
-Public pages show the same content to every user. Common examples include landing pages, marketing pages, and product pages.
+Páginas públicas mostram o mesmo conteúdo para todos os usuários. Exemplos comuns incluem landing pages, páginas de marketing e páginas de produtos.
 
-Since data is shared, these kind of pages can be [prerendered](/docs/app/glossary#prerendering) ahead of time and reused. This leads to faster page loads and lower server costs.
+Como os dados são compartilhados, esses tipos de página podem ser [prerenderizados](/docs/app/glossary#prerendering) antecipadamente e reutilizados. Isso resulta em carregamentos de página mais rápidos e custos de servidor menores.
 
-This guide will show you how to build public pages that share data across users.
+Este guia mostra como criar páginas públicas que compartilham dados entre usuários.
 
-## Example
+## Exemplo \{#example}
 
-As an example, we'll build a product list page.
+Como exemplo, vamos criar uma página de listagem de produtos.
 
-We'll start with a static header, add a product list with async external data, and learn how to render it without blocking the response. Finally, we'll add a user-specific promotion banner without switching the entire page to [dynamic rendering](/docs/app/glossary#dynamic-rendering).
+Vamos começar com um cabeçalho estático, adicionar uma lista de produtos com dados externos assíncronos e aprender a renderizá-la sem bloquear a resposta. Por fim, vamos adicionar um banner de promoção específico do usuário, sem mudar a página inteira para a [renderização dinâmica](/docs/app/glossary#dynamic-rendering).
 
-You can find the resources used in this example here:
+Você encontra os recursos usados neste exemplo aqui:
 
-- [Video](https://youtu.be/F6romq71KtI)
-- [Demo](https://cache-components-public-pages.labs.vercel.dev/)
-- [Code](https://github.com/nextjs/cache-components-public-pages)
+- [Vídeo](https://youtu.be/F6romq71KtI)
+- [Demonstração](https://cache-components-public-pages.labs.vercel.dev/)
+- [Código](https://github.com/nextjs/cache-components-public-pages)
 
-### Step 1: Add a simple header
+### Passo 1: adicione um cabeçalho simples \{#step-1-add-a-simple-header}
 
-Let's start with a simple header.
+Vamos começar com um cabeçalho simples.
 
 ```tsx filename="app/products/page.tsx"
 // Static component
@@ -45,15 +45,15 @@ export default async function Page() {
 }
 ```
 
-#### Static components
+#### Componentes estáticos \{#static-components}
 
-The `<Header />` component doesn't depend on any inputs that change between requests, such as: external data, request headers, route params, the current time, or random values.
+O componente `<Header />` não depende de nenhuma entrada que muda entre requisições, como dados externos, cabeçalhos de requisição, parâmetros de rota, a hora atual ou valores aleatórios.
 
-> **Good to know**: If you need to display locale-aware dates or times without a visible flash, see [Preventing flash before hydration](/docs/app/guides/preventing-flash-before-hydration).
+> **Bom saber:** se você precisa exibir datas ou horários sensíveis ao locale sem um flash visível, veja [Evitando flash antes da hidratação](/docs/app/guides/preventing-flash-before-hydration).
 
-Since its output never changes and can be determined ahead of time, this kind of component is called a **static** component. With no reason to wait for a request, Next.js can safely **prerender** the page at [build time](/docs/app/glossary#build-time).
+Como a saída nunca muda e pode ser determinada antecipadamente, este tipo de componente é chamado de componente **estático**. Sem motivo para esperar uma requisição, o Next.js pode, com segurança, **prerenderizar** a página no [tempo de build](/docs/app/glossary#build-time).
 
-We can confirm this by running [`next build`](/docs/app/api-reference/cli/next#next-build-options).
+Podemos confirmar isso executando o [`next build`](/docs/app/api-reference/cli/next#next-build-options).
 
 ```bash filename="Terminal"
 Route (app)      Revalidate  Expire
@@ -63,11 +63,11 @@ Route (app)      Revalidate  Expire
 ○  (Static)  prerendered as static content
 ```
 
-Notice that the product route is marked as static, even though we didn't add any explicit configuration.
+Observe que a rota de produtos está marcada como estática, mesmo sem nenhuma configuração explícita que tenhamos adicionado.
 
-### Step 2: Add the product list
+### Passo 2: adicione a lista de produtos \{#step-2-add-the-product-list}
 
-Now, let's fetch and render our product list.
+Agora, vamos buscar e renderizar a nossa lista de produtos.
 
 ```tsx filename="app/products/page.tsx"
 import db from '@/db'
@@ -91,30 +91,30 @@ export default async function Page() {
 }
 ```
 
-Unlike the header, the product list depends on external data.
+Diferente do cabeçalho, a lista de produtos depende de dados externos.
 
-#### Dynamic components
+#### Componentes dinâmicos \{#dynamic-components}
 
-Since this data **can** change over time, the rendered output is no longer guaranteed to be stable. This makes the product list a **dynamic** component.
+Como esses dados **podem** mudar com o tempo, a saída renderizada não é mais garantidamente estável. Isso torna a lista de produtos um componente **dinâmico**.
 
-Without guidance, the framework assumes you want to fetch **fresh** data on every user request. This design choice reflects standard web behavior where a new server request renders the page.
+Sem orientação, o framework assume que você quer buscar dados **novos** a cada requisição do usuário. Essa escolha de design reflete o comportamento padrão da web, em que uma nova requisição ao servidor renderiza a página.
 
-However, if this component is rendered at request time, fetching its data will delay the **entire** route from responding. If we refresh the page, we can see this happen.
+No entanto, se esse componente for renderizado no momento da requisição, buscar os dados dele vai atrasar a resposta da rota **inteira**. Se atualizarmos a página, podemos ver isso acontecer.
 
-Even though the header is rendered instantly, it can't be sent to the browser until the product list has finished fetching.
+Mesmo que o cabeçalho seja renderizado instantaneamente, ele não pode ser enviado ao navegador até que a lista de produtos termine de buscar os dados.
 
-To protect us from this performance cliff, the first time we **await** this uncached data Next.js shows a [warning](/docs/messages/blocking-prerender-dynamic): accessing uncached data outside of `<Suspense>` prevents the route from being prerendered.
+Para nos proteger desse gargalo de desempenho, a primeira vez que fizermos **await** nesses dados sem cache, o Next.js mostra um [aviso](/docs/messages/blocking-prerender-dynamic): acessar dados sem cache fora de `<Suspense>` impede que a rota seja prerenderizada.
 
-At this point, we have to decide how to **unblock** the response. Either:
+Neste ponto, precisamos decidir como **desbloquear** a resposta. Podemos:
 
-- [**Cache**](/docs/app/glossary#cache-components) the component, so it becomes **stable** and can be prerendered with the rest of the page.
-- [**Stream**](/docs/app/glossary#streaming) the component, so it becomes **non-blocking** and the rest of the page doesn't have to wait for it.
+- [**Armazenar em cache**](/docs/app/glossary#cache-components) o componente, para que ele se torne **estável** e possa ser prerenderizado junto com o restante da página.
+- Usar [**streaming**](/docs/app/glossary#streaming) no componente, para que ele se torne **não bloqueante** e o restante da página não precise esperar por ele.
 
-In our case, the product catalog is shared across all users, so caching is the right choice.
+No nosso caso, o catálogo de produtos é compartilhado por todos os usuários, então armazenar em cache é a escolha certa.
 
-### Cache components
+### Cache components \{#cache-components}
 
-We can mark a function as cacheable using the [`'use cache'`](/docs/app/api-reference/directives/use-cache) directive.
+Podemos marcar uma função como armazenável em cache usando a diretiva [`'use cache'`](/docs/app/api-reference/directives/use-cache).
 
 ```tsx filename="app/products/page.tsx"
 import db from '@/db'
@@ -139,11 +139,11 @@ export default async function Page() {
 }
 ```
 
-This turns it into a [cache component](/docs/app/glossary#cache-components). The first time it runs, whatever we return will be cached and reused.
+Isso transforma a função em um [cache component](/docs/app/glossary#cache-components). Na primeira vez que ela roda, o que retornarmos será armazenado em cache e reutilizado.
 
-If a cache component's inputs are available **before** the request arrives, it can be prerendered just like a static component.
+Se as entradas de um cache component estiverem disponíveis **antes** de a requisição chegar, ele pode ser prerenderizado da mesma forma que um componente estático.
 
-If we refresh again, we can see the page loads instantly because the cache component doesn't block the response. And, if we run `next build` again, we can confirm the page is still static:
+Se atualizarmos novamente, podemos ver que a página carrega instantaneamente, porque o cache component não bloqueia a resposta. E, se executarmos `next build` de novo, podemos confirmar que a página continua estática:
 
 ```bash filename="Terminal"
 Route (app)      Revalidate  Expire
@@ -153,11 +153,11 @@ Route (app)      Revalidate  Expire
 ○  (Static)  prerendered as static content
 ```
 
-But, pages rarely stay static forever.
+Mas as páginas raramente continuam estáticas para sempre.
 
-### Step 3: Add a dynamic promotion banner
+### Passo 3: adicione um banner de promoção dinâmico \{#step-3-add-a-dynamic-promotion-banner}
 
-Sooner or later, even simple pages need some dynamic content. To demonstrate this, let's add a promotional banner:
+Mais cedo ou mais tarde, até páginas simples precisam de algum conteúdo dinâmico. Para demonstrar isso, vamos adicionar um banner promocional:
 
 ```tsx filename="app/products/page.tsx"
 import db from '@/db'
@@ -185,15 +185,15 @@ export default async function Page() {
 }
 ```
 
-Once again, this starts off as dynamic. And as before, introducing blocking behavior triggers a Next.js warning.
+Mais uma vez, isso começa como dinâmico. E, como antes, introduzir comportamento de bloqueio dispara um aviso do Next.js.
 
-Last time, the data was shared, so it could be cached. This time, the promotion depends on request specific inputs like the user's location and A/B tests, so we can't cache our way out of the blocking behavior.
+Da última vez, os dados eram compartilhados, então podiam ser armazenados em cache. Desta vez, a promoção depende de entradas específicas da requisição, como a localização do usuário e testes A/B, então não conseguimos resolver o comportamento de bloqueio com cache.
 
-### Partial prerendering
+### Partial prerendering \{#partial-prerendering}
 
-Adding dynamic content doesn't mean we have to go back to a fully blocking render. We can unblock the response with streaming.
+Adicionar conteúdo dinâmico não significa que precisamos voltar a uma renderização totalmente bloqueante. Podemos desbloquear a resposta com streaming.
 
-Next.js supports streaming by default. We can use a [Suspense boundary](/docs/app/glossary#suspense-boundary) to tell the framework where to slice the streamed response into _chunks_, and what fallback UI to show while content loads.
+O Next.js já faz streaming por padrão. Podemos usar uma [fronteira do Suspense](/docs/app/glossary#suspense-boundary) para indicar ao framework onde dividir a resposta em _partes_ e qual UI de fallback mostrar enquanto o conteúdo carrega.
 
 ```tsx filename="app/products/page.tsx"
 import { Suspense } from 'react'
@@ -224,11 +224,11 @@ export default async function Page() {
 }
 ```
 
-The fallback is prerendered alongside the rest of our static and cached content. The inner component streams in later, once its async work completes.
+O fallback é prerenderizado junto com o restante do nosso conteúdo estático e em cache. O componente interno chega em streaming depois, quando o trabalho assíncrono dele termina.
 
-With this change, Next.js can separate prerenderable work from request-time work and the route becomes [partially prerendered](/docs/app/glossary#partial-prerendering-ppr).
+Com essa mudança, o Next.js consegue separar o trabalho prerenderizável do trabalho do momento da requisição, e a rota se torna [parcialmente prerenderizada](/docs/app/glossary#partial-prerendering-ppr).
 
-Again, we can confirm this by running `next build`:
+Mais uma vez, podemos confirmar isso executando `next build`:
 
 ```bash filename="Terminal"
 Route (app)      Revalidate  Expire
@@ -238,21 +238,23 @@ Route (app)      Revalidate  Expire
 ◐  (Partial Prerender)  Prerendered as static HTML with dynamic server-streamed content
 ```
 
-At [**build time**](/docs/app/glossary#build-time), most of the page, including the header, product list and promotion fallback, is rendered, cached and pushed to a content delivery network.
+No [**tempo de build**](/docs/app/glossary#build-time), a maior parte da página, incluindo o cabeçalho, a lista de produtos e o fallback da promoção, é renderizada, armazenada em cache e enviada para uma rede de distribuição de conteúdo (CDN).
 
-At [**request time**](/docs/app/glossary#dynamic-rendering), the prerendered part is served instantly from a CDN node close to the user.
+No [**momento da requisição**](/docs/app/glossary#dynamic-rendering), a parte prerenderizada é servida instantaneamente a partir de um nó de CDN próximo ao usuário.
 
-In parallel, the user specific promotion is rendered on the server, streamed to the client, and swapped into the fallback slot.
+Em paralelo, a promoção específica do usuário é renderizada no servidor, enviada em streaming ao cliente e trocada pelo slot do fallback.
 
-If we refresh the page one last time, we can see most of the page loads instantly, while the dynamic parts stream in as they become available.
+Se atualizarmos a página mais uma vez, podemos ver que a maior parte dela carrega instantaneamente, enquanto as partes dinâmicas chegam em streaming conforme ficam disponíveis.
 
-### Next steps
+### Próximos passos \{#next-steps}
 
-We've learned how to build mostly static pages that include pockets of dynamic content.
+Aprendemos a criar páginas majoritariamente estáticas que incluem trechos de conteúdo dinâmico.
 
-We started with a static page, added async work, and resolved the blocking behavior by caching what could be prerendered and streaming what could not. From here, you can:
+Começamos com uma página estática, adicionamos trabalho assíncrono e resolvemos o comportamento de bloqueio armazenando em cache o que podia ser prerenderizado e usando streaming para o que não podia. A partir daqui, você pode:
 
-- [Keep selected route output static](/docs/app/guides/keeping-pages-static) as the application changes.
-- [Revalidate prerendered pages or cached data](/docs/app/guides/incremental-static-regeneration-cache-components).
-- [Create variants with route parameters](/docs/app/api-reference/functions/generate-static-params).
-- [Add authentication to a Cache Components application](/docs/app/guides/authentication-with-cache-components).
+- [Mantenha a saída das rotas selecionadas estática](/docs/app/guides/keeping-pages-static) conforme o app muda.
+- [Revalide páginas prerenderizadas ou dados em cache](/docs/app/guides/incremental-static-regeneration-cache-components).
+- [Crie variações com parâmetros de rota](/docs/app/api-reference/functions/generate-static-params).
+- [Adicione autenticação a um app com Cache Components](/docs/app/guides/authentication-with-cache-components).
+
+{/* ia-translate: true */}

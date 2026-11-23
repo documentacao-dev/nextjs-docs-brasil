@@ -1,7 +1,7 @@
 ---
-title: Incremental Static Regeneration with Cache Components
-description: Learn how to prerender a subset of dynamic routes, serve App Shells for the rest, and upgrade them after the first visit.
-nav_title: ISR with Cache Components
+title: Regeneração estática incremental com Cache Components
+description: Aprenda a prerenderizar um subconjunto de rotas dinâmicas, servir App Shells para as demais e atualizá-las após a primeira visita.
+nav_title: ISR com Cache Components
 related:
   links:
     - app/api-reference/config/next-config-js/cacheComponents
@@ -10,27 +10,27 @@ related:
     - app/getting-started/caching
 ---
 
-[Incremental Static Regeneration (ISR)](/docs/app/glossary#incremental-static-regeneration-isr) with [`cacheComponents`](/docs/app/api-reference/config/next-config-js/cacheComponents) and [Partial Prefetching](/docs/app/api-reference/config/next-config-js/partialPrefetching) gives every route an instant first visit, even for URLs that weren't included in the build.
+A [Regeneração Estática Incremental (ISR)](/docs/app/glossary#incremental-static-regeneration-isr) com [`cacheComponents`](/docs/app/api-reference/config/next-config-js/cacheComponents) e [Partial Prefetching](/docs/app/api-reference/config/next-config-js/partialPrefetching) oferece a todas as rotas uma primeira visita instantânea, mesmo para URLs que não foram incluídas no build.
 
-During build, Partial Prerendering splits each render into two parts:
+Durante o build, o Partial Prerendering divide cada renderização em duas partes:
 
-- The **App Shell**: the generic, reusable part of the page that doesn't depend on URL data
-- The rest of the statically renderable content: the param-specific prerenders for the URLs you list in [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params)
+- A **App Shell**: a parte genérica e reutilizável da página, que não depende de dados da URL
+- O restante do conteúdo renderizável estaticamente: as pré-renderizações específicas de parâmetros para as URLs que você lista em [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params)
 
-For a visit to a URL whose params were included in `generateStaticParams`, Next.js serves the fully prerendered page from the cache. For a visit to a URL whose params weren't, Next.js serves the App Shell instantly, then upgrades it in the background with the now-known params. Subsequent visits to that URL get the upgraded result from the cache, skipping the App Shell entirely.
+Para uma visita a uma URL cujos parâmetros foram incluídos em `generateStaticParams`, o Next.js serve a página totalmente prerenderizada a partir do cache. Para uma visita a uma URL cujos parâmetros não foram incluídos, o Next.js serve a App Shell instantaneamente e, em seguida, a atualiza em segundo plano com os parâmetros já conhecidos. As visitas seguintes a essa URL recebem o resultado atualizado do cache, pulando a App Shell por completo.
 
-If you have used [ISR](/docs/app/guides/incremental-static-regeneration) or [`fallback: true`](https://nextjs.org/docs/pages/api-reference/functions/get-static-paths#fallback-true) in the Pages Router, this is the Cache Components equivalent.
+Se você usou [ISR](/docs/app/guides/incremental-static-regeneration) ou [`fallback: true`](https://nextjs.org/docs/pages/api-reference/functions/get-static-paths#fallback-true) no Pages Router, esta é a equivalente em Cache Components.
 
-Enable both [`cacheComponents`](/docs/app/api-reference/config/next-config-js/cacheComponents) and [Partial Prefetching](/docs/app/api-reference/config/next-config-js/partialPrefetching).
+Ative o [`cacheComponents`](/docs/app/api-reference/config/next-config-js/cacheComponents) e o [Partial Prefetching](/docs/app/api-reference/config/next-config-js/partialPrefetching).
 
-Cache Components prerenders a static shell that can include fallback UI. For paths not returned by `generateStaticParams`, Next.js can render the path on demand and store the completed result in the ISR cache.
+Cache Components prerenderiza uma shell estática que pode incluir UI de fallback. Para caminhos que não são retornados por `generateStaticParams`, o Next.js pode renderizar o caminho sob demanda e armazenar o resultado completo no cache ISR.
 
-Partial Prefetching determines whether the fallback is served before the URL-specific render completes:
+O Partial Prefetching determina se o fallback é servido antes de a renderização específica da URL terminar:
 
-- **With Partial Prefetching:** You can await `params` inside `<Suspense>`. Next.js can immediately serve the fallback for an unlisted path, render the URL-specific content, and store the completed result in the ISR cache.
-- **Without Partial Prefetching:** The first request for an unlisted path must wait for the URL-specific render to complete. Await `params` outside any `<Suspense>` boundary, including one created by [`loading.tsx`](/docs/app/api-reference/file-conventions/loading), so Next.js creates an ISR entry for that URL.
+- **Com Partial Prefetching:** você pode usar `await` em `params` dentro de `<Suspense>`. O Next.js pode servir imediatamente o fallback para um caminho não listado, renderizar o conteúdo específico da URL e armazenar o resultado completo no cache ISR.
+- **Sem Partial Prefetching:** a primeira requisição para um caminho não listado precisa esperar a renderização específica da URL terminar. Faça o `await` em `params` fora de qualquer fronteira de `<Suspense>`, incluindo uma criada pelo [`loading.tsx`](/docs/app/api-reference/file-conventions/loading), para que o Next.js crie uma entrada ISR para essa URL.
 
-> **Good to know:** Without Partial Prefetching, awaiting `params` inside `<Suspense>` causes Next.js to keep serving the shared fallback instead of creating a URL-specific ISR entry. Data fetched by the route can still be cached independently.
+> **Bom saber:** sem Partial Prefetching, usar `await` em `params` dentro de `<Suspense>` faz o Next.js continuar servindo o fallback compartilhado, em vez de criar uma entrada ISR específica da URL. Os dados buscados pela rota ainda podem ser armazenados em cache de forma independente.
 
 ```ts filename="next.config.ts" highlight={4-5}
 import type { NextConfig } from 'next'
@@ -43,18 +43,18 @@ const nextConfig: NextConfig = {
 export default nextConfig
 ```
 
-## Example
+## Exemplo \{#example}
 
-We'll build a product catalog with category layouts and product detail pages using the [Recipe API](https://next-recipe-api.vercel.dev/). You can find the resources used in this example here:
+Vamos montar um catálogo de produtos com layouts de categoria e páginas de detalhe de produto usando a [Recipe API](https://next-recipe-api.vercel.dev/). Você encontra os recursos usados neste exemplo aqui:
 
-- [Demo](https://partial-fallbacks.labs.vercel.dev/)
-- [Code](https://github.com/nextjs/partial-fallbacks)
+- [Demonstração](https://partial-fallbacks.labs.vercel.dev/)
+- [Código](https://github.com/nextjs/partial-fallbacks)
 
-### Prepare your routes
+### Prepare as suas rotas \{#prepare-your-routes}
 
-Use [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) to define which param values to prerender. When rendering these routes, the param values are known at build time. The prerender process builds a static shell until it reaches a [Request-time API](/docs/app/glossary#request-time-apis) or uncached data. See [Prerendering](/docs/app/getting-started/caching#prerendering) for more details.
+Use [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) para definir quais valores de parâmetro devem ser prerenderizados. Ao renderizar essas rotas, os valores dos parâmetros são conhecidos em tempo de build. O processo de prerendering monta uma shell estática até encontrar uma [API de tempo de requisição](/docs/app/glossary#request-time-apis) ou dados sem cache. Veja [Prerendering](/docs/app/getting-started/caching#prerendering) para mais detalhes.
 
-The category layout prerenders two categories:
+O layout de categoria prerenderiza duas categorias:
 
 ```tsx filename="app/[category]/layout.tsx" highlight={5-8}
 import Link from 'next/link'
@@ -93,9 +93,9 @@ export default function CategoryLayout(props: LayoutProps<'/[category]'>) {
 }
 ```
 
-Notice that `CategoryLayout` does not `await props.params` itself. Instead, it passes the `params` promise to `CategoryHeader` inside `<Suspense>`. The `await` happens inside the boundary, so for unknown categories Next.js can still generate the App Shell. Keep the read inside the boundary even for the categories `generateStaticParams` covers. A statically known param still belongs to one URL, so awaiting it above the Suspense boundary would tie this layout's App Shell to that URL. See [Instant navigation](/docs/app/guides/instant-navigation) for structuring routes this way.
+Observe que `CategoryLayout` não faz `await props.params` por conta própria. Em vez disso, ele passa a promise `params` para `CategoryHeader` dentro de `<Suspense>`. O `await` acontece dentro da fronteira; assim, para categorias desconhecidas, o Next.js ainda consegue gerar a App Shell. Mantenha a leitura dentro da fronteira, mesmo para as categorias cobertas por `generateStaticParams`. Um parâmetro conhecido estaticamente ainda pertence a uma única URL, então fazer `await` dele acima da fronteira do Suspense amarraria a App Shell deste layout a essa URL. Veja [Navegação instantânea](/docs/app/guides/instant-navigation) para estruturar as rotas dessa forma.
 
-The product page prerenders one product per category. `generateStaticParams` receives the parent `category` param:
+A página de produto prerenderiza um produto por categoria. `generateStaticParams` recebe o parâmetro `category` do pai:
 
 ```tsx filename="app/[category]/[product]/page.tsx" highlight={5-12}
 import { Suspense } from 'react'
@@ -142,9 +142,9 @@ export default function ProductPage(props: PageProps<'/[category]/[product]'>) {
 }
 ```
 
-> **Good to know:** You can also use [`loading.tsx`](/docs/app/api-reference/file-conventions/loading) files instead of `<Suspense>` in JSX. `loading.tsx` puts the boundary at the segment edge, while inline `<Suspense>` lets you place it anywhere in the tree.
+> **Bom saber:** você também pode usar arquivos [`loading.tsx`](/docs/app/api-reference/file-conventions/loading) em vez de `<Suspense>` no JSX. O `loading.tsx` coloca a fronteira na borda do segmento, enquanto o `<Suspense>` inline permite posicioná-la em qualquer lugar da árvore.
 
-The data helpers use `'use cache'` at the module level so all exported functions are cached. This lets their results be included in the static shell:
+Os auxiliares de dados usam `'use cache'` no nível do módulo, para que todas as funções exportadas sejam armazenadas em cache. Assim, os resultados delas podem ser incluídos na shell estática:
 
 ```ts filename="app/lib/data.ts" highlight={1}
 'use cache'
@@ -176,71 +176,73 @@ export async function getPopularProducts(category: string) {
 }
 ```
 
-If a component accesses a Request-time API such as `cookies()` or `headers()`, wrap it in `<Suspense>`. During prerendering, Next.js includes the nearest fallback in the static shell. To keep the component out of a `<Link prefetch={true}>` as well, await [`navigation()`](/docs/app/api-reference/functions/navigation) before the request-time access. See [Keep the prefetch static](/docs/app/guides/optimizing-prefetching#keep-the-prefetch-static).
+Se um componente acessa uma API de tempo de requisição, como `cookies()` ou `headers()`, envolva-o em `<Suspense>`. Durante o prerendering, o Next.js inclui o fallback mais próximo na shell estática. Para manter o componente fora de um `<Link prefetch={true}>` também, faça `await` em [`navigation()`](/docs/app/api-reference/functions/navigation) antes do acesso em tempo de requisição. Veja [Mantenha o prefetch estático](/docs/app/guides/optimizing-prefetching#keep-the-prefetch-static).
 
-### At build time
+### No build \{#at-build-time}
 
-When you run `next build`, Next.js prerenders the layout for each known category (`tops`, `shorts`), plus one render where `await params` suspends, producing the App Shell for `[category]`.
+Quando você executa `next build`, o Next.js prerenderiza o layout para cada categoria conhecida (`tops`, `shorts`), mais uma renderização em que `await params` fica suspenso, produzindo a App Shell de `[category]`.
 
-It also prerenders the page for each known product under each category (`tee` under `tops`, `joggers` under `shorts`), plus one render where `await params` suspends, producing the App Shell for `[product]`.
+Ele também prerenderiza a página de cada produto conhecido em cada categoria (`tee` em `tops`, `joggers` em `shorts`), mais uma renderização em que `await params` fica suspenso, produzindo a App Shell de `[product]`.
 
-These are combined into:
+Essas combinações resultam em:
 
-- `/tops/tee`, `/shorts/joggers`: fully static pages, both params known
-- `/tops/[product]`, `/shorts/[product]`: category header rendered, product shows fallback
-- `/[category]/[product]`: both show fallback
+- `/tops/tee`, `/shorts/joggers`: páginas totalmente estáticas, com os dois parâmetros conhecidos
+- `/tops/[product]`, `/shorts/[product]`: cabeçalho da categoria renderizado, e o produto mostra o fallback
+- `/[category]/[product]`: ambos mostram o fallback
 
-A shell's unknown params always come last, in route order. A URL can't have an unknown segment in the middle, so there is no `/[category]/tee` shell. A visit with an unlisted category gets `/[category]/[product]`, whatever the product.
+Os parâmetros desconhecidos de uma shell sempre vêm por último, na ordem da rota. Uma URL não pode ter um segmento desconhecido no meio, então não existe a shell `/[category]/tee`. Uma visita com uma categoria não listada recebe `/[category]/[product]`, qualquer que seja o produto.
 
-### At runtime
+### Em tempo de execução \{#at-runtime}
 
-A visitor navigates to `/tops/tee`. Both params were prerendered. They get a fully static page.
+Um visitante navega até `/tops/tee`. Os dois parâmetros foram prerenderizados. Ele recebe uma página totalmente estática.
 
-The first visit to `/tops/overshirt`. The product `overshirt` is unknown, but the category `tops` was prerendered. Next.js serves the App Shell for `/tops/[product]` with the category header already rendered. The product streams in.
+A primeira visita a `/tops/overshirt`: o produto `overshirt` é desconhecido, mas a categoria `tops` foi prerenderizada. O Next.js serve a App Shell de `/tops/[product]` com o cabeçalho da categoria já renderizado. O produto chega em streaming.
 
-The first visit to `/shoes/basketball-shoes`. Neither param was prerendered. Next.js serves the generic App Shell for `/[category]/[product]`. Both the category and the product stream in.
+A primeira visita a `/shoes/basketball-shoes`: nenhum dos parâmetros foi prerenderizado. O Next.js serve a App Shell genérica de `/[category]/[product]`. Tanto a categoria quanto o produto chegam em streaming.
 
-After the first visit, Next.js renders these routes in the background with the now-known params. The next visitor to the same URLs gets the upgraded result.
+Após a primeira visita, o Next.js renderiza essas rotas em segundo plano com os parâmetros já conhecidos. O próximo visitante das mesmas URLs recebe o resultado atualizado.
 
-When a [`<Link prefetch={true}>`](/docs/app/api-reference/components/link#prefetch) to an unlisted URL enters the viewport, Next.js starts the background upgrade before the click, just as a first visit would, so navigation lands on the upgraded result.
+Quando um [`<Link prefetch={true}>`](/docs/app/api-reference/components/link#prefetch) para uma URL não listada entra na viewport, o Next.js inicia a atualização em segundo plano antes do clique, assim como faria em uma primeira visita, para que a navegação caia no resultado atualizado.
 
-Links to these pages need `prefetch={true}`. A default `<Link>` prefetches only the App Shell, which links to the same route share.
+Os links para essas páginas precisam de `prefetch={true}`. Um `<Link>` padrão faz prefetch apenas da App Shell, que é compartilhada pelos links da mesma rota.
 
-> **Good to know**: The App Shell for unlisted params is served from Next.js 16.3. Earlier versions wait for a full server render before sending the response.
+> **Bom saber:** a App Shell para parâmetros não listados é servida a partir do Next.js 16.3. Versões anteriores aguardam uma renderização completa no servidor antes de enviar a resposta.
 
-### Wait for complete static output
+### Aguarde a saída estática completa \{#wait-for-complete-static-output}
 
-For an unlisted parameter, [`ensureStatic = 'navigation'`](/docs/app/api-reference/file-conventions/route-segment-config/ensureStatic#navigation) makes the first request wait for the complete static page. Without this requirement, Next.js can return a prerendered fallback while it generates the page in the background. Next.js stores the completed page for later requests.
+Para um parâmetro não listado, o [`ensureStatic = 'navigation'`](/docs/app/api-reference/file-conventions/route-segment-config/ensureStatic#navigation) faz a primeira requisição aguardar a página estática completa. Sem esse requisito, o Next.js pode devolver um fallback prerenderizado enquanto gera a página em segundo plano. O Next.js armazena a página completa para as requisições seguintes.
 
-### What the upgrade produces
+### O que a atualização produz \{#what-the-upgrade-produces}
 
-After the first visit, Next.js renders the page in the background with the known params and tries to push the static boundary as far down the component tree as possible:
+Após a primeira visita, o Next.js renderiza a página em segundo plano com os parâmetros conhecidos e tenta empurrar a fronteira estática o mais para baixo possível na árvore de componentes:
 
-- If every data access is cached and all params are resolved, the upgrade produces a **fully static page**.
-- If all params are resolved but the render still reaches uncached data or Request-time APIs (`cookies()`, `headers()`) wrapped in `<Suspense>` boundaries, the upgrade produces a **cached page with those fallbacks**. The uncached or request-specific parts stream in at request time.
+- Se todo acesso a dados estiver em cache e todos os parâmetros forem resolvidos, a atualização produz uma **página totalmente estática**.
+- Se todos os parâmetros forem resolvidos, mas a renderização ainda alcançar dados sem cache ou APIs de tempo de requisição (`cookies()`, `headers()`) envolvidas em fronteiras de `<Suspense>`, a atualização produz uma **página em cache com esses fallbacks**. As partes sem cache ou específicas da requisição chegam em streaming no momento da requisição.
 
-## Choosing what to prerender
+## Escolhendo o que prerenderizar \{#choosing-what-to-prerender}
 
-Not every route needs to be prerendered. Every page you prerender increases build work and produces output that has to be stored and deployed. Many routes may never be visited before your next deployment, making that work unnecessary.
+Nem toda rota precisa ser prerenderizada. Cada página prerenderizada aumenta o trabalho do build e gera uma saída que precisa ser armazenada e publicada. Muitas rotas podem nunca ser visitadas antes do próximo deploy, tornando esse trabalho desnecessário.
 
-Instead, use [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) to prerender the routes that benefit most from being ready ahead of time, such as popular pages or predictable content. Less frequently visited routes are generated on demand and upgraded after their first visit, so you don't spend build time and storage on pages that may never be requested.
+Em vez disso, use [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) para prerenderizar as rotas que mais se beneficiam de estar prontas antecipadamente, como páginas populares ou conteúdo previsível. Rotas menos visitadas são geradas sob demanda e atualizadas após a primeira visita, então você não gasta tempo de build e armazenamento com páginas que talvez nunca sejam requisitadas.
 
-## Coming from the Pages Router
+## Vindo do Pages Router \{#coming-from-the-pages-router}
 
-If you are migrating from the Pages Router:
+Se você está migrando do Pages Router:
 
 {/* <!-- TODO(param-matching): Map all these to the appropriate param matching API value. --> */}
 
-- `fallback: true` in `getStaticPaths` maps to Cache Components with Partial Prefetching. Visitors get a `<Suspense>` fallback instantly, and Next.js stores the completed route for subsequent visits.
-- [`fallback: 'blocking'`](https://nextjs.org/docs/pages/api-reference/functions/get-static-paths#fallback-blocking) maps to Cache Components without Partial Prefetching. Await `params` outside `<Suspense>` so the first request waits for the completed route, which Next.js then stores for subsequent visits.
-- `router.isFallback` is not needed. The prerendering step generates a static shell, and you can grow it further with `'use cache'`.
-- `getStaticProps` with `revalidate` maps to `'use cache'` with [`cacheLife`](/docs/app/api-reference/functions/cacheLife).
-- `getStaticPaths` maps to [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params).
+- `fallback: true` em `getStaticPaths` corresponde a Cache Components com Partial Prefetching. Os visitantes recebem um fallback de `<Suspense>` instantaneamente, e o Next.js armazena a rota completa para as visitas seguintes.
+- [`fallback: 'blocking'`](https://nextjs.org/docs/pages/api-reference/functions/get-static-paths#fallback-blocking) corresponde a Cache Components sem Partial Prefetching. Faça `await` em `params` fora de `<Suspense>`, para que a primeira requisição aguarde a rota completa, que o Next.js então armazena para as visitas seguintes.
+- `router.isFallback` não é necessário. A etapa de prerendering gera uma shell estática, e você pode expandi-la com `'use cache'`.
+- `getStaticProps` com `revalidate` corresponde a `'use cache'` com [`cacheLife`](/docs/app/api-reference/functions/cacheLife).
+- `getStaticPaths` corresponde a [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params).
 
-## Next steps
+## Próximos passos \{#next-steps}
 
-- [Caching with Cache Components](/docs/app/getting-started/caching) for the full caching model
-- [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) for controlling which param combinations are prerendered
-- [`loading.tsx`](/docs/app/api-reference/file-conventions/loading) for providing skeleton UI in App Shells
-- [Streaming](/docs/app/guides/streaming) to learn how to progressively render UI as data becomes available
-- [Self-hosting](/docs/app/guides/self-hosting#caching-and-isr) to keep an existing ISR [`cacheHandler`](/docs/app/api-reference/config/next-config-js/incrementalCacheHandlerPath) alongside [`cacheHandlers`](/docs/app/api-reference/config/next-config-js/cacheHandlers) for `'use cache'`
+- [Caching com Cache Components](/docs/app/getting-started/caching) para o modelo completo de cache
+- [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) para controlar quais combinações de parâmetros são prerenderizadas
+- [`loading.tsx`](/docs/app/api-reference/file-conventions/loading) para fornecer UI de skeleton nas App Shells
+- [Streaming](/docs/app/guides/streaming) para aprender a renderizar a UI progressivamente conforme os dados ficam disponíveis
+- [Self-hosting](/docs/app/guides/self-hosting#caching-and-isr) para manter um [`cacheHandler`](/docs/app/api-reference/config/next-config-js/incrementalCacheHandlerPath) de ISR existente junto com [`cacheHandlers`](/docs/app/api-reference/config/next-config-js/cacheHandlers) para `'use cache'`
+
+{/* ia-translate: true */}
