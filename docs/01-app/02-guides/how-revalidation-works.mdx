@@ -1,9 +1,9 @@
 ---
-title: How revalidation works in Next.js
-nav_title: How Revalidation Works
-description: A deep dive into how Next.js revalidates cached content, including the tag system, cache consistency, and multi-instance coordination.
+title: Como a revalidação funciona no Next.js
+nav_title: Como a revalidação funciona
+description: Um mergulho profundo em como o Next.js revalida conteúdo em cache, incluindo o sistema de tags, a consistência do cache e a coordenação entre instâncias.
 related:
-  description: Related guides and references.
+  description: Guias e referências relacionados.
   links:
     - app/getting-started/caching
     - app/guides/incremental-static-regeneration
@@ -11,86 +11,88 @@ related:
     - app/api-reference/functions/revalidateTag
 ---
 
-The [Caching](/docs/app/getting-started/caching) page covers how to use `use cache`, `cacheTag`, and `cacheLife`. This page explains **how revalidation works internally**, for platform engineers and advanced users who need to understand the system to implement [custom cache handlers](/docs/app/api-reference/config/next-config-js/cacheHandlers) or debug revalidation behavior.
+A página de [Cache](/docs/app/getting-started/caching) explica como usar `use cache`, `cacheTag` e `cacheLife`. Esta página explica **como a revalidação funciona internamente**, para engenheiros de plataforma e usuários avançados que precisam entender o sistema para implementar [handlers de cache personalizados](/docs/app/api-reference/config/next-config-js/cacheHandlers) ou depurar o comportamento da revalidação.
 
-## The Revalidation Model
+## O modelo de revalidação \{#the-revalidation-model}
 
-Most routes in Next.js can be revalidated on demand. This includes App Router routes and Pages Router routes that produce ISR/prerender cache entries. Pages Router routes that are automatically statically optimized (pure static output) are not revalidated on demand. The ability to update cached content without redeploying is a core part of Next.js's [rendering model](/docs/app/guides/rendering-philosophy).
+A maioria das rotas no Next.js pode ser revalidada sob demanda. Isso inclui rotas do App Router e rotas do Pages Router que produzem entradas de cache de ISR/prerender. Rotas do Pages Router que são otimizadas automaticamente como estáticas (saída puramente estática) não são revalidadas sob demanda. A capacidade de atualizar conteúdo em cache sem um novo deploy é parte central do [modelo de renderização](/docs/app/guides/rendering-philosophy) do Next.js.
 
-There are two types of revalidation:
+Existem dois tipos de revalidação:
 
-- **Time-based revalidation** uses a stale-while-revalidate pattern. The cached content is served immediately, and a background regeneration is triggered when the content's age exceeds the [`cacheLife`](/docs/app/api-reference/functions/cacheLife) or `revalidate` duration. The stale content continues to be served until the fresh content is ready.
-- **On-demand revalidation** explicitly invalidates cached content by calling [`revalidateTag()`](/docs/app/api-reference/functions/revalidateTag) or [`revalidatePath()`](/docs/app/api-reference/functions/revalidatePath). The next request to that content triggers a fresh render.
+- **A revalidação baseada em tempo** usa um padrão stale-while-revalidate. O conteúdo em cache é servido imediatamente, e uma regeneração em segundo plano é disparada quando a idade do conteúdo ultrapassa a duração de [`cacheLife`](/docs/app/api-reference/functions/cacheLife) ou de `revalidate`. O conteúdo desatualizado continua sendo servido até que o conteúdo novo esteja pronto.
+- **A revalidação sob demanda** invalida explicitamente o conteúdo em cache ao chamar [`revalidateTag()`](/docs/app/api-reference/functions/revalidateTag) ou [`revalidatePath()`](/docs/app/api-reference/functions/revalidatePath). A próxima requisição para esse conteúdo dispara uma nova renderização.
 
-> **Good to know:** Pages Router on-demand ISR APIs (for example `res.revalidate()` and the `x-prerender-revalidate` flow) are still supported and use the server cache handler (`cacheHandler`, singular). The `cacheHandlers` option (plural) is for `'use cache'` directives.
+> **Bom saber:** as APIs de ISR sob demanda do Pages Router (por exemplo, `res.revalidate()` e o fluxo `x-prerender-revalidate`) continuam aceitas e usam o cache handler do servidor (`cacheHandler`, no singular). A opção `cacheHandlers` (no plural) é para as diretivas `'use cache'`.
 
-## What Gets Revalidated
+## O que é revalidado \{#what-gets-revalidated}
 
-When a route is revalidated, Next.js regenerates **both** the HTML response and the RSC payload (React Server Components payload) from the same React component tree. Both artifacts are stored together in the same cache entry.
+Quando uma rota é revalidada, o Next.js regenera **tanto** a resposta HTML quanto o payload RSC (payload dos React Server Components) a partir da mesma árvore de componentes React. Os dois artefatos são armazenados juntos na mesma entrada de cache.
 
-This consistency matters because the RSC payload is used for client-side navigations. Browser navigations and client-side navigations should hold the same content.
+Essa consistência importa porque o payload RSC é usado nas navegações do lado do cliente. Navegações do navegador e navegações do lado do cliente devem mostrar o mesmo conteúdo.
 
-### What happens if they get out of sync
+### O que acontece se saírem de sincronia \{#what-happens-if-they-get-out-of-sync}
 
-If a platform's cache serves HTML from one render and an RSC payload from a different render, users may see stale or mismatched content during client-side navigation. The primary mitigation is to cache HTML and RSC responses together with the same TTL and invalidation policy, and to respect the [`Vary` header](/docs/app/guides/cdn-caching) that Next.js sets. See [CDN Caching](/docs/app/guides/cdn-caching) for details.
+Se o cache de uma plataforma servir o HTML de uma renderização e um payload RSC de outra, os usuários podem ver conteúdo desatualizado ou divergente durante a navegação do lado do cliente. A principal mitigação é armazenar as respostas HTML e RSC juntas, com o mesmo TTL e a mesma política de invalidação, e respeitar o [header `Vary`](/docs/app/guides/cdn-caching) que o Next.js define. Veja [Cache de CDN](/docs/app/guides/cdn-caching) para detalhes.
 
-A separate but related problem is **cross-deployment skew**: during rolling deployments, a client built with deploy A may receive responses from a server running deploy B. [`deploymentId`](/docs/app/api-reference/config/next-config-js/deploymentId) mitigates this: when the client detects a different deployment ID from the server, it triggers a hard navigation to fetch consistent content.
+Um problema separado, mas relacionado, é o **desalinhamento entre deploys**: durante deploys graduais (rolling), um cliente gerado pelo deploy A pode receber respostas de um servidor que roda o deploy B. O [`deploymentId`](/docs/app/api-reference/config/next-config-js/deploymentId) mitiga isso: quando o cliente detecta um ID de deploy diferente do servidor, ele dispara uma navegação completa para buscar conteúdo consistente.
 
-## Tag System Architecture
+## Arquitetura do sistema de tags \{#tag-system-architecture}
 
-Next.js uses a tag-based system to track which cached content needs to be invalidated. There are two types of tags:
+O Next.js usa um sistema baseado em tags para rastrear quais conteúdos em cache precisam ser invalidados. Há dois tipos de tags:
 
-### Explicit tags
+### Tags explícitas \{#explicit-tags}
 
-Explicit tags are set by the developer using [`cacheTag()`](/docs/app/api-reference/functions/cacheTag) inside a `use cache` function, or via `next: { tags: [...] }` on a `fetch` call. When [`revalidateTag('my-tag', 'max')`](/docs/app/api-reference/functions/revalidateTag) is called, all cache entries with that tag are invalidated.
+Tags explícitas são definidas pelo desenvolvedor com [`cacheTag()`](/docs/app/api-reference/functions/cacheTag) dentro de uma função `use cache`, ou por meio de `next: { tags: [...] }` em uma chamada de `fetch`. Quando [`revalidateTag('my-tag', 'max')`](/docs/app/api-reference/functions/revalidateTag) é chamada, todas as entradas de cache com essa tag são invalidadas.
 
-### Soft tags
+### Soft tags \{#soft-tags}
 
-Soft tags are automatically generated by Next.js based on the route path, prefixed with `_N_T_`. For example, the route `/blog/hello` generates soft tags like `_N_T_/layout`, `_N_T_/blog/layout`, `_N_T_/blog/hello/layout`, and `_N_T_/blog/hello`. Each segment in the path gets a layout tag, plus the leaf route itself.
+Soft tags são geradas automaticamente pelo Next.js com base no caminho da rota, com o prefixo `_N_T_`. Por exemplo, a rota `/blog/hello` gera soft tags como `_N_T_/layout`, `_N_T_/blog/layout`, `_N_T_/blog/hello/layout` e `_N_T_/blog/hello`. Cada segmento do caminho recebe uma tag de layout, além da própria rota final.
 
-Soft tags enable [`revalidatePath()`](/docs/app/api-reference/functions/revalidatePath) to work through the same tag-based system. When `revalidatePath('/blog/hello')` is called, it invalidates cache entries associated with that path's leaf route tag and its ancestor layout soft tags (for example `_N_T_/layout`, `_N_T_/blog/layout`, `_N_T_/blog/hello/layout`, and `_N_T_/blog/hello`).
+As soft tags permitem que o [`revalidatePath()`](/docs/app/api-reference/functions/revalidatePath) funcione pelo mesmo sistema baseado em tags. Quando `revalidatePath('/blog/hello')` é chamada, ela invalida as entradas de cache associadas à tag da rota final desse caminho e às soft tags dos layouts ancestrais (por exemplo, `_N_T_/layout`, `_N_T_/blog/layout`, `_N_T_/blog/hello/layout` e `_N_T_/blog/hello`).
 
-In the [cache handler API](/docs/app/api-reference/config/next-config-js/cacheHandlers), soft tags are passed to the `get()` method as the `softTags` parameter. Your handler should check whether any soft tag has been invalidated after the cache entry's timestamp. The `getExpiration()` method returns the most recent revalidation timestamp across all provided tags, or `0` if none have been revalidated. It can also return `Infinity` to signal that the soft tags should instead be passed to `get()` and checked for expiration there. Your handler should treat an entry as stale if the returned timestamp is newer than the entry's own timestamp. See the [cache handler API reference](/docs/app/api-reference/config/next-config-js/cacheHandlers#getexpiration) for the full semantics.
+Na [API de cache handlers](/docs/app/api-reference/config/next-config-js/cacheHandlers), as soft tags são passadas para o método `get()` como o parâmetro `softTags`. Seu handler deve verificar se alguma soft tag foi invalidada depois do timestamp da entrada de cache. O método `getExpiration()` retorna o timestamp de revalidação mais recente entre todas as tags fornecidas, ou `0` se nenhuma foi revalidada. Ele também pode retornar `Infinity` para sinalizar que as soft tags devem ser passadas ao `get()` e verificadas ali. Seu handler deve tratar uma entrada como desatualizada se o timestamp retornado for mais recente que o próprio timestamp da entrada. Veja a [referência da API de cache handlers](/docs/app/api-reference/config/next-config-js/cacheHandlers#getexpiration) para a semântica completa.
 
-## Multi-Instance Considerations
+## Considerações sobre múltiplas instâncias \{#multi-instance-considerations}
 
-When running multiple Next.js instances behind a load balancer, revalidation events are local by default. Calling `revalidateTag()` on instance A only invalidates the cache on that instance. Other instances continue serving the stale content until they learn about the invalidation.
+Ao rodar várias instâncias do Next.js atrás de um load balancer, os eventos de revalidação são locais por padrão. Chamar `revalidateTag()` na instância A invalida o cache apenas nessa instância. As outras instâncias continuam servindo o conteúdo desatualizado até ficarem sabendo da invalidação.
 
-The cache handler API provides two hooks for distributed coordination:
+A API de cache handlers oferece dois hooks para coordenação distribuída:
 
-- **`updateTags()`** is called when `revalidateTag()` is invoked. Your handler should write the invalidation event to shared storage (for example, Redis or a database) so other instances can discover it.
-- **`refreshTags()`** is called periodically, but always before starting a new request. Your handler should check shared storage for recent invalidation events and update its local tag state accordingly.
+- **`updateTags()`** é chamado quando `revalidateTag()` é invocada. Seu handler deve gravar o evento de invalidação em um armazenamento compartilhado (por exemplo, Redis ou um banco de dados) para que as outras instâncias possam descobri-lo.
+- **`refreshTags()`** é chamado periodicamente, mas sempre antes de iniciar uma nova requisição. Seu handler deve consultar o armazenamento compartilhado em busca de eventos de invalidação recentes e atualizar o estado local das tags de acordo.
 
-For implementation details and a Redis example, see [Custom Cache Handlers](/docs/app/api-reference/config/next-config-js/cacheHandlers).
+Para detalhes de implementação e um exemplo com Redis, veja [Cache handlers personalizados](/docs/app/api-reference/config/next-config-js/cacheHandlers).
 
-## Implementation Patterns for Platforms
+## Padrões de implementação para plataformas \{#implementation-patterns-for-platforms}
 
-### Single instance
+### Instância única \{#single-instance}
 
-The default file-system cache handles consistency automatically. Cache writes are atomic on the local filesystem, and tag state is maintained in memory. No additional configuration is needed.
+O cache padrão em sistema de arquivos cuida da consistência automaticamente. As gravações do cache são atômicas no sistema de arquivos local, e o estado das tags é mantido em memória. Nenhuma configuração adicional é necessária.
 
-### Multi-instance with shared cache
+### Múltiplas instâncias com cache compartilhado \{#multi-instance-with-shared-cache}
 
-Without coordination, each instance independently serves content and handles revalidation using only its local cache. Different users may see different content depending on which instance serves their request, and on-demand revalidation only takes effect on the instance that received the call.
+Sem coordenação, cada instância serve conteúdo e trata a revalidação usando apenas o cache local. Usuários diferentes podem ver conteúdos diferentes, dependendo de qual instância atende a requisição, e a revalidação sob demanda só tem efeito na instância que recebeu a chamada.
 
-To reduce this window and ensure revalidation propagates across instances:
+Para reduzir essa janela e garantir que a revalidação se propague entre instâncias:
 
-1. Store tag invalidation timestamps in a shared service (Redis, DynamoDB, or a simple HTTP API).
-2. Implement `updateTags()` to write to the shared service.
-3. Implement `refreshTags()` to read from the shared service. Your handler must catch errors in `refreshTags()`: if it throws, the exception propagates as a request failure. Catching the error allows requests to continue with the last known local tag state, serving potentially stale content until connectivity is restored.
-4. Store cache entries (HTML + RSC payload) in shared storage. Atomic writes reduce the mismatch window further but are not required for correctness.
+1. Armazene os timestamps de invalidação das tags em um serviço compartilhado (Redis, DynamoDB ou uma API HTTP simples).
+2. Implemente `updateTags()` para gravar no serviço compartilhado.
+3. Implemente `refreshTags()` para ler do serviço compartilhado. Seu handler precisa capturar erros em `refreshTags()`: se a função lançar uma exceção, o erro se propaga como falha da requisição. Capturar o erro permite que as requisições continuem com o último estado local conhecido das tags, servindo conteúdo potencialmente desatualizado até que a conectividade seja restabelecida.
+4. Armazene as entradas de cache (HTML + payload RSC) em armazenamento compartilhado. Gravações atômicas reduzem ainda mais a janela de divergência, mas não são necessárias para a corretude.
 
-### CDN integration
+### Integração com CDN \{#cdn-integration}
 
-If a CDN caches Next.js responses, it should respect the `Vary` header and the `Cache-Control` directives that Next.js sets. Do not cache HTML and RSC payload responses separately with different TTLs. See [CDN Caching](/docs/app/guides/cdn-caching) for details.
+Se um CDN armazena em cache as respostas do Next.js, ele deve respeitar o header `Vary` e as diretivas de `Cache-Control` que o Next.js define. Não armazene as respostas de HTML e de payload RSC separadamente, com TTLs diferentes. Veja [Cache de CDN](/docs/app/guides/cdn-caching) para detalhes.
 
-## Graceful Degradation
+## Degradação graciosa \{#graceful-degradation}
 
-The revalidation system prioritizes availability over strict consistency. Content is always served, even when infrastructure guarantees cannot be fully met:
+O sistema de revalidação prioriza disponibilidade em vez de consistência estrita. O conteúdo é sempre servido, mesmo quando as garantias da infraestrutura não podem ser totalmente cumpridas:
 
-- **Cache write failure**: the response is still served to the user because writes are asynchronous. The cache entry is lost, and the next request triggers a fresh render.
-- **Cache read failure**: your handler should catch internal errors and return `undefined` (the cache miss signal). The route is then server-rendered fresh. A thrown error is not treated as a cache miss; it propagates as a render error, so always return `undefined` to signal a miss.
-- **HTML/RSC cache inconsistency**: if a CDN caches HTML and RSC responses with different TTLs or invalidation timing, users may see mismatched content during client-side navigation. Cache them together and respect the `Vary` header to avoid this.
-- **Cross-deployment skew**: during rolling deployments, configure [`deploymentId`](/docs/app/api-reference/config/next-config-js/deploymentId) so that a build ID change triggers a hard navigation to fetch consistent content.
+- **Falha de gravação no cache**: a resposta ainda é servida ao usuário, porque as gravações são assíncronas. A entrada de cache se perde, e a próxima requisição dispara uma nova renderização.
+- **Falha de leitura no cache**: seu handler deve capturar erros internos e retornar `undefined` (o sinal de cache miss). A rota é então renderizada no servidor do zero. Um erro lançado não é tratado como cache miss; ele se propaga como erro de renderização, então sempre retorne `undefined` para sinalizar um miss.
+- **Inconsistência entre HTML e RSC**: se um CDN armazena HTML e RSC com TTLs ou momentos de invalidação diferentes, os usuários podem ver conteúdos divergentes durante a navegação do lado do cliente. Armazene-os juntos e respeite o `Vary` para evitar isso.
+- **Desalinhamento entre deploys**: durante deploys graduais, configure o [`deploymentId`](/docs/app/api-reference/config/next-config-js/deploymentId) para que uma mudança no build ID dispare uma navegação completa e busque conteúdo consistente.
 
-Cache failures result in degraded performance (stale content, extra renders), not broken applications.
+Falhas de cache resultam em desempenho degradado (conteúdo desatualizado, renderizações extras), e não em apps quebrados.
+
+{/* ia-translate: true */}
