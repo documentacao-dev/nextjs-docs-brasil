@@ -1,39 +1,39 @@
 ---
-title: How to optimize your local development environment
-nav_title: Development Environment
-description: Learn how to optimize your local development environment with Next.js.
+title: Como otimizar seu ambiente de desenvolvimento local
+nav_title: Ambiente de desenvolvimento
+description: Aprenda a otimizar seu ambiente de desenvolvimento local com o Next.js.
 ---
 
-Next.js is designed to provide a great developer experience. As your application grows, you might notice slower compilation times during local development. This guide will help you identify and fix common compile-time performance issues.
+O Next.js foi projetado para oferecer uma ótima experiência de desenvolvimento. Conforme seu app cresce, você pode notar tempos de compilação mais longos durante o desenvolvimento local. Este guia vai ajudar a identificar e corrigir problemas comuns de performance na compilação.
 
-## Local dev vs. production
+## Desenvolvimento local vs. produção \{#local-dev-vs-production}
 
-The development process with `next dev` is different than `next build` and `next start`.
+O processo de desenvolvimento com `next dev` é diferente de `next build` e `next start`.
 
-`next dev` compiles routes in your application as you open or navigate to them. This enables you to start the dev server without waiting for every route in your application to compile, which is both faster and uses less memory. Running a production build applies other optimizations, like minifying files and creating content hashes, which are not needed for local development.
+`next dev` compila as rotas do seu app conforme você as abre ou navega até elas. Isso permite iniciar o dev server sem esperar que todas as rotas do app sejam compiladas, o que é mais rápido e usa menos memória. Já um build de produção aplica outras otimizações, como minificar arquivos e gerar hashes de conteúdo, que não são necessárias no desenvolvimento local.
 
-## System configuration
+## Configuração do sistema \{#system-configuration}
 
-### 1. Check your computer's antivirus
+### 1. Verifique o antivírus do seu computador \{#1-check-your-computers-antivirus}
 
-Antivirus software can slow down file access. While this is more common on Windows machines, this can be an issue for any system with an antivirus tool installed.
+Softwares antivírus podem deixar o acesso aos arquivos mais lento. Isso é mais comum em máquinas Windows, mas pode ser um problema em qualquer sistema com uma ferramenta antivírus instalada.
 
-**On Windows,** you can add your project to the [Microsoft Defender Antivirus exclusion list](https://support.microsoft.com/en-us/windows/virus-and-threat-protection-in-the-windows-security-app-1362f4cd-d71a-b52a-0b66-c2820032b65e#bkmk_threat-protection-settings).
+**No Windows,** você pode adicionar seu projeto à [lista de exclusões do Microsoft Defender Antivirus](https://support.microsoft.com/en-us/windows/virus-and-threat-protection-in-the-windows-security-app-1362f4cd-d71a-b52a-0b66-c2820032b65e#bkmk_threat-protection-settings).
 
-1. Open the **"Windows Security"** application and then select **"Virus & threat protection"** &rarr; **"Manage settings"** &rarr; **"Add or remove exclusions"**.
-2. Add a **"Folder"** exclusion. Select your project folder.
+1. Abra o aplicativo **"Segurança do Windows"** e selecione **"Proteção contra vírus e ameaças"** &rarr; **"Gerenciar configurações"** &rarr; **"Adicionar ou remover exclusões"**.
+2. Adicione uma exclusão de **"Pasta"**. Selecione a pasta do seu projeto.
 
-Alternatively, you can enable and use a [Dev Drive](#3-windows-use-dev-drive-or-wsl-2), which [uses Microsoft Defender's "performance mode"](https://learn.microsoft.com/en-us/windows/dev-drive/#understanding-security-risks-and-trust-in-relation-to-dev-drive).
+Como alternativa, você pode ativar e usar um [Dev Drive](#3-windows-use-dev-drive-or-wsl-2), que [usa o "modo de performance" do Microsoft Defender](https://learn.microsoft.com/en-us/windows/dev-drive/#understanding-security-risks-and-trust-in-relation-to-dev-drive).
 
-**On macOS,** you can disable [Gatekeeper](https://support.apple.com/guide/security/gatekeeper-and-runtime-protection-sec5599b66df/web) inside of your terminal.
+**No macOS,** você pode desativar o [Gatekeeper](https://support.apple.com/guide/security/gatekeeper-and-runtime-protection-sec5599b66df/web) no seu terminal.
 
-1. Run `sudo spctl developer-mode enable-terminal` in your terminal.
-2. Open the **"System Settings"** app and then select **"Privacy & Security"** &rarr; **"Developer Tools"**.
-3. Ensure your terminal is listed and enabled. If you're using a third-party terminal like iTerm or Ghostty, add that to the list.
-4. Restart your terminal.
+1. Execute `sudo spctl developer-mode enable-terminal` no seu terminal.
+2. Abra o app **"Ajustes do Sistema"** e selecione **"Privacidade e Segurança"** &rarr; **"Ferramentas para Desenvolvedores"**.
+3. Confirme que seu terminal está listado e ativado. Se você usa um terminal de terceiros, como iTerm ou Ghostty, adicione-o à lista.
+4. Reinicie seu terminal.
 
 <Image
-  alt="Screenshot of macOS System Settings showing the Privacy & Security pane"
+  alt="Captura de tela dos Ajustes do Sistema do macOS mostrando o painel Privacidade e Segurança"
   srcLight="/docs/light/macos-gatekeeper-privacy-and-security.png"
   srcDark="/docs/dark/macos-gatekeeper-privacy-and-security.png"
   width="723"
@@ -41,48 +41,48 @@ Alternatively, you can enable and use a [Dev Drive](#3-windows-use-dev-drive-or-
 />
 
 <Image
-  alt="Screenshot of macOS System Settings showing the Developer Tools options"
+  alt="Captura de tela dos Ajustes do Sistema do macOS mostrando as opções de Ferramentas para Desenvolvedores"
   srcLight="/docs/light/macos-gatekeeper-developer-tools.png"
   srcDark="/docs/dark/macos-gatekeeper-developer-tools.png"
   width="723"
   height="250"
 />
 
-If you or your employer have configured any other Antivirus solutions on your system, you should inspect the relevant settings for those products.
+Se você ou sua empresa configurou qualquer outra solução de antivírus no sistema, confira as configurações relevantes desses produtos.
 
-### 2. Avoid common Docker pitfalls
+### 2. Evite armadilhas comuns do Docker \{#2-avoid-common-docker-pitfalls}
 
-If you're using Docker for development on Mac or Windows, you may experience significantly slower performance compared to running Next.js without Docker.
+Se você usa Docker para desenvolvimento no Mac ou no Windows, pode notar uma performance bem mais lenta do que rodando o Next.js sem Docker.
 
-This generally isn't an issue in production or when Docker runs natively on Linux, because project files don't cross Docker Desktop's host-to-VM file-sharing layer.
+Isso geralmente não é um problema em produção, nem quando o Docker roda nativamente no Linux, porque os arquivos do projeto não atravessam a camada de compartilhamento de arquivos entre o host e a VM do Docker Desktop.
 
-When project files are stored on the macOS or Windows host and mounted into a container through Docker Desktop or similar tools, the host-to-VM file-sharing layer can delay or fail to propagate filesystem events. This can cause [Fast Refresh](/docs/architecture/fast-refresh) to take seconds or even minutes, while the same application shows updates quickly when developed on the host without Docker.
+Quando os arquivos do projeto ficam no host macOS ou Windows e são montados em um container pelo Docker Desktop ou ferramentas semelhantes, a camada de compartilhamento de arquivos entre o host e a VM pode atrasar ou impedir a propagação dos eventos do sistema de arquivos. Isso pode fazer o [Fast Refresh](/docs/architecture/fast-refresh) levar segundos ou até minutos, enquanto a mesma aplicação mostra as atualizações rapidamente quando desenvolvida diretamente no host, sem Docker.
 
-For the best development experience:
+Para a melhor experiência de desenvolvimento:
 
-- Run Next.js without Docker (`npm run dev` or `pnpm dev`) during development.
-- Reserve Docker for production deployments and testing production builds.
-- If you must use Docker for development, consider running Docker natively on a Linux machine or a manually configured virtual machine. If using a manually configured virtual machine, move the source code into the VM and do not share it from the host.
-- If you're using Docker Desktop, evaluate using [synchronized file shares](https://docs.docker.com/desktop/features/synchronized-file-sharing/). Synchronized file shares still add latency compared to running Next.js directly on the host, but can improve file-watching reliability without resorting to polling.
-- Avoid using `watchOptions.pollIntervalMs` in `next.config.js` to work around Fast Refresh issues. Only use it as a last resort. Polling adds significant latency and can drastically increase CPU and I/O usage.
+- Rode o Next.js sem Docker (`npm run dev` ou `pnpm dev`) durante o desenvolvimento.
+- Reserve o Docker para deploys de produção e para testar builds de produção.
+- Se você precisar usar Docker para desenvolvimento, considere rodar o Docker nativamente em uma máquina Linux ou em uma máquina virtual configurada manualmente. Se usar uma máquina virtual configurada manualmente, mova o código-fonte para dentro da VM e não o compartilhe a partir do host.
+- Se você usa o Docker Desktop, avalie o uso de [compartilhamentos de arquivos sincronizados](https://docs.docker.com/desktop/features/synchronized-file-sharing/). Eles ainda adicionam latência em comparação com rodar o Next.js diretamente no host, mas podem melhorar a confiabilidade do monitoramento de arquivos sem recorrer a polling.
+- Evite usar `watchOptions.pollIntervalMs` no `next.config.js` para contornar problemas do Fast Refresh. Use isso apenas como último recurso. O polling adiciona latência significativa e pode aumentar muito o uso de CPU e de I/O.
 
-[Learn more about Docker deployment](/docs/app/getting-started/deploying#docker) for production use.
+[Saiba mais sobre deploy com Docker](/docs/app/getting-started/deploying#docker) para uso em produção.
 
-### 3. (Windows) Use Dev Drive or WSL 2
+### 3. (Windows) Use Dev Drive ou WSL 2 \{#3-windows-use-dev-drive-or-wsl-2}
 
-Windows 11's Dev Drive feature uses an alternative filesystem to improve performance for common development workflows. [Microsoft has a guide explaining how to configure it](https://learn.microsoft.com/en-us/windows/dev-drive/).
+O recurso Dev Drive do Windows 11 usa um sistema de arquivos alternativo para melhorar a performance em fluxos de trabalho de desenvolvimento comuns. A [Microsoft tem um guia explicando como configurá-lo](https://learn.microsoft.com/en-us/windows/dev-drive/).
 
-Alternatively, Windows provides an easy way to set up a Linux virtual machine using [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/). You may see better performance by using WSL 2.
+Como alternativa, o Windows oferece uma forma simples de configurar uma máquina virtual Linux usando o [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/). Você pode ter uma performance melhor usando o WSL 2.
 
-When using WSL 2, store your project directory inside the virtual machine's filesystem (e.g. `/home/$USER/project`) and not on a Windows drive (e.g. `C:\` or `/mnt/c`). If you do not do this, you will experience worse performance and file updates may not be reflected properly in development.
+Ao usar o WSL 2, armazene o diretório do projeto dentro do sistema de arquivos da máquina virtual (por exemplo, `/home/$USER/project`) e não em um drive do Windows (por exemplo, `C:\` ou `/mnt/c`). Se você não fizer isso, a performance será pior e as atualizações de arquivos podem não ser refletidas corretamente no desenvolvimento.
 
-## Improving application development performance
+## Melhorando a performance do desenvolvimento do app \{#improving-application-development-performance}
 
-### 1. Update Next.js and use Turbopack
+### 1. Atualize o Next.js e use o Turbopack \{#1-update-nextjs-and-use-turbopack}
 
-Make sure you're using the latest version of Next.js. Each new version often includes performance improvements.
+Garanta que você está usando a versão mais recente do Next.js. Cada nova versão costuma trazer melhorias de performance.
 
-Turbopack is now the default bundler for Next.js development and provides significant performance improvements over webpack.
+O Turbopack agora é o bundler padrão para o desenvolvimento com Next.js e oferece melhorias significativas de performance em relação ao webpack.
 
 ```bash package="pnpm"
 pnpm add next@latest
@@ -104,7 +104,7 @@ bun add next@latest
 bun dev  # Turbopack is used by default
 ```
 
-If you need to use Webpack instead of Turbopack, you can opt-in:
+Se você precisar usar o Webpack em vez do Turbopack, pode optar por ele:
 
 ```bash package="pnpm"
 pnpm dev --webpack
@@ -122,15 +122,15 @@ yarn dev --webpack
 bun run dev --webpack
 ```
 
-[Learn more about Turbopack](/blog/turbopack-for-development-stable). See our [upgrade guides](/docs/app/guides/upgrading) and codemods for more information.
+[Saiba mais sobre o Turbopack](/blog/turbopack-for-development-stable). Veja nossos [guias de atualização](/docs/app/guides/upgrading) e codemods para mais informações.
 
-### 2. Check your imports
+### 2. Verifique seus imports \{#2-check-your-imports}
 
-The way you import code can greatly affect compilation and bundling time. Learn more about [optimizing package bundling](/docs/app/guides/package-bundling) and explore tools like [Dependency Cruiser](https://github.com/sverweij/dependency-cruiser) or [Madge](https://github.com/pahen/madge).
+A forma como você importa o código pode afetar bastante o tempo de compilação e de bundling. Saiba mais sobre [otimização do bundling de pacotes](/docs/app/guides/package-bundling) e conheça ferramentas como [Dependency Cruiser](https://github.com/sverweij/dependency-cruiser) ou [Madge](https://github.com/pahen/madge).
 
-#### Icon libraries
+#### Bibliotecas de ícones \{#icon-libraries}
 
-Libraries like `@material-ui/icons`, `@phosphor-icons/react`, or `react-icons` can import thousands of icons, even if you only use a few. Try to import only the icons you need:
+Bibliotecas como `@material-ui/icons`, `@phosphor-icons/react` ou `react-icons` podem importar milhares de ícones, mesmo que você use apenas alguns. Tente importar somente os ícones de que precisa:
 
 ```jsx
 // Instead of this:
@@ -140,28 +140,28 @@ import { TriangleIcon } from '@phosphor-icons/react'
 import { TriangleIcon } from '@phosphor-icons/react/dist/csr/Triangle'
 ```
 
-You can often find what import pattern to use in the documentation for the icon library you're using. This example follows [`@phosphor-icons/react`](https://www.npmjs.com/package/@phosphor-icons/react#import-performance-optimization) recommendation.
+Muitas vezes você encontra o padrão de import a usar na documentação da biblioteca de ícones que está usando. Este exemplo segue a recomendação do [`@phosphor-icons/react`](https://www.npmjs.com/package/@phosphor-icons/react#import-performance-optimization).
 
-Libraries like `react-icons` includes many different icon sets. Choose one set and stick with that set.
+Bibliotecas como o `react-icons` incluem vários conjuntos de ícones diferentes. Escolha um conjunto e mantenha-se nele.
 
-For example, if your application uses `react-icons` and imports all of these:
+Por exemplo, se seu app usa o `react-icons` e importa todos estes:
 
 - `pi` (Phosphor Icons)
 - `md` (Material Design Icons)
 - `tb` (tabler-icons)
 - `cg` (cssgg)
 
-Combined they will be tens of thousands of modules that the compiler has to handle, even if you only use a single import from each.
+Juntos, eles somam dezenas de milhares de módulos que o compilador precisa processar, mesmo que você use apenas um import de cada um.
 
-#### Barrel files
+#### Barrel files \{#barrel-files}
 
-"Barrel files" are files that export many items from other files. They can slow down builds because the compiler has to parse them to find if there are side-effects in the module scope by using the import.
+"Barrel files" são arquivos que exportam muitos itens de outros arquivos. Eles podem deixar os builds mais lentos, porque o compilador precisa analisar esses arquivos para descobrir se há efeitos colaterais no escopo do módulo ao usar o import.
 
-Try to import directly from specific files when possible. [Learn more about barrel files](https://vercel.com/blog/how-we-optimized-package-imports-in-next-js) and the built-in optimizations in Next.js.
+Sempre que possível, importe diretamente dos arquivos específicos. [Saiba mais sobre barrel files](https://vercel.com/blog/how-we-optimized-package-imports-in-next-js) e sobre as otimizações nativas do Next.js.
 
-#### Optimize package imports
+#### Otimize os imports de pacotes \{#optimize-package-imports}
 
-Next.js can automatically optimize imports for certain packages. If you are using packages that utilize barrel files, add them to your `next.config.js`:
+O Next.js pode otimizar automaticamente os imports de determinados pacotes. Se você usa pacotes que dependem de barrel files, adicione-os ao seu `next.config.js`:
 
 ```jsx
 module.exports = {
@@ -171,17 +171,17 @@ module.exports = {
 }
 ```
 
-Turbopack automatically analyzes imports and optimizes them. It does not require this configuration.
+O Turbopack analisa e otimiza os imports automaticamente. Ele não exige essa configuração.
 
-### 3. Check your Tailwind CSS setup
+### 3. Verifique sua configuração do Tailwind CSS \{#3-check-your-tailwind-css-setup}
 
-If you're using Tailwind CSS, make sure it's set up correctly.
+Se você usa Tailwind CSS, confira se ele está configurado corretamente.
 
-A common mistake is configuring your `content` array in a way which includes `node_modules` or other large directories of files that should not be scanned.
+Um erro comum é configurar o array `content` de um jeito que inclui `node_modules` ou outras pastas grandes com arquivos que não deveriam ser lidos.
 
-Tailwind CSS version 3.4.8 or newer will warn you about settings that might slow down your build.
+O Tailwind CSS na versão 3.4.8 ou mais recente avisa sobre configurações que podem deixar o build mais lento.
 
-1. In your `tailwind.config.js`, be specific about which files to scan:
+1. No seu `tailwind.config.js`, seja específico sobre quais arquivos ler:
 
    ```jsx
    module.exports = {
@@ -194,7 +194,7 @@ Tailwind CSS version 3.4.8 or newer will warn you about settings that might slow
    }
    ```
 
-2. Avoid scanning unnecessary files:
+2. Evite ler arquivos desnecessários:
 
    ```jsx
    module.exports = {
@@ -205,31 +205,31 @@ Tailwind CSS version 3.4.8 or newer will warn you about settings that might slow
    }
    ```
 
-### 4. Check custom webpack settings
+### 4. Verifique as configurações personalizadas do webpack \{#4-check-custom-webpack-settings}
 
-If you've added custom webpack settings, they might be slowing down compilation.
+Se você adicionou configurações personalizadas do webpack, elas podem estar deixando a compilação mais lenta.
 
-Consider if you really need them for local development. You can optionally only include certain tools for production builds, or explore using the default Turbopack bundler and configuring [loaders](/docs/app/api-reference/config/next-config-js/turbopack#configuring-webpack-loaders) instead.
+Avalie se você realmente precisa delas no desenvolvimento local. Você pode, opcionalmente, incluir certas ferramentas apenas nos builds de produção, ou explorar o uso do bundler padrão, o Turbopack, configurando [loaders](/docs/app/api-reference/config/next-config-js/turbopack#configuring-webpack-loaders) em vez disso.
 
-### 5. Optimize memory usage
+### 5. Otimize o uso de memória \{#5-optimize-memory-usage}
 
-If your app is very large, it might need more memory.
+Se seu app for muito grande, ele pode precisar de mais memória.
 
-[Learn more about optimizing memory usage](/docs/app/guides/memory-usage).
+[Saiba mais sobre como otimizar o uso de memória](/docs/app/guides/memory-usage).
 
-### 6. Server Components and data fetching
+### 6. Server Components e busca de dados \{#6-server-components-and-data-fetching}
 
-Changes to Server Components cause the entire page to re-render locally in order to show the new changes, which includes fetching new data for the component.
+Mudanças em Server Components fazem a página inteira renderizar novamente localmente para mostrar as novas alterações, o que inclui buscar novos dados para o componente.
 
-The experimental `serverComponentsHmrCache` option allows you to cache `fetch` responses in Server Components across Hot Module Replacement (HMR) refreshes in local development. This results in faster responses and reduced costs for billed API calls.
+A opção experimental `serverComponentsHmrCache` permite armazenar em cache as respostas de `fetch` em Server Components entre os refreshes do Hot Module Replacement (HMR) no desenvolvimento local. Isso resulta em respostas mais rápidas e em menos custos com chamadas de API cobradas.
 
-[Learn more about the experimental option](/docs/app/api-reference/config/next-config-js/serverComponentsHmrCache).
+[Saiba mais sobre a opção experimental](/docs/app/api-reference/config/next-config-js/serverComponentsHmrCache).
 
-## Tools for finding problems
+## Ferramentas para encontrar problemas \{#tools-for-finding-problems}
 
-### Detailed fetch logging
+### Log detalhado de fetch \{#detailed-fetch-logging}
 
-Use the `logging.fetches` option in your `next.config.js` file, to see more detailed information about what's happening during development:
+Use a opção `logging.fetches` no seu arquivo `next.config.js` para ver informações mais detalhadas sobre o que está acontecendo durante o desenvolvimento:
 
 ```js
 module.exports = {
@@ -241,15 +241,15 @@ module.exports = {
 }
 ```
 
-[Learn more about fetch logging](/docs/app/api-reference/config/next-config-js/logging).
+[Saiba mais sobre o log de fetch](/docs/app/api-reference/config/next-config-js/logging).
 
-### Turbopack tracing
+### Rastreamento do Turbopack \{#turbopack-tracing}
 
-Turbopack tracing is a tool that helps you understand the performance of your application during local development.
-It provides detailed information about the time taken for each module to compile and how they are related.
+O rastreamento do Turbopack é uma ferramenta que ajuda a entender a performance do seu app durante o desenvolvimento local.
+Ele fornece informações detalhadas sobre o tempo que cada módulo leva para compilar e como os módulos se relacionam.
 
-1. Make sure you have the latest version of Next.js installed.
-1. Generate a Turbopack trace file:
+1. Garanta que você tem a versão mais recente do Next.js instalada.
+1. Gere um arquivo de rastreamento do Turbopack:
 
    ```bash package="pnpm"
    pnpm dev --internal-trace
@@ -267,26 +267,28 @@ It provides detailed information about the time taken for each module to compile
    bun dev --internal-trace
    ```
 
-1. Navigate around your application or make edits to files to reproduce the problem.
-1. Stop the Next.js development server.
-1. A file called `trace-turbopack.bin` will be available in the `.next-profiles` folder.
-1. You can interpret the file using `npx next internal trace [path-to-file]`:
+1. Navegue pelo seu app ou faça edições nos arquivos para reproduzir o problema.
+1. Pare o dev server do Next.js.
+1. Um arquivo chamado `trace-turbopack.bin` ficará disponível na pasta `.next-profiles`.
+1. Você pode interpretar o arquivo usando `npx next internal trace [path-to-file]`:
 
    ```bash
    npx next internal trace .next-profiles/trace-turbopack.bin
    ```
 
-   On versions where `trace` is not available, the command was named `turbo-trace-server`:
+   Em versões em que `trace` não está disponível, o comando se chamava `turbo-trace-server`:
 
    ```bash
    npx next internal turbo-trace-server .next-profiles/trace-turbopack.bin
    ```
 
-1. Once the trace server is running you can view the trace at https://trace.nextjs.org/.
-1. By default the trace viewer will aggregate timings, in order to see each individual time you can switch from "Aggregated in order" to "Spans in order" at the top right of the viewer.
+1. Depois que o trace server estiver rodando, você pode visualizar o rastreamento em https://trace.nextjs.org/.
+1. Por padrão, o visualizador agrega os tempos. Para ver cada tempo individualmente, troque de "Aggregated in order" para "Spans in order" no canto superior direito do visualizador.
 
-> **Good to know**: The trace file is placed in the `.next-profiles` directory at the project root.
+> **Bom saber**: o arquivo de rastreamento fica na pasta `.next-profiles`, na raiz do projeto.
 
-### Still having problems?
+### Ainda com problemas? \{#still-having-problems}
 
-Share the trace file generated in the [Turbopack Tracing](#turbopack-tracing) section and share it on [GitHub Discussions](https://github.com/vercel/next.js/discussions) or [Discord](https://nextjs.org/discord).
+Compartilhe o arquivo de rastreamento gerado na seção [Rastreamento do Turbopack](#turbopack-tracing) e envie-o nas [GitHub Discussions](https://github.com/vercel/next.js/discussions) ou no [Discord](https://nextjs.org/discord).
+
+{/* ia-translate: true */}
