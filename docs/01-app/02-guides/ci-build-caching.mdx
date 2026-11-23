@@ -1,24 +1,24 @@
 ---
-title: How to configure Continuous Integration (CI) build caching
-nav_title: CI Build Caching
-description: Learn how to configure CI to cache Next.js builds
+title: Como configurar o cache de build em Integração Contínua (CI)
+nav_title: Cache de build em CI
+description: Saiba como configurar o CI para armazenar em cache os builds do Next.js
 ---
 
-To improve build performance, Next.js saves a cache to `.next/cache` that is shared between builds.
+Para melhorar a performance do build, o Next.js salva um cache em `.next/cache` que é compartilhado entre os builds.
 
-To take advantage of this cache in Continuous Integration (CI) environments, your CI workflow will need to be configured to correctly persist the cache between builds.
+Para aproveitar esse cache em ambientes de Integração Contínua (CI), o seu workflow de CI precisa estar configurado para manter o cache corretamente entre os builds.
 
-> If your CI is not configured to persist `.next/cache` between builds, you may see a [No Cache Detected](/docs/messages/no-cache) error.
+> Se o seu CI não estiver configurado para manter `.next/cache` entre os builds, você pode ver o erro [No Cache Detected](/docs/messages/no-cache).
 
-Here are some example cache configurations for common CI providers:
+Veja a seguir alguns exemplos de configuração de cache para provedores de CI comuns:
 
-## Vercel
+## Vercel \{#vercel}
 
-Next.js caching is automatically configured for you. There's no action required on your part. If you are using Turborepo on Vercel, [learn more here](https://vercel.com/docs/monorepos/turborepo).
+O cache do Next.js já é configurado automaticamente para você. Não é preciso fazer nada. Se você usa o Turborepo na Vercel, [saiba mais aqui](https://vercel.com/docs/monorepos/turborepo).
 
-## CircleCI
+## CircleCI \{#circleci}
 
-Edit your `save_cache` step in `.circleci/config.yml` to include `.next/cache`:
+Edite a etapa `save_cache` em `.circleci/config.yml` para incluir `.next/cache`:
 
 ```yaml
 steps:
@@ -29,11 +29,11 @@ steps:
         - ./.next/cache
 ```
 
-If you do not have a `save_cache` key, please follow CircleCI's [documentation on setting up build caching](https://circleci.com/docs/2.0/caching/).
+Se você não tiver uma chave `save_cache`, siga a [documentação do CircleCI sobre como configurar o cache de build](https://circleci.com/docs/2.0/caching/).
 
-## Travis CI
+## Travis CI \{#travis-ci}
 
-Add or merge the following into your `.travis.yml`:
+Adicione ou mescle o seguinte no seu `.travis.yml`:
 
 ```yaml
 cache:
@@ -43,9 +43,9 @@ cache:
     - .next/cache
 ```
 
-## GitLab CI
+## GitLab CI \{#gitlab-ci}
 
-Add or merge the following into your `.gitlab-ci.yml`:
+Adicione ou mescle o seguinte no seu `.gitlab-ci.yml`:
 
 ```yaml
 cache:
@@ -55,13 +55,13 @@ cache:
     - .next/cache/
 ```
 
-## Netlify CI
+## Netlify CI \{#netlify-ci}
 
-Use [Netlify Plugins](https://www.netlify.com/products/build/plugins/) with [`@netlify/plugin-nextjs`](https://www.npmjs.com/package/@netlify/plugin-nextjs).
+Use [Netlify Plugins](https://www.netlify.com/products/build/plugins/) com o [`@netlify/plugin-nextjs`](https://www.npmjs.com/package/@netlify/plugin-nextjs).
 
-## AWS CodeBuild
+## AWS CodeBuild \{#aws-codebuild}
 
-Add (or merge in) the following to your `buildspec.yml`:
+Adicione (ou mescle) o seguinte no seu `buildspec.yml`:
 
 ```yaml
 cache:
@@ -70,9 +70,9 @@ cache:
     - '.next/cache/**/*' # Cache Next.js for faster application rebuilds
 ```
 
-## GitHub Actions
+## GitHub Actions \{#github-actions}
 
-Using GitHub's [actions/cache](https://github.com/actions/cache), add the following step in your workflow file:
+Usando o [actions/cache](https://github.com/actions/cache) do GitHub, adicione a seguinte etapa no seu arquivo de workflow:
 
 ```yaml
 uses: actions/cache@v4
@@ -88,9 +88,9 @@ with:
     ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 ```
 
-## Bitbucket Pipelines
+## Bitbucket Pipelines \{#bitbucket-pipelines}
 
-Add or merge the following into your `bitbucket-pipelines.yml` at the top level (same level as `pipelines`):
+Adicione ou mescle o seguinte no seu `bitbucket-pipelines.yml`, no nível mais alto (no mesmo nível de `pipelines`):
 
 ```yaml
 definitions:
@@ -98,7 +98,7 @@ definitions:
     nextcache: .next/cache
 ```
 
-Then reference it in the `caches` section of your pipeline's `step`:
+Depois, referencie-o na seção `caches` do `step` do seu pipeline:
 
 ```yaml
 - step:
@@ -108,17 +108,17 @@ Then reference it in the `caches` section of your pipeline's `step`:
       - nextcache
 ```
 
-## Heroku
+## Heroku \{#heroku}
 
-Using Heroku's [custom cache](https://devcenter.heroku.com/articles/nodejs-support#custom-caching), add a `cacheDirectories` array in your top-level package.json:
+Usando o [cache personalizado](https://devcenter.heroku.com/articles/nodejs-support#custom-caching) do Heroku, adicione um array `cacheDirectories` no package.json do nível raiz:
 
 ```javascript
 "cacheDirectories": [".next/cache"]
 ```
 
-## Azure Pipelines
+## Azure Pipelines \{#azure-pipelines}
 
-Using Azure Pipelines' [Cache task](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/cache), add the following task to your pipeline yaml file somewhere prior to the task that executes `next build`:
+Usando a tarefa [Cache](https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/cache) do Azure Pipelines, adicione a seguinte tarefa no seu arquivo yaml de pipeline, antes da tarefa que executa `next build`:
 
 ```yaml
 - task: Cache@2
@@ -128,9 +128,9 @@ Using Azure Pipelines' [Cache task](https://docs.microsoft.com/en-us/azure/devop
     path: '$(System.DefaultWorkingDirectory)/.next/cache'
 ```
 
-## Jenkins (Pipeline)
+## Jenkins (Pipeline) \{#jenkins-pipeline}
 
-Using Jenkins' [Job Cacher](https://www.jenkins.io/doc/pipeline/steps/jobcacher/) plugin, add the following build step to your `Jenkinsfile` where you would normally run `next build` or `npm install`:
+Usando o plugin [Job Cacher](https://www.jenkins.io/doc/pipeline/steps/jobcacher/) do Jenkins, adicione a seguinte etapa de build no seu `Jenkinsfile`, no lugar onde você normalmente executaria `next build` ou `npm install`:
 
 ```yaml
 stage("Restore npm packages") {
@@ -167,3 +167,5 @@ stage("Build") {
     }
 }
 ```
+
+{/* ia-translate: true */}

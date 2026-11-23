@@ -1,18 +1,18 @@
 ---
-title: How to use debugging tools with Next.js
-nav_title: Debugging
-description: Learn how to debug your Next.js application with VS Code, Chrome DevTools, or Firefox DevTools.
+title: Como usar ferramentas de depuração com o Next.js
+nav_title: Depuração
+description: Saiba como depurar seu app Next.js com o VS Code, o Chrome DevTools ou o Firefox DevTools.
 ---
 
 {/* The content of this doc is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
 
-This documentation explains how you can debug your Next.js frontend and backend code with full source maps support using the [VS Code debugger](https://code.visualstudio.com/docs/editor/debugging), [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools), or [Firefox DevTools](https://firefox-source-docs.mozilla.org/devtools-user/).
+Esta documentação explica como depurar o código de frontend e backend do seu Next.js, com suporte completo a source maps, usando o [depurador do VS Code](https://code.visualstudio.com/docs/editor/debugging), o [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools) ou o [Firefox DevTools](https://firefox-source-docs.mozilla.org/devtools-user/).
 
-Any debugger that can attach to Node.js can also be used to debug a Next.js application. You can find more details in the Node.js [Debugging Guide](https://nodejs.org/learn/getting-started/debugging/).
+Qualquer depurador que consiga se conectar ao Node.js também pode ser usado para depurar um app Next.js. Você encontra mais detalhes no [Guia de depuração](https://nodejs.org/learn/getting-started/debugging/) do Node.js.
 
-## Debugging with VS Code
+## Depurando com o VS Code \{#debugging-with-vs-code}
 
-Create a file named `.vscode/launch.json` at the root of your project with the following content:
+Crie um arquivo chamado `.vscode/launch.json` na raiz do seu projeto com o seguinte conteúdo:
 
 ```json filename="launch.json"
 {
@@ -62,56 +62,56 @@ Create a file named `.vscode/launch.json` at the root of your project with the f
 }
 ```
 
-> **Note**: To use Firefox debugging in VS Code, you'll need to install the [Firefox Debugger extension](https://marketplace.visualstudio.com/items?itemName=firefox-devtools.vscode-firefox-debug).
+> **Nota**: Para usar a depuração do Firefox no VS Code, você precisa instalar a [extensão Firefox Debugger](https://marketplace.visualstudio.com/items?itemName=firefox-devtools.vscode-firefox-debug).
 
-`npm run dev` can be replaced with `yarn dev` if you're using Yarn or `pnpm dev` if you're using pnpm.
+`npm run dev` pode ser substituído por `yarn dev`, se você usa o Yarn, ou por `pnpm dev`, se você usa o pnpm.
 
-In the "Next.js: debug full stack" configuration, `serverReadyAction.action` specifies which browser to open when the server is ready. `debugWithEdge` means to launch the Edge browser. If you are using Chrome, change this value to `debugWithChrome`.
+Na configuração "Next.js: debug full stack", `serverReadyAction.action` especifica qual navegador abrir quando o servidor estiver pronto. `debugWithEdge` significa abrir o navegador Edge. Se você usa o Chrome, troque esse valor para `debugWithChrome`.
 
-If you're [changing the port number](/docs/pages/api-reference/cli/next#next-dev-options) your application starts on, replace the `3000` in `http://localhost:3000` with the port you're using instead.
+Se você [mudar a porta](/docs/pages/api-reference/cli/next#next-dev-options) em que sua aplicação inicia, substitua o `3000` em `http://localhost:3000` pela porta que você está usando.
 
-If you're running Next.js from a directory other than root (for example, if you're using Turborepo) then you need to add `cwd` to the server-side and full stack debugging tasks. For example, `"cwd": "${workspaceFolder}/apps/web"`.
+Se você executa o Next.js a partir de um diretório diferente da raiz (por exemplo, usando o Turborepo), precisa adicionar `cwd` às tarefas de depuração do servidor e do full stack. Por exemplo, `"cwd": "${workspaceFolder}/apps/web"`.
 
-Now go to the Debug panel (`Ctrl+Shift+D` on Windows/Linux, `⇧+⌘+D` on macOS), select a launch configuration, then press `F5` or select **Debug: Start Debugging** from the Command Palette to start your debugging session.
+Agora, vá para o painel Debug (`Ctrl+Shift+D` no Windows/Linux, `⇧+⌘+D` no macOS), selecione uma configuração de launch e pressione `F5` ou selecione **Debug: Start Debugging** na Paleta de comandos para iniciar a sessão de depuração.
 
-## Using the Debugger in Jetbrains WebStorm
+## Usando o depurador no Jetbrains WebStorm \{#using-the-debugger-in-jetbrains-webstorm}
 
-Click the drop down menu listing the runtime configuration, and click `Edit Configurations...`. Create a `JavaScript Debug` debug configuration with `http://localhost:3000` as the URL. Customize to your liking (e.g. Browser for debugging, store as project file), and click `OK`. Run this debug configuration, and the selected browser should automatically open. At this point, you should have 2 applications in debug mode: the Next.js node application, and the client/browser application.
+Clique no menu suspenso que lista a configuração de runtime e clique em `Edit Configurations...`. Crie uma configuração de depuração `JavaScript Debug` com `http://localhost:3000` como URL. Personalize como preferir (por exemplo, Browser para depuração, salvar como arquivo do projeto) e clique em `OK`. Execute essa configuração de depuração e o navegador selecionado deve abrir automaticamente. Neste ponto, você terá 2 aplicações em modo de depuração: a aplicação Node.js do Next.js e a aplicação do cliente/navegador.
 
-## Debugging with Browser DevTools
+## Depurando com as DevTools do navegador \{#debugging-with-browser-devtools}
 
-### Client-side code
+### Código no cliente \{#client-side-code}
 
-Start your development server as usual by running `next dev`, `npm run dev`, or `yarn dev`. Once the server starts, open `http://localhost:3000` (or your alternate URL) in your preferred browser.
+Inicie seu dev server normalmente, executando `next dev`, `npm run dev` ou `yarn dev`. Quando o servidor iniciar, abra `http://localhost:3000` (ou a sua URL alternativa) no navegador de sua preferência.
 
-For Chrome:
+No Chrome:
 
-- Open Chrome's Developer Tools (`Ctrl+Shift+J` on Windows/Linux, `⌥+⌘+I` on macOS)
-- Go to the **Sources** tab
+- Abra as Developer Tools do Chrome (`Ctrl+Shift+J` no Windows/Linux, `⌥+⌘+I` no macOS)
+- Vá para a aba **Sources**
 
-For Firefox:
+No Firefox:
 
-- Open Firefox's Developer Tools (`Ctrl+Shift+I` on Windows/Linux, `⌥+⌘+I` on macOS)
-- Go to the **Debugger** tab
+- Abra as Developer Tools do Firefox (`Ctrl+Shift+I` no Windows/Linux, `⌥+⌘+I` no macOS)
+- Vá para a aba **Debugger**
 
-In either browser, any time your client-side code reaches a [`debugger`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/debugger) statement, code execution will pause and that file will appear in the debug area. You can also search for files to set breakpoints manually:
+Em qualquer um dos navegadores, sempre que o seu código do cliente chegar a uma instrução [`debugger`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/debugger), a execução do código será pausada e esse arquivo aparecerá na área de depuração. Você também pode buscar arquivos para definir breakpoints manualmente:
 
-- In Chrome: Press `Ctrl+P` on Windows/Linux or `⌘+P` on macOS
-- In Firefox: Press `Ctrl+P` on Windows/Linux or `⌘+P` on macOS, or use the file tree in the left panel
+- No Chrome: pressione `Ctrl+P` no Windows/Linux ou `⌘+P` no macOS
+- No Firefox: pressione `Ctrl+P` no Windows/Linux ou `⌘+P` no macOS, ou use a árvore de arquivos no painel da esquerda
 
-Note that when searching, your source files will have paths starting with `webpack://_N_E/./`.
+Observe que, ao buscar, seus arquivos de código-fonte terão caminhos começando com `webpack://_N_E/./`.
 
-### React Developer Tools
+### React Developer Tools \{#react-developer-tools}
 
-For React-specific debugging, install the [React Developer Tools](https://react.dev/learn/react-developer-tools) browser extension. This essential tool helps you:
+Para depurar especificamente o React, instale a extensão de navegador [React Developer Tools](https://react.dev/learn/react-developer-tools). Esta ferramenta essencial ajuda você a:
 
-- Inspect React components
-- Edit props and state
-- Identify performance problems
+- Inspecionar componentes React
+- Editar props e estado
+- Identificar problemas de performance
 
-### Server-side code
+### Código no servidor \{#server-side-code}
 
-To debug server-side Next.js code with browser DevTools, you need to pass the `--inspect` flag:
+Para depurar o código do servidor do Next.js com as DevTools do navegador, você precisa passar a flag `--inspect`:
 
 ```bash package="pnpm"
 pnpm dev --inspect
@@ -129,11 +129,11 @@ yarn dev --inspect
 bun run dev --inspect
 ```
 
-The value of `--inspect` is passed to the underlying Node.js process. Check out the [`--inspect` docs for advanced use cases](https://nodejs.org/api/cli.html#--inspecthostport).
+O valor de `--inspect` é repassado para o processo Node.js subjacente. Veja a [documentação do `--inspect` para casos de uso avançados](https://nodejs.org/api/cli.html#--inspecthostport).
 
-> **Good to know**: Use `--inspect=0.0.0.0` to allow remote debugging access outside localhost, such as when running the app in a Docker container.
+> **Bom saber**: Use `--inspect=0.0.0.0` para permitir acesso remoto para depuração fora do localhost, por exemplo, ao rodar o app em um container Docker.
 
-Launching the Next.js server with the `--inspect` flag will look something like this:
+Iniciar o servidor do Next.js com a flag `--inspect` vai gerar uma saída parecida com esta:
 
 ```bash filename="Terminal"
 Debugger listening on ws://127.0.0.1:9229/0cf90313-350d-4466-a748-cd60f4e47c95
@@ -141,39 +141,41 @@ For help, see: https://nodejs.org/learn/getting-started/debugging
 ready - started server on 0.0.0.0:3000, url: http://localhost:3000
 ```
 
-For Chrome:
+No Chrome:
 
-1. Open a new tab and visit `chrome://inspect`
-1. Look for your Next.js application in the **Remote Target** section
-1. Click **inspect** to open a separate DevTools window
-1. Go to the **Sources** tab
+1. Abra uma nova aba e acesse `chrome://inspect`
+1. Procure a sua aplicação Next.js na seção **Remote Target**
+1. Clique em **inspect** para abrir uma janela separada das DevTools
+1. Vá para a aba **Sources**
 
-For Firefox:
+No Firefox:
 
-1. Open a new tab and visit `about:debugging`
-1. Click **This Firefox** in the left sidebar
-1. Under **Remote Targets**, find your Next.js application
-1. Click **Inspect** to open the debugger
-1. Go to the **Debugger** tab
+1. Abra uma nova aba e acesse `about:debugging`
+1. Clique em **This Firefox** na barra lateral esquerda
+1. Em **Remote Targets**, encontre a sua aplicação Next.js
+1. Clique em **Inspect** para abrir o depurador
+1. Vá para a aba **Debugger**
 
-Debugging server-side code works similarly to client-side debugging. When searching for files (`Ctrl+P`/`⌘+P`), your source files will have paths starting with `webpack://{application-name}/./` (where `{application-name}` will be replaced with the name of your application according to your `package.json` file).
+A depuração do código do servidor funciona de forma semelhante à depuração do cliente. Ao buscar arquivos (`Ctrl+P`/`⌘+P`), seus arquivos de código-fonte terão caminhos começando com `webpack://{application-name}/./` (onde `{application-name}` será substituído pelo nome da sua aplicação, de acordo com o arquivo `package.json`).
 
-To use `--inspect-brk` or `--inspect-wait`, you have to specify `NODE_OPTIONS` instead. e.g. `NODE_OPTIONS=--inspect-brk next dev`.
+Para usar `--inspect-brk` ou `--inspect-wait`, é preciso especificar o `NODE_OPTIONS`. Por exemplo: `NODE_OPTIONS=--inspect-brk next dev`.
 
-### Inspect Server Errors with Browser DevTools
+### Inspecionando erros do servidor com as DevTools do navegador \{#inspect-server-errors-with-browser-devtools}
 
-When you encounter an error, inspecting the source code can help trace the root cause of errors.
+Quando você encontra um erro, inspecionar o código-fonte pode ajudar a rastrear a causa raiz.
 
-Next.js will display a Node.js icon underneath the Next.js version indicator on the error overlay. By clicking that icon, the DevTools URL is copied to your clipboard. You can open a new browser tab with that URL to inspect the Next.js server process.
+O Next.js exibe um ícone do Node.js abaixo do indicador de versão do Next.js na sobreposição de erro. Ao clicar nesse ícone, a URL das DevTools é copiada para a área de transferência. Você pode abrir uma nova aba do navegador com essa URL para inspecionar o processo do servidor do Next.js.
 
-### Debugging on Windows
+### Depurando no Windows \{#debugging-on-windows}
 
-Ensure Windows Defender is disabled on your machine. This external service will check _every file read_, which has been reported to greatly increase Fast Refresh time with `next dev`. This is a known issue, not related to Next.js, but it does affect Next.js development.
+Confira se o Windows Defender está desativado na sua máquina. Esse serviço externo verifica _cada leitura de arquivo_, o que, segundo relatos, aumenta muito o tempo do Fast Refresh com `next dev`. Trata-se de um problema conhecido, que não é relacionado ao Next.js, mas que afeta o desenvolvimento com Next.js.
 
-## More information
+## Mais informações \{#more-information}
 
-To learn more about how to use a JavaScript debugger, take a look at the following documentation:
+Para saber mais sobre como usar um depurador de JavaScript, veja a documentação a seguir:
 
-- [Node.js debugging in VS Code: Breakpoints](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints)
+- [Depuração de Node.js no VS Code: Breakpoints](https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_breakpoints)
 - [Chrome DevTools: Debug JavaScript](https://developers.google.com/web/tools/chrome-devtools/javascript)
 - [Firefox DevTools: Debugger](https://firefox-source-docs.mozilla.org/devtools-user/debugger/)
+
+{/* ia-translate: true */}

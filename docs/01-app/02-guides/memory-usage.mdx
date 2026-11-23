@@ -1,76 +1,75 @@
 ---
-title: How to optimize memory usage
-nav_title: Memory Usage
-description: Optimize memory used by your application in development and production.
+title: Como otimizar o uso de memória
+nav_title: Uso de memória
+description: Otimize a memória usada pela sua aplicação em desenvolvimento e em produção.
 ---
 
-As applications grow and become more feature rich, they can demand more resources when developing locally or creating production builds.
+À medida que os apps crescem e ganham mais recursos, eles podem exigir mais do computador ao rodar localmente ou ao gerar builds de produção.
 
-Let's explore some strategies and techniques to optimize memory and address common memory issues in Next.js.
+Vamos explorar algumas estratégias e técnicas para otimizar a memória e resolver problemas comuns de memória no Next.js.
 
-## Reduce number of dependencies
+## Reduzir o número de dependências \{#reduce-number-of-dependencies}
 
-Applications with a large amount of dependencies will use more memory.
+Apps com muitas dependências usam mais memória.
 
-The [Bundle Analyzer](/docs/app/guides/package-bundling) can help you investigate large dependencies in your application that may be able to be removed to improve performance and memory usage.
+O [Bundle Analyzer](/docs/app/guides/package-bundling) pode ajudar você a investigar grandes dependências do seu app que talvez possam ser removidas para melhorar a performance e o uso de memória.
 
-## Try `experimental.webpackMemoryOptimizations`
+## Teste o `experimental.webpackMemoryOptimizations` \{#try-experimentalwebpackmemoryoptimizations}
 
-Starting in `v15.0.0`, you can add `experimental.webpackMemoryOptimizations: true` to your `next.config.js` file to change behavior in Webpack that reduces max memory usage but may increase compilation times by a slight amount.
+A partir da `v15.0.0`, você pode adicionar `experimental.webpackMemoryOptimizations: true` ao seu arquivo `next.config.js` para alterar o comportamento do Webpack, reduzindo o uso máximo de memória ao custo de um pequeno aumento no tempo de compilação.
 
-> **Good to know**: This feature is currently experimental to test on more projects first, but it is considered to be low-risk.
+> **Bom saber**: Este recurso ainda é experimental, para ser testado em mais projetos antes, mas é considerado de baixo risco.
 
-## Run `next build` with `--experimental-debug-memory-usage`
+## Execute `next build` com `--experimental-debug-memory-usage` \{#run-next-build-with---experimental-debug-memory-usage}
 
-Starting in `14.2.0`, you can run `next build --experimental-debug-memory-usage` to run the build in a mode where Next.js will print out information about memory usage continuously throughout the build, such as heap usage and garbage collection statistics. Heap snapshots will also be taken automatically when memory usage gets close to the configured limit.
+A partir da `14.2.0`, você pode executar `next build --experimental-debug-memory-usage` para rodar o build em um modo em que o Next.js imprime continuamente informações sobre o uso de memória durante todo o build, como o uso do heap e estatísticas do garbage collection. Snapshots do heap também são gerados automaticamente quando o uso de memória se aproxima do limite configurado.
 
-> **Good to know**: This feature is not compatible with the Webpack build worker option which is auto-enabled unless you have custom webpack config.
+> **Bom saber**: Este recurso não é compatível com a opção de worker de build do Webpack, que é habilitada automaticamente, a menos que você tenha uma configuração personalizada do webpack.
 
-## Record a heap profile
+## Gravar um heap profile \{#record-a-heap-profile}
 
-To look for memory issues, you can record a heap profile from Node.js and load it in Chrome DevTools to identify potential sources of memory leaks.
+Para procurar problemas de memória, você pode gravar um heap profile do Node.js e carregá-lo no Chrome DevTools para identificar possíveis origens de vazamentos de memória.
 
-In your terminal, pass the `--heap-prof` flag to Node.js when starting your Next.js build:
+No seu terminal, passe a flag `--heap-prof` para o Node.js ao iniciar o build do seu app Next.js:
 
 ```sh
 node --heap-prof node_modules/next/dist/bin/next build
 ```
 
-At the end of the build, a `.heapprofile` file will be created by Node.js.
+Ao final do build, o Node.js vai criar um arquivo `.heapprofile`.
 
-In Chrome DevTools, you can open the Memory tab and click on the "Load Profile" button to visualize the file.
+No Chrome DevTools, você pode abrir a aba Memory e clicar no botão "Load Profile" para visualizar o arquivo.
 
-## Analyze a snapshot of the heap
+## Analisar um snapshot do heap \{#analyze-a-snapshot-of-the-heap}
 
-You can use an inspector tool to analyze the memory usage of the application.
+Você pode usar uma ferramenta de inspeção para analisar o uso de memória da aplicação.
 
-When running the `next build` or `next dev` command, add `NODE_OPTIONS=--inspect` to the beginning of the command. This will expose the inspector agent on the default port.
-If you wish to break before any user code starts, you can pass `--inspect-brk` instead. While the process is running, you can use a tool such as Chrome DevTools to connect to the debugging port to record and analyze a snapshot of the heap to see what memory is being retained.
+Ao executar o comando `next build` ou `next dev`, adicione `NODE_OPTIONS=--inspect` no início do comando. Isso vai expor o agente de inspeção na porta padrão.
+Se você quiser pausar antes de qualquer código do usuário começar, pode passar `--inspect-brk`. Enquanto o processo está em execução, você pode usar uma ferramenta como o Chrome DevTools para se conectar à porta de depuração, gravar e analisar um snapshot do heap e ver qual memória está sendo retida.
 
-Starting in `14.2.0`, you can also run `next build` with the `--experimental-debug-memory-usage` flag to make it easier to take heap snapshots.
+A partir da `14.2.0`, você também pode executar `next build` com a flag `--experimental-debug-memory-usage`, para facilitar a geração de snapshots do heap.
 
-While running in this mode, you can send a `SIGUSR2` signal to the process at any point, and the process will take a heap snapshot.
+Nesse modo, você pode enviar um sinal `SIGUSR2` ao processo a qualquer momento, e o processo vai gerar um snapshot do heap.
 
-The heap snapshot will be saved to the project root of the Next.js application and can be loaded in any heap analyzer, such as Chrome DevTools, to see what memory is retained. This mode is not yet compatible with Webpack build workers.
+O snapshot do heap será salvo na raiz do projeto Next.js e pode ser carregado em qualquer analisador de heap, como o Chrome DevTools, para ver o que está sendo retido. Este modo ainda não é compatível com os workers de build do Webpack.
 
-See [how to record and analyze heap snapshots](https://developer.chrome.com/docs/devtools/memory-problems/heap-snapshots) for more information.
+Veja [como gravar e analisar snapshots do heap](https://developer.chrome.com/docs/devtools/memory-problems/heap-snapshots) para mais informações.
 
-## Webpack build worker
+## Worker de build do Webpack \{#webpack-build-worker}
 
-The Webpack build worker allows you to run Webpack compilations inside a separate Node.js worker which will decrease memory usage of your application during builds.
+O worker de build do Webpack permite executar as compilações do Webpack em um worker separado do Node.js, o que reduz o uso de memória da sua aplicação durante os builds.
 
-This option is enabled by default if your application does not have a custom Webpack configuration starting in `v14.1.0`.
+A partir da `v14.1.0`, esta opção vem habilitada por padrão, desde que a sua aplicação não tenha uma configuração personalizada do Webpack.
 
-If you are using an older version of Next.js or you have a custom Webpack configuration, you can enable this option by setting `experimental.webpackBuildWorker: true` inside your `next.config.js`.
+Se você estiver usando uma versão mais antiga do Next.js ou tiver uma configuração personalizada do Webpack, pode habilitar esta opção definindo `experimental.webpackBuildWorker: true` dentro do seu `next.config.js`.
 
-> **Good to know**: This feature may not be compatible with all custom Webpack plugins.
+> **Bom saber**: Este recurso pode não ser compatível com todos os plugins personalizados do Webpack.
 
-## Disable Webpack cache
+## Desativar o cache do Webpack \{#disable-webpack-cache}
 
-The [Webpack cache](https://webpack.js.org/configuration/cache/) saves generated Webpack modules in memory and/or to disk to improve the speed of builds. This can
-help with performance, but it will also increase the memory usage of your application to store the cached data.
+O [cache do Webpack](https://webpack.js.org/configuration/cache/) salva os módulos gerados pelo Webpack na memória e/ou em disco para melhorar a velocidade dos builds. Isso pode ajudar na performance, mas também aumenta o uso de memória da sua aplicação para armazenar os dados em cache.
 
-You can disable this behavior by adding a [custom Webpack configuration](/docs/app/api-reference/config/next-config-js/webpack) to your application:
+Você pode desativar esse comportamento adicionando uma [configuração personalizada do Webpack](/docs/app/api-reference/config/next-config-js/webpack) à sua aplicação:
 
 ```js filename="next.config.mjs"
 /** @type {import('next').NextConfig} */
@@ -92,11 +91,11 @@ const nextConfig = {
 export default nextConfig
 ```
 
-## Disable static analysis
+## Desativar a análise estática \{#disable-static-analysis}
 
-Typechecking may require a lot of memory, especially in large projects.
-However, most projects have a dedicated CI runner that already handles these tasks.
-When the build produces out-of-memory issues during the "Running TypeScript" step, you can disable this task during builds:
+A verificação de tipos pode exigir muita memória, especialmente em projetos grandes.
+No entanto, a maioria dos projetos tem um runner de CI dedicado que já cuida dessas tarefas.
+Quando o build apresenta problemas de falta de memória (out-of-memory) na etapa "Running TypeScript", você pode desativar essa tarefa durante os builds:
 
 ```js filename="next.config.mjs"
 /** @type {import('next').NextConfig} */
@@ -113,35 +112,35 @@ const nextConfig = {
 export default nextConfig
 ```
 
-- [Ignoring TypeScript Errors](/docs/app/api-reference/config/typescript#disabling-typescript-errors-in-production)
+- [Ignorando erros do TypeScript](/docs/app/api-reference/config/typescript#disabling-typescript-errors-in-production)
 
-Keep in mind that this may produce faulty deploys due to type errors.
-We strongly recommend only promoting builds to production after static analysis has completed.
-If you deploy to Vercel, you can check out the [guide for staging deployments](https://vercel.com/docs/deployments/managing-deployments#staging-and-promoting-a-production-deployment) to learn how to promote builds to production after custom tasks have succeeded.
+Tenha em mente que isso pode gerar deploys com defeito por causa de erros de tipo.
+Recomendamos fortemente promover builds para produção somente depois que a análise estática for concluída.
+Se você faz deploy na Vercel, pode conferir o [guia de deployments de staging](https://vercel.com/docs/deployments/managing-deployments#staging-and-promoting-a-production-deployment) para aprender a promover builds para produção depois que as tarefas personalizadas forem concluídas com sucesso.
 
-## Disable source maps
+## Desativar source maps \{#disable-source-maps}
 
-Generating source maps consumes extra memory during the build process.
+Gerar source maps consome memória extra durante o processo de build.
 
-You can disable source map generation by adding `productionBrowserSourceMaps: false` and `experimental.serverSourceMaps: false` to your Next.js configuration.
+Você pode desativar a geração de source maps adicionando `productionBrowserSourceMaps: false` e `experimental.serverSourceMaps: false` à configuração do seu Next.js.
 
-Next.js will use source maps by default during the prerender phase of `next build`.
-If you consistently encounter memory issues during that phase (after "Generating static pages"),
-you can try disabling source maps in that phase by adding `enablePrerenderSourceMaps: false` to your Next.js configuration.
+O Next.js usa source maps por padrão durante a fase de prerendering do `next build`.
+Se você encontrar problemas de memória de forma consistente nessa fase (depois de "Generating static pages"),
+pode tentar desativar os source maps nessa fase adicionando `enablePrerenderSourceMaps: false` à configuração do seu Next.js.
 
-> **Good to know**: Some plugins may turn on source maps and may require custom configuration to disable.
+> **Bom saber**: Alguns plugins podem ativar source maps e podem precisar de configuração personalizada para serem desativados.
 
-## Edge memory issues
+## Problemas de memória no Edge \{#edge-memory-issues}
 
-Next.js `v14.1.3` fixed a memory issue when using the Edge runtime. Please update to this version (or later) to see if it addresses your issue.
+O Next.js `v14.1.3` corrigiu um problema de memória ao usar o Edge Runtime. Atualize para essa versão (ou uma posterior) para verificar se ela resolve o seu problema.
 
-## Preloading Entries
+## Pré-carregamento de entradas \{#preloading-entries}
 
-When the Next.js server starts, it preloads each page's JavaScript modules into memory, rather than at request time.
+Quando o servidor do Next.js inicia, ele pré-carrega na memória os módulos JavaScript de cada página, em vez de fazer isso no momento da requisição.
 
-This optimization allows for faster response times, in exchange for a larger initial memory footprint.
+Essa otimização permite tempos de resposta mais rápidos, em troca de uma pegada de memória inicial maior.
 
-To disable this optimization, set the `experimental.preloadEntriesOnStart` flag to `false`.
+Para desativar essa otimização, defina a flag `experimental.preloadEntriesOnStart` como `false`.
 
 ```ts filename="next.config.ts" switcher
 import type { NextConfig } from 'next'
@@ -166,4 +165,6 @@ const config = {
 export default config
 ```
 
-Next.js doesn't unload these JavaScript modules, meaning that even with this optimization disabled, the memory footprint of your Next.js server will eventually be the same if all pages are eventually requested.
+O Next.js não descarrega esses módulos JavaScript da memória, o que significa que, mesmo com essa otimização desativada, a pegada de memória do seu servidor Next.js vai acabar sendo a mesma se todas as páginas forem requisitadas em algum momento.
+
+{/* ia-translate: true */}
