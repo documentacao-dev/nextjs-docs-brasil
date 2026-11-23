@@ -1,9 +1,9 @@
 ---
-title: Next.js Rendering Philosophy
-nav_title: Rendering Philosophy
-description: Learn how Next.js treats static and dynamic rendering as a spectrum at the component level, and what this means for deployment.
+title: Filosofia de renderização do Next.js
+nav_title: Filosofia de renderização
+description: Entenda como o Next.js trata a renderização estática e dinâmica como um espectro no nível do componente, e o que isso significa para o deploy.
 related:
-  description: Learn more about the features discussed on this page.
+  description: Saiba mais sobre os recursos discutidos nesta página.
   links:
     - app/getting-started/caching
     - app/guides/streaming
@@ -11,65 +11,67 @@ related:
     - app/guides/deploying-to-platforms
 ---
 
-## Static and Dynamic as a Spectrum
+## Estático e dinâmico como um espectro \{#static-and-dynamic-as-a-spectrum}
 
-Most web frameworks draw a hard line between static and dynamic at the route level. A page is either prerendered at build time or server-rendered at request time. This model is simple to understand and simple to deploy: you upload static files to a CDN and point dynamic routes at a server.
+A maioria dos frameworks web traça uma linha rígida entre estático e dinâmico no nível da rota. Uma página é gerada com prerendering no build ou é renderizada no servidor a cada requisição. Esse modelo é simples de entender e simples de fazer deploy: você envia arquivos estáticos para um CDN e aponta as rotas dinâmicas para um servidor.
 
-Next.js takes a different approach: **the boundary between static and dynamic is at the component level, not the route level.** A single page can have a static shell that loads instantly and dynamic sections that stream in as they resolve. A cached function can live inside a dynamic route. A static page can be updated without a redeploy.
+O Next.js adota uma abordagem diferente: **a fronteira entre estático e dinâmico fica no nível do componente, não no nível da rota.** Uma única página pode ter uma casca estática que carrega instantaneamente e seções dinâmicas que chegam por streaming conforme são resolvidas. Uma função com cache pode viver dentro de uma rota dinâmica. Uma página estática pode ser atualizada sem um novo deploy.
 
-This is what Partial Prerendering, [Cache Components](/docs/app/getting-started/caching) (`use cache`), and [on-demand revalidation](/docs/app/api-reference/functions/revalidateTag) enable. They are not incremental features: they represent a rendering model that treats static and dynamic as a spectrum rather than a binary choice.
+É isso que o Partial Prerendering, o [Cache Components](/docs/app/getting-started/caching) (`use cache`) e a [revalidação sob demanda](/docs/app/api-reference/functions/revalidateTag) possibilitam. Eles não são recursos incrementais: representam um modelo de renderização que trata estático e dinâmico como um espectro, e não como uma escolha binária.
 
-## What This Enables
+## O que isso possibilita \{#what-this-enables}
 
-This model benefits developers and users in concrete ways:
+Esse modelo beneficia desenvolvedores e usuários de formas concretas:
 
-- **Faster perceived load times.** The static shell renders immediately while dynamic content streams in. Users see useful content right away instead of waiting for the entire page to render.
-- **Incremental caching.** Developers can add caching and revalidation incrementally, without deciding upfront at build time whether a route is static or dynamic. Any page can be revalidated on demand, and any function can be cached with [`use cache`](/docs/app/api-reference/directives/use-cache).
-- **Granular caching.** Cache a function with [`use cache`](/docs/app/api-reference/directives/use-cache), not a route. Revalidate a [tag](/docs/app/api-reference/functions/revalidateTag), not a deployment. This means an expensive database query can be cached independently of the rest of the page.
+- **Tempos de carregamento percebidos mais rápidos.** A casca estática é renderizada imediatamente enquanto o conteúdo dinâmico chega por streaming. Os usuários veem conteúdo útil logo, em vez de esperar a página inteira renderizar.
+- **Cache incremental.** Desenvolvedores podem adicionar cache e revalidação aos poucos, sem decidir de antemão, no build, se uma rota é estática ou dinâmica. Qualquer página pode ser revalidada sob demanda, e qualquer função pode ter cache com [`use cache`](/docs/app/api-reference/directives/use-cache).
+- **Cache granular.** Coloque em cache uma função com [`use cache`](/docs/app/api-reference/directives/use-cache), e não uma rota. Revalide uma [tag](/docs/app/api-reference/functions/revalidateTag), e não um deployment. Isso significa que uma consulta cara ao banco pode ter cache independentemente do restante da página.
 
-## The Trade-Off
+## O trade-off \{#the-trade-off}
 
-Web frameworks differ in where they place the boundary between static and dynamic content. Each approach makes a different trade-off between developer flexibility and infrastructure complexity.
+Frameworks web diferem em onde colocam a fronteira entre conteúdo estático e dinâmico. Cada abordagem faz um trade-off diferente entre flexibilidade para o desenvolvedor e complexidade de infraestrutura.
 
-### Build-time prerendering
+### Prerendering no build \{#build-time-prerendering}
 
-Every page is generated at build time. The output is static files that can be served from any CDN or file server with zero runtime infrastructure. Dynamic content, if any, requires client-side fetching after the page loads. This is the simplest model to deploy, but every content change requires a rebuild and redeploy.
+Cada página é gerada no build. A saída são arquivos estáticos que podem ser servidos de qualquer CDN ou servidor de arquivos, sem nenhuma infraestrutura de runtime. Conteúdo dinâmico, se houver, exige busca no lado do cliente depois que a página carrega. Esse é o modelo mais simples de fazer deploy, mas toda mudança de conteúdo exige um novo build e um novo deploy.
 
-### Route-level boundaries
+### Fronteiras no nível da rota \{#route-level-boundaries}
 
-Each route chooses whether it is static or dynamic. Static routes are prerendered at build time, dynamic routes are server-rendered per request. The infrastructure splits cleanly: static files go to a CDN, dynamic routes go to a server. This is straightforward to reason about but the choice is all-or-nothing per route. A mostly-static page with one dynamic element (a user greeting, a live price) must either be fully dynamic or fetch that element on the client after load.
+Cada rota escolhe se é estática ou dinâmica. Rotas estáticas são geradas com prerendering no build, e rotas dinâmicas são renderizadas no servidor a cada requisição. A infraestrutura se divide com clareza: arquivos estáticos vão para um CDN, e rotas dinâmicas vão para um servidor. É direto de entender, mas a escolha é tudo ou nada por rota. Uma página majoritariamente estática com um único elemento dinâmico (a saudação de um usuário, um preço ao vivo) precisa ser totalmente dinâmica ou buscar esse elemento no cliente depois do carregamento.
 
-### Component-level boundaries
+### Fronteiras no nível do componente \{#component-level-boundaries}
 
-This is the approach Next.js takes. Static and dynamic content coexist within a single streaming response. A page can have a static shell that loads instantly, a cached function that revalidates independently, and a dynamic section that streams in as it resolves, all without the developer splitting anything into separate routes or client-side fetches.
+É a abordagem que o Next.js adota. Conteúdo estático e dinâmico coexistem em uma única resposta com streaming. Uma página pode ter uma casca estática que carrega instantaneamente, uma função com cache que revalida de forma independente e uma seção dinâmica que chega por streaming conforme é resolvida, tudo sem que o desenvolvedor separe nada em rotas diferentes ou em buscas no cliente.
 
-The trade-off is infrastructure complexity. A finer-grained rendering boundary transfers complexity from application code into the hosting platform. The infrastructure requirements described below exist because of this choice.
+O trade-off é a complexidade de infraestrutura. Uma fronteira de renderização mais granular transfere complexidade do código do app para a plataforma de hospedagem. Os requisitos de infraestrutura descritos abaixo existem por causa dessa escolha.
 
-## Infrastructure Implications
+## Implicações para a infraestrutura \{#infrastructure-implications}
 
-The component-level rendering model has direct implications for platforms hosting Next.js applications:
+O modelo de renderização no nível do componente tem implicações diretas para as plataformas que hospedam apps Next.js:
 
-- **Streaming** is required because static and dynamic content are served in a single response. The server sends initial content first, then streams dynamic portions as they resolve. See [Streaming](/docs/app/guides/streaming) for details.
-- **Cache coordination** is required when running multiple instances because any cached content can be invalidated on demand via [`revalidateTag()`](/docs/app/api-reference/functions/revalidateTag) or [`revalidatePath()`](/docs/app/api-reference/functions/revalidatePath). See [How Revalidation Works](/docs/app/guides/how-revalidation-works) for the architecture.
-- **Cache consistency** matters because revalidation regenerates both the HTML response and the RSC payload (the serialized React Server Components data used for client-side navigation). If these get out of sync, users may see inconsistent data during navigation. See [How Revalidation Works](/docs/app/guides/how-revalidation-works) for consistency requirements.
-- **PPR shell delivery at CDN latency** can require additional platform integration to store the static shell separately and resume dynamic rendering correctly. See [PPR Platform Guide](/docs/app/guides/ppr-platform-guide) for implementation details.
+- **Streaming** é necessário porque conteúdo estático e dinâmico são servidos em uma única resposta. O servidor envia primeiro o conteúdo inicial e depois envia por streaming as partes dinâmicas conforme são resolvidas. Veja [Streaming](/docs/app/guides/streaming) para detalhes.
+- **Coordenação de cache** é necessária quando há várias instâncias, porque qualquer conteúdo em cache pode ser invalidado sob demanda via [`revalidateTag()`](/docs/app/api-reference/functions/revalidateTag) ou [`revalidatePath()`](/docs/app/api-reference/functions/revalidatePath). Veja [Como a revalidação funciona](/docs/app/guides/how-revalidation-works) para a arquitetura.
+- **Consistência de cache** importa porque a revalidação regenera tanto a resposta HTML quanto o payload RSC (os dados serializados dos React Server Components usados na navegação do lado do cliente). Se eles saírem de sincronia, os usuários podem ver dados inconsistentes durante a navegação. Veja [Como a revalidação funciona](/docs/app/guides/how-revalidation-works) para os requisitos de consistência.
+- **Entrega da casca do PPR com latência de CDN** pode exigir integração extra com a plataforma para armazenar a casca estática separadamente e retomar a renderização dinâmica corretamente. Veja o [Guia de PPR para plataformas](/docs/app/guides/ppr-platform-guide) para detalhes de implementação.
 
-Each of these infrastructure requirements maps directly to a capability: streaming enables progressive delivery, cache coordination propagates invalidations across instances, cache consistency keeps HTML and RSC aligned, and PPR-at-edge often requires extra shell/resume integration.
+Cada um desses requisitos de infraestrutura corresponde diretamente a uma capacidade: o streaming possibilita a entrega progressiva, a coordenação de cache propaga invalidações entre instâncias, a consistência de cache mantém HTML e RSC alinhados, e o PPR na borda muitas vezes exige integração extra para a casca e a retomada.
 
-## Portability and Fidelity
+## Portabilidade e fidelidade \{#portability-and-fidelity}
 
-Next.js runs as a Node.js server process, and a single process handles every feature correctly. Streaming support enables progressive delivery of Server Components and PPR; without it, responses are buffered but features still work. Additional infrastructure investments (CDN caching, edge compute, shared cache) improve performance and, in multi-instance deployments, reduce consistency gaps.
+O Next.js roda como um processo de servidor Node.js, e um único processo lida corretamente com todos os recursos. O suporte a streaming permite a entrega progressiva de Server Components e de PPR; sem ele, as respostas são armazenadas em buffer, mas os recursos continuam funcionando. Investimentos extras de infraestrutura (cache de CDN, computação na borda, cache compartilhado) melhoram o desempenho e, em deployments com várias instâncias, reduzem as lacunas de consistência.
 
-To make this concrete, we distinguish between two types of platform support:
+Para deixar isso concreto, distinguimos dois tipos de suporte de plataforma:
 
-**Functional fidelity** means every Next.js feature works correctly on the platform. The [adapter test suite](/docs/app/api-reference/adapters/testing-adapters) is the contract: if a platform's adapter passes the tests, it has full functional fidelity. This is binary: it passes or it doesn't. The test suite is open to contributions from platform partners to ensure it is fair and complete.
+**Fidelidade funcional** significa que todo recurso do Next.js funciona corretamente na plataforma. A [suíte de testes de adapters](/docs/app/api-reference/adapters/testing-adapters) é o contrato: se o adapter de uma plataforma passa nos testes, ela tem fidelidade funcional total. É binário: passa ou não passa. A suíte de testes está aberta a contribuições de parceiros de plataforma para garantir que seja justa e completa.
 
-**Performance fidelity** means features achieve their optimal performance characteristics. For example, PPR's static shell served at CDN latency rather than origin latency, or ISR serving stale content instantly while revalidating in the background with sub-second propagation. Performance fidelity is a spectrum: every platform will achieve different levels based on their architecture, and platforms will improve over time.
+**Fidelidade de desempenho** significa que os recursos alcançam suas características ótimas de desempenho. Por exemplo, a casca estática do PPR servida com latência de CDN em vez de latência de origem, ou o ISR servindo conteúdo desatualizado instantaneamente enquanto revalida em segundo plano com propagação em menos de um segundo. A fidelidade de desempenho é um espectro: cada plataforma vai alcançar níveis diferentes, dependendo da sua arquitetura, e as plataformas vão melhorar com o tempo.
 
-A platform that achieves functional fidelity is a fully supported deployment target for Next.js. Performance fidelity is how platforms differentiate. See [Deploying to Platforms](/docs/app/guides/deploying-to-platforms) for the full feature compatibility matrix.
+Uma plataforma que alcança fidelidade funcional é um destino de deploy com suporte total ao Next.js. A fidelidade de desempenho é o que diferencia as plataformas. Veja [Deploy em plataformas](/docs/app/guides/deploying-to-platforms) para a matriz completa de compatibilidade de recursos.
 
-## CDN Feature Compatibility
+## Compatibilidade de recursos de CDN \{#cdn-feature-compatibility}
 
-Many CDNs have useful primitives for deeper Next.js integration (edge compute, key-value storage, blob storage), but end-to-end PPR resume support is still emerging and may require bespoke platform work. Most community adapters today deploy Next.js as a Node.js server without leveraging these CDN-specific primitives. See the [Deploying](/docs/app/getting-started/deploying#adapters) page for the current list of adapters.
+Muitos CDNs têm primitivas úteis para uma integração mais profunda com o Next.js (computação na borda, armazenamento chave-valor, armazenamento de blobs), mas o suporte completo à retomada de PPR de ponta a ponta ainda está em evolução e pode exigir trabalho específico na plataforma. A maioria dos adapters da comunidade hoje faz deploy do Next.js como um servidor Node.js, sem aproveitar essas primitivas específicas de CDN. Veja a página [Deploying](/docs/app/getting-started/deploying#adapters) para a lista atual de adapters.
 
-See [Deploying to Platforms](/docs/app/guides/deploying-to-platforms#cdn-infrastructure-compatibility) for the full CDN compatibility table and [CDN Caching](/docs/app/guides/cdn-caching) for caching behavior details.
+Veja [Deploy em plataformas](/docs/app/guides/deploying-to-platforms#cdn-infrastructure-compatibility) para a tabela completa de compatibilidade de CDN, e [Cache de CDN](/docs/app/guides/cdn-caching) para os detalhes do comportamento do cache.
+
+{/* ia-translate: true */}

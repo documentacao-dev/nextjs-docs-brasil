@@ -1,9 +1,9 @@
 ---
-title: Deploying Next.js to different platforms
-nav_title: Deploying to Platforms
-description: Understand which Next.js features require specific platform capabilities and how to choose the right deployment target.
+title: Como fazer deploy do Next.js em diferentes plataformas
+nav_title: Deploy em plataformas
+description: Entenda quais recursos do Next.js exigem capacidades específicas da plataforma e como escolher o destino de deploy certo.
 related:
-  description: Related guides and references.
+  description: Guias e referências relacionados.
   links:
     - app/guides/rendering-philosophy
     - app/guides/self-hosting
@@ -11,83 +11,85 @@ related:
     - app/api-reference/config/next-config-js/adapterPath
 ---
 
-Next.js [treats static and dynamic content as a spectrum](/docs/app/guides/rendering-philosophy) at the component level. Different features in this model require different platform capabilities. This page helps you understand what your platform needs to support and how to configure your deployment.
+O Next.js [trata conteúdo estático e dinâmico como um espectro](/docs/app/guides/rendering-philosophy) no nível do componente. Diferentes recursos nesse modelo exigem diferentes capacidades da plataforma. Esta página ajuda você a entender o que sua plataforma precisa oferecer e como configurar seu deploy.
 
-## Minimum Requirements
+## Requisitos mínimos \{#minimum-requirements}
 
-To run Next.js, your platform needs **a Node.js server**. That's it.
+Para rodar o Next.js, sua plataforma precisa de **um servidor Node.js**. Só isso.
 
-A single `next start` process handles every Next.js feature correctly: Server Components, ISR, PPR, Cache Components, Server Actions, Proxy, and `after()`. Streaming support is needed for features like PPR and Server Components to deliver content progressively (without it, responses are buffered and sent as a whole, which still works but loses the streaming performance benefit). Additional infrastructure (CDN caching, edge compute, shared cache) primarily improves performance and multi-instance consistency. In multi-instance deployments, shared cache and tag coordination reduce stale divergence between instances. The only additional dependency is the `sharp` package, which is required for [Image Optimization](/docs/app/api-reference/components/image).
+Um único processo `next start` lida corretamente com todos os recursos do Next.js: Server Components, ISR, PPR, Cache Components, Server Actions, Proxy e `after()`. O suporte a streaming é necessário para que recursos como PPR e Server Components entreguem o conteúdo progressivamente (sem ele, as respostas são armazenadas em buffer e enviadas por inteiro, o que ainda funciona, mas perde o ganho de desempenho do streaming). Infraestrutura adicional (cache de CDN, computação na borda, cache compartilhado) melhora principalmente o desempenho e a consistência entre instâncias. Em deployments com várias instâncias, o cache compartilhado e a coordenação de tags reduzem as divergências de conteúdo desatualizado entre instâncias. A única dependência adicional é o pacote `sharp`, que é necessário para a [Otimização de imagens](/docs/app/api-reference/components/image).
 
-## Functional Fidelity vs. Performance Fidelity
+## Fidelidade funcional vs. fidelidade de desempenho \{#functional-fidelity-vs-performance-fidelity}
 
-When evaluating platform support for Next.js, it helps to distinguish between two levels:
+Ao avaliar o suporte de uma plataforma ao Next.js, ajuda distinguir dois níveis:
 
-**Functional fidelity** means every Next.js feature works correctly. The [adapter test suite](/docs/app/api-reference/adapters/testing-adapters) is the contract: if a platform's adapter passes the tests, it supports Next.js. This is binary: it passes or it doesn't.
+**Fidelidade funcional** significa que todo recurso do Next.js funciona corretamente. A [suíte de testes de adapters](/docs/app/api-reference/adapters/testing-adapters) é o contrato: se o adapter de uma plataforma passa nos testes, ela tem suporte ao Next.js. É binário: passa ou não passa.
 
-**Performance fidelity** means features achieve their optimal performance characteristics. Examples include PPR's static shell served at CDN latency rather than origin latency, or ISR serving stale content instantly with sub-second revalidation propagation. Performance fidelity is a spectrum that every platform will achieve differently based on their architecture.
+**Fidelidade de desempenho** significa que os recursos alcançam o melhor desempenho possível. Exemplos incluem o shell estático do PPR servido com latência de CDN em vez de latência de origem, ou o ISR servindo conteúdo desatualizado instantaneamente com propagação de revalidação em menos de um segundo. A fidelidade de desempenho é um espectro que cada plataforma alcança de um jeito diferente, dependendo da sua arquitetura.
 
-A platform that achieves functional fidelity is a fully supported deployment target for Next.js. Performance fidelity is how platforms differentiate, and it improves incrementally over time.
+Uma plataforma que alcança fidelidade funcional é um destino de deploy com suporte total ao Next.js. A fidelidade de desempenho é o que diferencia as plataformas, e ela melhora de forma incremental com o tempo.
 
-Use the feature matrix below through this lens: "Streaming Required" and "Shared Cache Recommended" describe what is needed for functional fidelity. "Edge Stitching" is a performance fidelity optimization.
+Use a matriz de recursos abaixo com essa lente: "Streaming obrigatório" e "Cache compartilhado recomendado" descrevem o que é necessário para a fidelidade funcional. "Edge Stitching" é uma otimização de fidelidade de desempenho.
 
-## Feature Support Matrix
+## Matriz de suporte a recursos \{#feature-support-matrix}
 
-Different features require different infrastructure capabilities. The "Edge Stitching" column is a **performance optimization**, not a correctness requirement. All features work correctly from a single origin server.
+Diferentes recursos exigem diferentes capacidades de infraestrutura. A coluna "Edge Stitching" é uma **otimização de desempenho**, não um requisito de corretude. Todos os recursos funcionam corretamente a partir de um único servidor de origem.
 
-| Feature                        | Streaming | Shared Cache | Edge Stitching | Notes                                                                                            |
-| ------------------------------ | --------- | ------------ | -------------- | ------------------------------------------------------------------------------------------------ |
-| Server Components              | Required  | No           | No             | Basic streaming support                                                                          |
-| ISR (time-based)               | No        | Recommended  | No             | Works per-instance without shared cache                                                          |
-| ISR (on-demand)                | No        | Recommended  | No             | [Tag propagation](/docs/app/guides/how-revalidation-works) needs shared cache for multi-instance |
-| Partial Prerendering           | Required  | Recommended  | Optional       | [See PPR Platform Guide](/docs/app/guides/ppr-platform-guide)                                    |
-| Cache Components (`use cache`) | Required  | Recommended  | No             | Shared cache enables cross-instance consistency                                                  |
-| Proxy / Middleware             | No        | No           | No             | Runs at edge or origin                                                                           |
-| Server Actions                 | Required  | No           | No             | POST requests with streaming response                                                            |
-| `after()`                      | No        | No           | No             | Requires [graceful shutdown](/docs/app/guides/self-hosting#after) support                        |
+| Recurso                        | Streaming   | Cache compartilhado | Edge Stitching | Observações                                                                                      |
+| ------------------------------ | ----------- | ------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| Server Components              | Obrigatório | Não                 | Não            | Suporte básico a streaming                                                                       |
+| ISR (baseado em tempo)         | Não         | Recomendado         | Não            | Funciona por instância sem cache compartilhado                                                   |
+| ISR (sob demanda)              | Não         | Recomendado         | Não            | [Propagação de tags](/docs/app/guides/how-revalidation-works) precisa de cache compartilhado para múltiplas instâncias |
+| Partial Prerendering           | Obrigatório | Recomendado         | Opcional       | [Veja o Guia de PPR para plataformas](/docs/app/guides/ppr-platform-guide)                       |
+| Cache Components (`use cache`) | Obrigatório | Recomendado         | Não            | O cache compartilhado possibilita consistência entre instâncias                                  |
+| Proxy / Middleware             | Não         | Não                 | Não            | Roda na borda ou na origem                                                                       |
+| Server Actions                 | Obrigatório | Não                 | Não            | Requisições POST com resposta em streaming                                                       |
+| `after()`                      | Não         | Não                 | Não            | Requer suporte a [desligamento gracioso](/docs/app/guides/self-hosting#after)                    |
 
-**Streaming Required** means the platform must support chunked transfer encoding or HTTP/2 streaming and must not buffer the response before sending it to the client.
+**Streaming obrigatório** significa que a plataforma precisa oferecer suporte a chunked transfer encoding ou a streaming HTTP/2, e não pode armazenar a resposta em buffer antes de enviá-la ao cliente.
 
-**Shared Cache Recommended** means multiple server instances benefit from shared cache backends to coordinate. For ISR and server response caching, use [`cacheHandler`](/docs/app/api-reference/config/next-config-js/incrementalCacheHandlerPath). For `'use cache'` entries, use [`cacheHandlers`](/docs/app/api-reference/config/next-config-js/cacheHandlers). Without shared cache, each instance maintains its own cache independently — features still work correctly on each instance, but revalidation events don't propagate across instances.
+**Cache compartilhado recomendado** significa que várias instâncias do servidor se beneficiam de backends de cache compartilhados para se coordenar. Para ISR e cache de respostas do servidor, use [`cacheHandler`](/docs/app/api-reference/config/next-config-js/incrementalCacheHandlerPath). Para entradas de `'use cache'`, use [`cacheHandlers`](/docs/app/api-reference/config/next-config-js/cacheHandlers). Sem cache compartilhado, cada instância mantém o próprio cache de forma independente: os recursos continuam funcionando corretamente em cada instância, mas os eventos de revalidação não se propagam entre instâncias.
 
-## CDN Infrastructure Compatibility
+## Compatibilidade de infraestrutura de CDN \{#cdn-infrastructure-compatibility}
 
-The following table maps infrastructure primitives for each major CDN. These are available building blocks, not finished integrations:
+A tabela a seguir mapeia as primitivas de infraestrutura de cada CDN principal. São blocos de construção disponíveis, e não integrações prontas:
 
-| CDN               | Edge Compute | Key-Value / Tags | Blob Storage   | PPR Resuming |
-| ----------------- | ------------ | ---------------- | -------------- | ------------ |
-| Cloudflare        | Workers      | KV               | R2             | Yes (worker) |
-| Akamai            | EdgeWorkers  | EdgeKV           | Object Storage | Yes (worker) |
-| Amazon CloudFront | Lambda@Edge  | KeyValueStore    | S3             | Yes (Lambda) |
-| Fastly            | Compute      | KV Store         | Object Storage | Yes (WASM)   |
-| Azure             | Functions    | Managed Redis    | Blob Storage   | Yes (server) |
-| Google Cloud      | Cloud Run    | Various KV       | Cloud Storage  | Yes (server) |
+| CDN               | Computação na borda | Chave-valor / Tags | Armazenamento de blobs | Retomada de PPR |
+| ----------------- | ------------------- | ------------------ | ---------------------- | --------------- |
+| Cloudflare        | Workers             | KV                 | R2                     | Sim (worker)    |
+| Akamai            | EdgeWorkers         | EdgeKV             | Armazenamento de objetos | Sim (worker)  |
+| Amazon CloudFront | Lambda@Edge         | KeyValueStore      | S3                     | Sim (Lambda)    |
+| Fastly            | Compute             | KV Store           | Armazenamento de objetos | Sim (WASM)    |
+| Azure             | Functions           | Redis gerenciado   | Armazenamento de blobs | Sim (servidor)  |
+| Google Cloud      | Cloud Run           | Vários KV          | Cloud Storage          | Sim (servidor)  |
 
-These are available building blocks, not finished integrations. Most community adapters today deploy Next.js as a Docker container or Node.js server without leveraging CDN-specific primitives like edge KV or PPR resuming. See the [Deploying](/docs/app/getting-started/deploying#adapters) page for the current list of adapters. For CDN-specific caching considerations (including known limitations with `Vary` on custom headers), see [CDN Caching](/docs/app/guides/cdn-caching).
+Esses são blocos de construção disponíveis, e não integrações finalizadas. A maioria dos adapters da comunidade hoje faz deploy do Next.js como um contêiner Docker ou um servidor Node.js, sem aproveitar primitivas específicas de CDN como KV na borda ou retomada de PPR. Veja a página [Deploy](/docs/app/getting-started/deploying#adapters) para a lista atual de adapters. Para considerações de cache específicas de CDN (incluindo limitações conhecidas com `Vary` em headers personalizados), veja [Cache de CDN](/docs/app/guides/cdn-caching).
 
-## Adapters
+## Adapters \{#adapters}
 
-Next.js provides a [Deployment Adapter API](/docs/app/api-reference/config/next-config-js/adapterPath) that lets platforms customize how Next.js applications are built and deployed for their infrastructure. Adapters run at build time and produce platform-specific output from the standard Next.js build. Anyone can build an adapter using the public API with no special access required.
+O Next.js oferece uma [API de Deployment Adapter](/docs/app/api-reference/config/next-config-js/adapterPath) que permite às plataformas personalizar como os apps Next.js são construídos e implantados para a infraestrutura delas. Adapters rodam no build e produzem saídas específicas da plataforma a partir do build padrão do Next.js. Qualquer pessoa pode criar um adapter usando a API pública, sem nenhum acesso especial.
 
-The adapter API plus Next.js caching interfaces form the complete platform integration surface. The adapter handles build-time output, while `cacheHandler` and `cacheHandlers` cover different runtime caching paths. `cacheHandler` (singular) covers server cache paths like ISR, route handlers, patched `fetch`/`unstable_cache`, and image optimization. `cacheHandlers` (plural) configures `'use cache'` directive backends.
+A API de adapters somada às interfaces de cache do Next.js forma a superfície completa de integração com a plataforma. O adapter cuida da saída do build, enquanto `cacheHandler` e `cacheHandlers` cobrem caminhos de cache diferentes em runtime. `cacheHandler` (no singular) cobre os caminhos de cache do servidor, como ISR, route handlers, `fetch`/`unstable_cache` com patch e otimização de imagens. `cacheHandlers` (no plural) configura os backends da diretiva `'use cache'`.
 
-### Verified Adapters
+### Adapters verificados \{#verified-adapters}
 
-A **verified adapter** is one that meets two requirements:
+Um **adapter verificado** é aquele que atende a dois requisitos:
 
-1. **Open source.** The adapter source code is publicly available so the community and the Next.js team can inspect, contribute to, and verify it.
-2. **Runs the compatibility test suite.** The platform provides a way to run the full [Next.js compatibility test suite](/docs/app/api-reference/adapters/testing-adapters) against their adapter. This gives visibility into which features work, which are in progress, and where gaps remain.
+1. **Código aberto.** O código-fonte do adapter está disponível publicamente, para que a comunidade e a equipe do Next.js possam inspecioná-lo, contribuir e verificá-lo.
+2. **Executa a suíte de testes de compatibilidade.** A plataforma oferece um jeito de rodar a [suíte de testes de compatibilidade do Next.js](/docs/app/api-reference/adapters/testing-adapters) completa contra o adapter dela. Isso dá visibilidade sobre quais recursos funcionam, quais estão em andamento e onde ainda há lacunas.
 
-Verified adapters are hosted under the [Next.js GitHub organization](https://github.com/nextjs), listed as supported deployment targets in the Next.js documentation, and maintained by their respective platform teams. There are no private framework hooks or integration paths: Vercel's adapter uses the same public API as every other adapter.
+Adapters verificados ficam hospedados na [organização do Next.js no GitHub](https://github.com/nextjs), são listados como destinos de deploy com suporte na documentação do Next.js e são mantidos pelas respectivas equipes das plataformas. Não há hooks privados do framework nem caminhos de integração exclusivos: o adapter da Vercel usa a mesma API pública que qualquer outro adapter.
 
-For verified adapters and platforms working toward verified status through the [Ecosystem Working Group](https://nextjs.org/ecosystem-working-group), the Next.js team commits to:
+Para adapters verificados e para plataformas que buscam o status verificado pelo [Ecosystem Working Group](https://nextjs.org/ecosystem-working-group), a equipe do Next.js se compromete com:
 
-- **Coordinated testing.** Before major releases, we work with platform teams to run the compatibility test suite and surface issues early.
-- **Early access.** Adapter authors receive early access to API changes during RFCs and release candidates.
-- **Direct support.** When the adapter contract needs updating, we work directly with adapter teams.
+- **Testes coordenados.** Antes de grandes releases, trabalhamos com as equipes das plataformas para rodar a suíte de testes de compatibilidade e identificar problemas cedo.
+- **Acesso antecipado.** Autores de adapters recebem acesso antecipado a mudanças na API durante RFCs e release candidates.
+- **Suporte direto.** Quando o contrato do adapter precisa ser atualizado, trabalhamos diretamente com as equipes dos adapters.
 
-> **Good to know:** Platforms can build closed-source adapters on the same public API and test suite. However, closed-source adapters will not be listed as verified, since the Next.js team cannot verify what it cannot inspect.
+> **Bom saber:** plataformas podem criar adapters de código fechado sobre a mesma API pública e a mesma suíte de testes. No entanto, adapters de código fechado não serão listados como verificados, já que a equipe do Next.js não pode verificar o que não consegue inspecionar.
 
-## A Note on Infrastructure Requirements
+## Uma observação sobre requisitos de infraestrutura \{#a-note-on-infrastructure-requirements}
 
-Next.js's [rendering model](/docs/app/guides/rendering-philosophy) places the static/dynamic boundary at the component level rather than the route level. Finer-grained boundaries provide more flexibility for developers at the cost of broader requirements for hosting platforms. This is a deliberate trade-off: the infrastructure requirements on this page exist because of what the rendering model delivers.
+O [modelo de renderização](/docs/app/guides/rendering-philosophy) do Next.js coloca a fronteira estática/dinâmica no nível do componente, e não no nível da rota. Fronteiras mais granulares dão mais flexibilidade aos desenvolvedores, ao custo de requisitos mais amplos para as plataformas de hospedagem. É uma troca deliberada: os requisitos de infraestrutura desta página existem por causa do que o modelo de renderização entrega.
+
+{/* ia-translate: true */}

@@ -1,18 +1,18 @@
 ---
-title: How to use and optimize videos
-nav_title: Videos
-description: Recommendations and best practices for optimizing videos in your Next.js application.
+title: Como usar e otimizar vídeos
+nav_title: Vídeos
+description: Recomendações e boas práticas para otimizar vídeos no seu app Next.js.
 ---
 
-This page outlines how to use videos with Next.js applications, showing how to store and display video files without affecting performance.
+Esta página mostra como usar vídeos em apps Next.js, explicando como armazenar e exibir arquivos de vídeo sem afetar a performance.
 
-## Using `<video>` and `<iframe>`
+## Usando `<video>` e `<iframe>` \{#using-video-and-iframe}
 
-Videos can be embedded on the page using the HTML **`<video>`** tag for direct video files and **`<iframe>`** for external platform-hosted videos.
+Vídeos podem ser incorporados à página usando a tag HTML **`<video>`** para arquivos de vídeo diretos, e **`<iframe>`** para vídeos hospedados em plataformas externas.
 
-### `<video>`
+### `<video>` \{#video}
 
-The HTML [`<video>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video) tag can embed self-hosted or directly served video content, allowing full control over the playback and appearance.
+A tag [`<video>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video) do HTML pode incorporar conteúdo de vídeo hospedado por você ou servido diretamente, dando controle total sobre a reprodução e a aparência.
 
 ```jsx filename="app/ui/video.jsx"
 export function Video() {
@@ -37,36 +37,36 @@ export function Video() {
 }
 ```
 
-### Common `<video>` tag attributes
+### Atributos comuns da tag `<video>` \{#common-video-tag-attributes}
 
-| Attribute     | Description                                                                                               | Example Value                        |
-| ------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| `src`         | Specifies the source of the video file.                                                                   | `<video src="/path/to/video.mp4" />` |
-| `width`       | Sets the width of the video player.                                                                       | `<video width="320" />`              |
-| `height`      | Sets the height of the video player.                                                                      | `<video height="240" />`             |
-| `controls`    | If present, it displays the default set of playback controls.                                             | `<video controls />`                 |
-| `autoPlay`    | Automatically starts playing the video when the page loads. Note: Autoplay policies vary across browsers. | `<video autoPlay />`                 |
-| `loop`        | Loops the video playback.                                                                                 | `<video loop />`                     |
-| `muted`       | Mutes the audio by default. Often used with `autoPlay`.                                                   | `<video muted />`                    |
-| `poster`      | An image shown in the video's box until the first frame is available.                                     | `<video poster="/poster.jpg" />`     |
-| `preload`     | Specifies how the video is preloaded. Values: `none`, `metadata`, `auto`.                                 | `<video preload="none" />`           |
-| `playsInline` | Enables inline playback on iOS devices, often necessary for autoplay to work on iOS Safari.               | `<video playsInline />`              |
+| Atributo      | Descrição                                                                                                        | Exemplo                              |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `src`         | Especifica a origem do arquivo de vídeo.                                                                         | `<video src="/path/to/video.mp4" />` |
+| `width`       | Define a largura do player de vídeo.                                                                             | `<video width="320" />`              |
+| `height`      | Define a altura do player de vídeo.                                                                              | `<video height="240" />`             |
+| `controls`    | Se presente, exibe o conjunto padrão de controles de reprodução.                                                 | `<video controls />`                 |
+| `autoPlay`    | Inicia a reprodução automaticamente quando a página carrega. Observação: as políticas de reprodução automática variam entre navegadores. | `<video autoPlay />`                 |
+| `loop`        | Repete a reprodução do vídeo em loop.                                                                            | `<video loop />`                     |
+| `muted`       | Silencia o áudio por padrão. Costuma ser usado com `autoPlay`.                                                   | `<video muted />`                    |
+| `poster`      | Uma imagem exibida na caixa do vídeo até que o primeiro quadro esteja disponível.                                | `<video poster="/poster.jpg" />`     |
+| `preload`     | Especifica como o vídeo é pré-carregado. Valores: `none`, `metadata`, `auto`.                                    | `<video preload="none" />`           |
+| `playsInline` | Permite a reprodução inline em dispositivos iOS, muitas vezes necessário para que a reprodução automática funcione no Safari do iOS. | `<video playsInline />`              |
 
-> **Good to know**: When using the `autoPlay` attribute, it is important to also include the `muted` attribute to ensure the video plays automatically in most browsers and the `playsInline` attribute for compatibility with iOS devices.
+> **Bom saber**: ao usar o atributo `autoPlay`, é importante incluir também o atributo `muted`, para garantir que o vídeo seja reproduzido automaticamente na maioria dos navegadores, e o atributo `playsInline`, para compatibilidade com dispositivos iOS.
 
-For a comprehensive list of video attributes, refer to the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attributes).
+Para uma lista completa dos atributos de vídeo, consulte a [documentação da MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video#attributes).
 
-### Video best practices
+### Boas práticas para vídeos \{#video-best-practices}
 
-- **Dimensions:** Set `width` and `height`, or a CSS `aspect-ratio`, so the browser reserves the box before the file loads. A video without dimensions collapses and then pushes the rest of the page down, which counts against [Cumulative Layout Shift](https://web.dev/articles/cls).
-- **Poster Image:** Use `poster` to fill that reserved box while the video loads, especially with `preload="none"`, where no frame is fetched until playback starts.
-- **Fallback Content:** When using the `<video>` tag, include fallback content inside the tag for browsers that do not support video playback.
-- **Subtitles or Captions:** Include subtitles or captions for users who are deaf or hard of hearing. Utilize the [`<track>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track) tag with your `<video>` elements to specify caption file sources.
-- **Accessible Controls:** Standard HTML5 video controls are recommended for keyboard navigation and screen reader compatibility. For advanced needs, consider third-party players like [react-player](https://github.com/cookpete/react-player) or [video.js](https://videojs.com/), which offer accessible controls and consistent browser experience.
+- **Dimensões:** defina `width` e `height`, ou um `aspect-ratio` no CSS, para que o navegador reserve a caixa antes de o arquivo carregar. Um vídeo sem dimensões colapsa e depois empurra o restante da página para baixo, o que conta contra o [Cumulative Layout Shift](https://web.dev/articles/cls).
+- **Imagem de pôster:** use `poster` para preencher essa caixa reservada enquanto o vídeo carrega, principalmente com `preload="none"`, em que nenhum quadro é buscado até a reprodução começar.
+- **Conteúdo de fallback:** ao usar a tag `<video>`, inclua conteúdo de fallback dentro da tag para navegadores que não oferecem suporte à reprodução de vídeo.
+- **Legendas:** inclua legendas para usuários surdos ou com deficiência auditiva. Use a tag [`<track>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track) com seus elementos `<video>` para especificar as fontes dos arquivos de legenda.
+- **Controles acessíveis:** os controles de vídeo padrão do HTML5 são recomendados para navegação por teclado e compatibilidade com leitores de tela. Para necessidades mais avançadas, considere players de terceiros como [react-player](https://github.com/cookpete/react-player) ou [video.js](https://videojs.com/), que oferecem controles acessíveis e uma experiência consistente entre navegadores.
 
-### `<iframe>`
+### `<iframe>` \{#iframe}
 
-The HTML `<iframe>` tag allows you to embed videos from external platforms like YouTube or Vimeo.
+A tag `<iframe>` do HTML permite incorporar vídeos de plataformas externas, como YouTube ou Vimeo.
 
 ```jsx filename="app/page.jsx"
 export default function Page() {
@@ -76,39 +76,39 @@ export default function Page() {
 }
 ```
 
-### Common `<iframe>` tag attributes
+### Atributos comuns da tag `<iframe>` \{#common-iframe-tag-attributes}
 
-| Attribute         | Description                                                            | Example Value                          |
-| ----------------- | ---------------------------------------------------------------------- | -------------------------------------- |
-| `src`             | The URL of the page to embed.                                          | `<iframe src="https://example.com" />` |
-| `width`           | Sets the width of the iframe.                                          | `<iframe width="500" />`               |
-| `height`          | Sets the height of the iframe.                                         | `<iframe height="300" />`              |
-| `allowFullScreen` | Allows the iframe content to be displayed in full-screen mode.         | `<iframe allowFullScreen />`           |
-| `sandbox`         | Enables an extra set of restrictions on the content within the iframe. | `<iframe sandbox />`                   |
-| `loading`         | Optimize loading behavior (e.g., lazy loading).                        | `<iframe loading="lazy" />`            |
-| `style`           | Apply CSS, such as an `aspect-ratio` to keep the box a fixed shape.    | `<iframe style={{ border: 0 }} />`     |
-| `title`           | Provides a title for the iframe to support accessibility.              | `<iframe title="Description" />`       |
+| Atributo          | Descrição                                                                      | Exemplo                                |
+| ----------------- | ------------------------------------------------------------------------------ | -------------------------------------- |
+| `src`             | A URL da página a ser incorporada.                                             | `<iframe src="https://example.com" />` |
+| `width`           | Define a largura do iframe.                                                    | `<iframe width="500" />`               |
+| `height`          | Define a altura do iframe.                                                     | `<iframe height="300" />`              |
+| `allowFullScreen` | Permite que o conteúdo do iframe seja exibido em tela cheia.                   | `<iframe allowFullScreen />`           |
+| `sandbox`         | Ativa um conjunto extra de restrições sobre o conteúdo dentro do iframe.       | `<iframe sandbox />`                   |
+| `loading`         | Otimiza o comportamento de carregamento (por exemplo, lazy loading).           | `<iframe loading="lazy" />`            |
+| `style`           | Aplica CSS, como um `aspect-ratio`, para manter a caixa com um formato fixo.   | `<iframe style={{ border: 0 }} />`     |
+| `title`           | Fornece um título para o iframe, para dar suporte à acessibilidade.            | `<iframe title="Description" />`       |
 
-An iframe without dimensions collapses until its content loads, the same as a video. Give it `width` and `height` or an `aspect-ratio`, particularly with `loading="lazy"`, where the embed can resolve long after the surrounding page has painted.
+Um iframe sem dimensões colapsa até que o conteúdo carregue, assim como um vídeo. Defina `width` e `height` ou um `aspect-ratio`, principalmente com `loading="lazy"`, em que o embed pode terminar de carregar bem depois de a página ao redor já ter sido pintada.
 
-For a comprehensive list of iframe attributes, refer to the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#attributes).
+Para uma lista completa dos atributos de iframe, consulte a [documentação da MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#attributes).
 
-### Choosing a video embedding method
+### Escolhendo um método para incorporar vídeos \{#choosing-a-video-embedding-method}
 
-There are two ways you can embed videos in your Next.js application:
+Há duas formas de incorporar vídeos no seu app Next.js:
 
-- **Self-hosted or direct video files:** Embed self-hosted videos using the `<video>` tag for scenarios requiring detailed control over the player's functionality and appearance. This integration method within Next.js allows for customization and control of your video content.
-- **Using video hosting services (YouTube, Vimeo, etc.):** For video hosting services like YouTube or Vimeo, you'll embed their iframe-based players using the `<iframe>` tag. While this method limits some control over the player, it offers ease of use and features provided by these platforms.
+- **Arquivos de vídeo hospedados por você ou diretos:** incorpore vídeos hospedados por você com a tag `<video>` quando precisar de controle detalhado sobre as funcionalidades e a aparência do player. Essa integração dentro do Next.js permite personalizar e controlar seu conteúdo de vídeo.
+- **Usando serviços de hospedagem de vídeo (YouTube, Vimeo etc.):** para serviços como YouTube ou Vimeo, você incorpora os players baseados em iframe deles com a tag `<iframe>`. Esse método limita parte do controle sobre o player, mas oferece facilidade de uso e os recursos fornecidos por essas plataformas.
 
-Choose the embedding method that aligns with your application's requirements and the user experience you aim to deliver.
+Escolha o método de incorporação que combine com os requisitos do seu app e com a experiência de usuário que você quer oferecer.
 
-### Embedding externally hosted videos
+### Incorporando vídeos hospedados externamente \{#embedding-externally-hosted-videos}
 
-To embed videos from external platforms, you can use Next.js to fetch the video information and React Suspense to handle the fallback state while loading.
+Para incorporar vídeos de plataformas externas, você pode usar o Next.js para buscar as informações do vídeo e o React Suspense para tratar o estado de fallback durante o carregamento.
 
-**1. Create a Server Component for video embedding**
+**1. Crie um Server Component para incorporar o vídeo**
 
-The first step is to create a [Server Component](/docs/app/getting-started/server-and-client-components) that generates the appropriate iframe for embedding the video. This component will fetch the source URL for the video and render the iframe.
+O primeiro passo é criar um [Server Component](/docs/app/getting-started/server-and-client-components) que gera o iframe apropriado para incorporar o vídeo. Esse componente vai buscar a URL de origem do vídeo e renderizar o iframe.
 
 ```jsx filename="app/ui/video-component.jsx"
 export default async function VideoComponent() {
@@ -118,9 +118,9 @@ export default async function VideoComponent() {
 }
 ```
 
-**2. Stream the video component using React Suspense**
+**2. Use streaming no componente de vídeo com React Suspense**
 
-After creating the Server Component to embed the video, the next step is to [stream](/docs/app/api-reference/file-conventions/loading) the component using [React Suspense](https://react.dev/reference/react/Suspense).
+Depois de criar o Server Component que incorpora o vídeo, o próximo passo é fazer [streaming](/docs/app/api-reference/file-conventions/loading) do componente usando o [React Suspense](https://react.dev/reference/react/Suspense).
 
 ```jsx filename="app/page.jsx"
 import { Suspense } from 'react'
@@ -138,14 +138,14 @@ export default function Page() {
 }
 ```
 
-> **Good to know**: When embedding videos from external platforms, consider the following best practices:
+> **Bom saber**: ao incorporar vídeos de plataformas externas, considere as seguintes boas práticas:
 >
-> - Ensure the video embeds are responsive. Use CSS to make the iframe or video player adapt to different screen sizes.
-> - Implement [strategies for loading videos](https://yoast.com/site-speed-tips-for-faster-video/) based on network conditions, especially for users with limited data plans.
+> - Confira se os embeds de vídeo são responsivos. Use CSS para que o iframe ou o player de vídeo se adaptem a diferentes tamanhos de tela.
+> - Implemente [estratégias para carregar vídeos](https://yoast.com/site-speed-tips-for-faster-video/) de acordo com as condições de rede, principalmente para usuários com planos de dados limitados.
 
-This approach results in a better user experience as it prevents the page from blocking, meaning the user can interact with the page while the video component streams in.
+Essa abordagem melhora a experiência do usuário, pois evita que a página fique bloqueada: o usuário pode interagir com a página enquanto o componente de vídeo chega por streaming.
 
-For a more engaging and informative loading experience, consider using a loading skeleton as the fallback UI. So instead of showing a simple loading message, you can show a skeleton that resembles the video player like this:
+Para uma experiência de carregamento mais envolvente e informativa, considere usar um skeleton de carregamento como UI de fallback. Em vez de mostrar uma simples mensagem de carregamento, você pode exibir um skeleton que lembra o player de vídeo, assim:
 
 ```jsx filename="app/page.jsx"
 import { Suspense } from 'react'
@@ -164,28 +164,28 @@ export default function Page() {
 }
 ```
 
-## Self-hosted videos
+## Vídeos hospedados por você \{#self-hosted-videos}
 
-Self-hosting videos may be preferable for several reasons:
+Hospedar vídeos por conta própria pode ser preferível por vários motivos:
 
-- **Complete control and independence**: Self-hosting gives you direct management over your video content, from playback to appearance, ensuring full ownership and control, free from external platform constraints.
-- **Customization for specific needs**: Ideal for unique requirements, like dynamic background videos, it allows for tailored customization to align with design and functional needs.
-- **Performance and scalability considerations**: Choose storage solutions that are both high-performing and scalable, to support increasing traffic and content size effectively.
-- **Cost and integration**: Balance the costs of storage and bandwidth with the need for easy integration into your Next.js framework and broader tech ecosystem.
+- **Controle total e independência**: hospedar por conta própria dá gerenciamento direto sobre seu conteúdo de vídeo, da reprodução à aparência, garantindo propriedade e controle totais, livres das restrições de plataformas externas.
+- **Personalização para necessidades específicas**: ideal para requisitos únicos, como vídeos de fundo dinâmicos, permite uma personalização sob medida para as necessidades de design e funcionalidade.
+- **Considerações de performance e escalabilidade**: escolha soluções de armazenamento que sejam ao mesmo tempo de alta performance e escaláveis, para dar conta do crescimento do tráfego e do tamanho do conteúdo de forma eficaz.
+- **Custo e integração**: equilibre os custos de armazenamento e de banda com a necessidade de integração simples ao seu framework Next.js e ao restante do seu ecossistema tecnológico.
 
-### Using Vercel Blob for video hosting
+### Usando o Vercel Blob para hospedar vídeos \{#using-vercel-blob-for-video-hosting}
 
-[Vercel Blob](https://vercel.com/docs/vercel-blob?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) offers an efficient way to host videos, providing a scalable cloud storage solution that works well with Next.js. Here's how you can host a video using Vercel Blob:
+O [Vercel Blob](https://vercel.com/docs/vercel-blob?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) oferece uma forma eficiente de hospedar vídeos, com uma solução de armazenamento em nuvem escalável que funciona bem com o Next.js. Veja como hospedar um vídeo usando o Vercel Blob:
 
-**1. Uploading a video to Vercel Blob**
+**1. Enviando um vídeo para o Vercel Blob**
 
-In your Vercel dashboard, navigate to the "Storage" tab and select your [Vercel Blob](https://vercel.com/docs/vercel-blob?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) store. In the Blob table's upper-right corner, find and click the "Upload" button. Then, choose the video file you wish to upload. After the upload completes, the video file will appear in the Blob table.
+No seu dashboard da Vercel, acesse a aba "Storage" e selecione sua store do [Vercel Blob](https://vercel.com/docs/vercel-blob?utm_source=next-site&utm_medium=docs&utm_campaign=next-website). No canto superior direito da tabela de Blobs, encontre e clique no botão "Upload". Em seguida, escolha o arquivo de vídeo que deseja enviar. Depois que o upload terminar, o arquivo aparecerá na tabela de Blobs.
 
-Alternatively, you can upload your video using a server action. For detailed instructions, refer to the Vercel documentation on [server-side uploads](https://vercel.com/docs/vercel-blob/server-upload). Vercel also supports [client-side uploads](https://vercel.com/docs/vercel-blob/client-upload). This method may be preferable for certain use cases.
+Como alternativa, você pode enviar seu vídeo usando uma server action. Para instruções detalhadas, consulte a documentação da Vercel sobre [uploads feitos no servidor](https://vercel.com/docs/vercel-blob/server-upload). A Vercel também oferece suporte a [uploads feitos no cliente](https://vercel.com/docs/vercel-blob/client-upload). Esse método pode ser preferível em alguns casos de uso.
 
-**2. Displaying the video in Next.js**
+**2. Exibindo o vídeo no Next.js**
 
-Once the video is uploaded and stored, you can display it in your Next.js application. Here's an example of how to do this using the `<video>` tag and React Suspense:
+Depois que o vídeo é enviado e armazenado, você pode exibi-lo no seu app Next.js. Veja um exemplo de como fazer isso usando a tag `<video>` e o React Suspense:
 
 ```jsx filename="app/page.jsx"
 import { Suspense } from 'react'
@@ -215,11 +215,11 @@ async function VideoComponent({ fileName }) {
 }
 ```
 
-In this approach, the page uses the video's `@vercel/blob` URL to display the video using the `VideoComponent`. React Suspense is used to show a fallback until the video URL is fetched and the video is ready to be displayed.
+Nessa abordagem, a página usa a URL do `@vercel/blob` do vídeo para exibi-lo com o `VideoComponent`. O React Suspense é usado para mostrar um fallback até que a URL do vídeo seja buscada e o vídeo esteja pronto para ser exibido.
 
-### Adding subtitles to your video
+### Adicionando legendas ao seu vídeo \{#adding-subtitles-to-your-video}
 
-If you have subtitles for your video, you can easily add them using the `<track>` element inside your `<video>` tag. You can fetch the subtitle file from [Vercel Blob](https://vercel.com/docs/vercel-blob?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) in a similar way as the video file. Here's how you can update the `<VideoComponent>` to include subtitles.
+Se você tiver legendas para o seu vídeo, pode adicioná-las facilmente usando o elemento `<track>` dentro da tag `<video>`. Você pode buscar o arquivo de legenda no [Vercel Blob](https://vercel.com/docs/vercel-blob?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) de forma semelhante ao arquivo de vídeo. Veja como atualizar o `<VideoComponent>` para incluir legendas.
 
 ```jsx filename="app/page.jsx"
 async function VideoComponent({ fileName }) {
@@ -240,43 +240,45 @@ async function VideoComponent({ fileName }) {
 }
 ```
 
-By following this approach, you can effectively self-host and integrate videos into your Next.js applications.
+Seguindo essa abordagem, você pode hospedar vídeos por conta própria e integrá-los de forma eficaz aos seus apps Next.js.
 
-## Resources
+## Recursos \{#resources}
 
-To continue learning more about video optimization and best practices, please refer to the following resources:
+Para continuar aprendendo sobre otimização de vídeo e boas práticas, consulte os recursos a seguir:
 
-- **Understanding video formats and codecs**: Choose the right format and codec, like MP4 for compatibility or WebM for web optimization, for your video needs. For more details, see [Mozilla's guide on video codecs](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs).
-- **Video compression**: Use tools like FFmpeg to effectively compress videos, balancing quality with file size. Learn about compression techniques at [FFmpeg's official website](https://www.ffmpeg.org/).
-- **Resolution and bitrate adjustment**: Adjust [resolution and bitrate](https://www.dacast.com/blog/bitrate-vs-resolution/#:~:text=The%20two%20measure%20different%20aspects,yield%20different%20qualities%20of%20video) based on the viewing platform, with lower settings for mobile devices.
-- **Content Delivery Networks (CDNs)**: Utilize a CDN to enhance video delivery speed and manage high traffic. When using some storage solutions, such as Vercel Blob, CDN functionality is automatically handled for you. [Learn more](https://vercel.com/docs/cdn?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) about CDNs and their benefits.
+- **Entendendo formatos e codecs de vídeo**: escolha o formato e o codec certos para as suas necessidades, como MP4 para compatibilidade ou WebM para otimização na web. Para mais detalhes, veja o [guia da Mozilla sobre codecs de vídeo](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs).
+- **Compressão de vídeo**: use ferramentas como o FFmpeg para comprimir vídeos com eficiência, equilibrando qualidade e tamanho do arquivo. Saiba mais sobre técnicas de compressão no [site oficial do FFmpeg](https://www.ffmpeg.org/).
+- **Ajuste de resolução e bitrate**: ajuste a [resolução e o bitrate](https://www.dacast.com/blog/bitrate-vs-resolution/#:~:text=The%20two%20measure%20different%20aspects,yield%20different%20qualities%20of%20video) de acordo com a plataforma de visualização, com configurações mais baixas para dispositivos móveis.
+- **Content Delivery Networks (CDNs)**: use uma CDN para aumentar a velocidade de entrega de vídeos e lidar com um tráfego alto. Ao usar algumas soluções de armazenamento, como o Vercel Blob, a funcionalidade de CDN é tratada automaticamente para você. [Saiba mais](https://vercel.com/docs/cdn?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) sobre CDNs e seus benefícios.
 
-Explore these video streaming platforms for integrating video into your Next.js projects:
+Conheça estas plataformas de streaming de vídeo para integrar vídeos aos seus projetos Next.js:
 
-### Open source `next-video` component
+### Componente `next-video` de código aberto \{#open-source-next-video-component}
 
-- Provides a `<Video>` component for Next.js, compatible with various hosting services including [Vercel Blob](https://vercel.com/docs/vercel-blob?utm_source=next-site&utm_medium=docs&utm_campaign=next-website), S3, Backblaze, and Mux.
-- [Detailed documentation](https://next-video.dev/docs) for using `next-video.dev` with different hosting services.
+- Oferece um componente `<Video>` para Next.js, compatível com vários serviços de hospedagem, incluindo [Vercel Blob](https://vercel.com/docs/vercel-blob?utm_source=next-site&utm_medium=docs&utm_campaign=next-website), S3, Backblaze e Mux.
+- [Documentação detalhada](https://next-video.dev/docs) para usar o `next-video.dev` com diferentes serviços de hospedagem.
 
-### Cloudinary Integration
+### Integração com o Cloudinary \{#cloudinary-integration}
 
-- Official [documentation and integration guide](https://next.cloudinary.dev/) for using Cloudinary with Next.js.
-- Includes a `<CldVideoPlayer>` component for [drop-in video support](https://next.cloudinary.dev/cldvideoplayer/basic-usage).
-- Find [examples](https://github.com/cloudinary-community/cloudinary-examples/?tab=readme-ov-file#nextjs) of integrating Cloudinary with Next.js including [Adaptive Bitrate Streaming](https://github.com/cloudinary-community/cloudinary-examples/tree/main/examples/nextjs-cldvideoplayer-abr).
-- Other [Cloudinary libraries](https://cloudinary.com/documentation) including a Node.js SDK are also available.
+- [Documentação e guia de integração oficiais](https://next.cloudinary.dev/) para usar o Cloudinary com Next.js.
+- Inclui um componente `<CldVideoPlayer>` para [suporte a vídeo pronto para uso](https://next.cloudinary.dev/cldvideoplayer/basic-usage).
+- Veja [exemplos](https://github.com/cloudinary-community/cloudinary-examples/?tab=readme-ov-file#nextjs) de integração do Cloudinary com Next.js, incluindo [Adaptive Bitrate Streaming](https://github.com/cloudinary-community/cloudinary-examples/tree/main/examples/nextjs-cldvideoplayer-abr).
+- Outras [bibliotecas do Cloudinary](https://cloudinary.com/documentation), incluindo um SDK para Node.js, também estão disponíveis.
 
-### Mux Video API
+### Mux Video API \{#mux-video-api}
 
-- Mux provides a [starter template](https://github.com/muxinc/video-course-starter-kit) for creating a video course with Mux and Next.js.
-- Learn about Mux's recommendations for embedding [high-performance video for your Next.js application](https://www.mux.com/for/nextjs).
-- Explore an [example project](https://with-mux-video.vercel.app/) demonstrating Mux with Next.js.
+- O Mux oferece um [template inicial](https://github.com/muxinc/video-course-starter-kit) para criar um curso em vídeo com Mux e Next.js.
+- Saiba quais são as recomendações do Mux para incorporar [vídeo de alta performance no seu app Next.js](https://www.mux.com/for/nextjs).
+- Explore um [projeto de exemplo](https://with-mux-video.vercel.app/) que demonstra o Mux com Next.js.
 
-### Fastly
+### Fastly \{#fastly}
 
-- Learn more about integrating Fastly's solutions for [video on demand](https://www.fastly.com/products/streaming-media/video-on-demand) and streaming media into Next.js.
+- Saiba mais sobre como integrar as soluções da Fastly para [vídeo sob demanda](https://www.fastly.com/products/streaming-media/video-on-demand) e mídia em streaming ao Next.js.
 
-### ImageKit.io Integration
+### Integração com o ImageKit.io \{#imagekitio-integration}
 
-- Check out the [official quick start guide](https://imagekit.io/docs/integration/nextjs) for integrating ImageKit with Next.js.
-- The integration provides an `<IKVideo>` component, offering [seamless video support](https://imagekit.io/docs/integration/nextjs#rendering-videos).
-- You can also explore other [ImageKit libraries](https://imagekit.io/docs), such as the Node.js SDK, which is also available.
+- Confira o [guia de início rápido oficial](https://imagekit.io/docs/integration/nextjs) para integrar o ImageKit ao Next.js.
+- A integração oferece um componente `<IKVideo>`, com [suporte a vídeo sem complicações](https://imagekit.io/docs/integration/nextjs#rendering-videos).
+- Você também pode conhecer outras [bibliotecas do ImageKit](https://imagekit.io/docs), como o SDK para Node.js, que também está disponível.
+
+{/* ia-translate: true */}

@@ -1,18 +1,18 @@
 ---
-title: How to install Tailwind CSS v3 in your Next.js application
+title: Como instalar o Tailwind CSS v3 no seu app Next.js
 nav_title: Tailwind CSS v3
-description: Style your Next.js Application using Tailwind CSS v3 for broader browser support.
+description: Estilize seu app Next.js com o Tailwind CSS v3 para um suporte mais amplo de navegadores.
 ---
 
 {/* The content of this doc is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
 
-This guide will walk you through how to install [Tailwind CSS v3](https://v3.tailwindcss.com/) in your Next.js application.
+Este guia mostra como instalar o [Tailwind CSS v3](https://v3.tailwindcss.com/) no seu app Next.js.
 
-> **Good to know:** For the latest Tailwind 4 setup, see the [Tailwind CSS setup instructions](/docs/app/getting-started/css#tailwind-css).
+> **Bom saber:** Para a configuração mais recente do Tailwind 4, veja as [instruções de configuração do Tailwind CSS](/docs/app/getting-started/css#tailwind-css).
 
-## Installing Tailwind v3
+## Instalando o Tailwind v3 \{#installing-tailwind-v3}
 
-Install Tailwind CSS and its peer dependencies, then run the `init` command to generate both `tailwind.config.js` and `postcss.config.js` files:
+Instale o Tailwind CSS e suas dependências peer e, em seguida, execute o comando `init` para gerar os arquivos `tailwind.config.js` e `postcss.config.js`:
 
 ```bash package="pnpm"
 pnpm add -D tailwindcss@^3 postcss autoprefixer
@@ -34,9 +34,9 @@ bun add -D tailwindcss@^3 postcss autoprefixer
 bunx tailwindcss init -p
 ```
 
-## Configuring Tailwind v3
+## Configurando o Tailwind v3 \{#configuring-tailwind-v3}
 
-Configure your template paths in your `tailwind.config.js` file:
+Configure os caminhos dos seus templates no arquivo `tailwind.config.js`:
 
 <AppOnly>
 
@@ -55,7 +55,7 @@ module.exports = {
 }
 ```
 
-Add the Tailwind directives to your global CSS file:
+Adicione as diretivas do Tailwind ao seu arquivo CSS global:
 
 ```css filename="app/globals.css"
 @tailwind base;
@@ -63,7 +63,7 @@ Add the Tailwind directives to your global CSS file:
 @tailwind utilities;
 ```
 
-Import the CSS file in your root layout:
+Importe o arquivo CSS no seu layout raiz:
 
 ```tsx filename="app/layout.tsx" switcher
 import './globals.css'
@@ -112,7 +112,7 @@ module.exports = {
 }
 ```
 
-Add the Tailwind directives to your global CSS file:
+Adicione as diretivas do Tailwind ao seu arquivo CSS global:
 
 ```css filename="styles/globals.css"
 @tailwind base;
@@ -120,7 +120,7 @@ Add the Tailwind directives to your global CSS file:
 @tailwind utilities;
 ```
 
-Import the CSS file in your `pages/_app.js` file:
+Importe o arquivo CSS no seu arquivo `pages/_app.js`:
 
 ```jsx filename="pages/_app.js"
 import '@/styles/globals.css'
@@ -132,9 +132,9 @@ export default function MyApp({ Component, pageProps }) {
 
 </PagesOnly>
 
-## Using classes
+## Usando classes \{#using-classes}
 
-After installing Tailwind CSS and adding the global styles, you can use Tailwind's utility classes in your application.
+Depois de instalar o Tailwind CSS e adicionar os estilos globais, você pode usar as classes utilitárias do Tailwind no seu app.
 
 <AppOnly>
 
@@ -168,6 +168,8 @@ export default function Page() {
 
 </PagesOnly>
 
-## Usage with Turbopack
+## Uso com Turbopack \{#usage-with-turbopack}
 
-As of Next.js 13.1, Tailwind CSS and PostCSS are supported with [Turbopack](https://turbo.build/pack/docs/features/css#tailwind-css).
+A partir do Next.js 13.1, o Tailwind CSS e o PostCSS têm suporte no [Turbopack](https://turbo.build/pack/docs/features/css#tailwind-css).
+
+{/* ia-translate: true */}

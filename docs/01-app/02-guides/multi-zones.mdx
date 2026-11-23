@@ -1,43 +1,43 @@
 ---
-title: How to build micro-frontends using multi-zones and Next.js
+title: Como criar micro-frontends usando multi-zones e Next.js
 nav_title: Multi-zones
-description: Learn how to build micro-frontends using Next.js Multi-Zones to deploy multiple Next.js apps under a single domain.
+description: Aprenda a criar micro-frontends usando Multi-Zones do Next.js para fazer deploy de vários apps Next.js sob um único domínio.
 ---
 
 {/* The content of this doc is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
 
 <details open>
-  <summary>Examples</summary>
+  <summary>Exemplos</summary>
 
-- [With Zones](https://github.com/vercel/next.js/tree/canary/examples/with-zones)
+- [Com Zones](https://github.com/vercel/next.js/tree/canary/examples/with-zones)
 
 </details>
 
-Multi-Zones are an approach to micro-frontends that separate a large application on a domain into smaller Next.js applications that each serve a set of paths. This is useful when there are collections of pages unrelated to the other pages in the application. By moving those pages to a separate zone (i.e., a separate application), you can reduce the size of each application which improves build times and removes code that is only necessary for one of the zones. Since applications are decoupled, Multi-Zones also allows other applications on the domain to use their own choice of framework.
+Multi-Zones são uma abordagem de micro-frontends que separa um app grande em um domínio em apps Next.js menores, cada um atendendo a um conjunto de caminhos. Isso é útil quando há coleções de páginas sem relação com as demais páginas do app. Ao mover essas páginas para uma zone separada (ou seja, um app separado), você reduz o tamanho de cada app, o que melhora os tempos de build e remove o código que só é necessário para uma das zones. Como os apps são desacoplados, Multi-Zones também permite que outros apps no domínio usem o framework de sua escolha.
 
-For example, let's say you have the following set of pages that you would like to split up:
+Por exemplo, digamos que você tenha o seguinte conjunto de páginas que gostaria de dividir:
 
-- `/blog/*` for all blog posts
-- `/dashboard/*` for all pages when the user is logged-in to the dashboard
-- `/*` for the rest of your website not covered by other zones
+- `/blog/*` para todos os posts do blog
+- `/dashboard/*` para todas as páginas quando o usuário está logado no dashboard
+- `/*` para o restante do site que não é coberto por outras zones
 
-With Multi-Zones support, you can create three applications that all are served on the same domain and look the same to the user, but you can develop and deploy each of the applications independently.
+Com Multi-Zones, você pode criar três apps que são todos servidos no mesmo domínio e têm a mesma aparência para o usuário, mas é possível desenvolver e fazer deploy de cada um deles de forma independente.
 
 <Image
-  alt="Three zones: A, B, C. Showing a hard navigation between routes from different zones, and soft navigations between routes within the same zone."
+  alt="Três zones: A, B e C. Mostra uma navegação completa entre rotas de zones diferentes e navegações suaves entre rotas da mesma zone."
   srcLight="/docs/light/multi-zones.png"
   srcDark="/docs/dark/multi-zones.png"
   width="1600"
   height="750"
 />
 
-Navigating between pages in the same zone will perform soft navigations, a navigation that does not require reloading the page. For example, in this diagram, navigating from `/` to `/products` will be a soft navigation.
+Navegar entre páginas da mesma zone resulta em navegações suaves, uma navegação que não exige recarregar a página. Por exemplo, neste diagrama, navegar de `/` para `/products` é uma navegação suave.
 
-Navigating from a page in one zone to a page in another zone, such as from `/` to `/dashboard`, will perform a hard navigation, unloading the resources of the current page and loading the resources of the new page. Pages that are frequently visited together should live in the same zone to avoid hard navigations.
+Navegar de uma página em uma zone para uma página em outra zone, como de `/` para `/dashboard`, resulta em uma navegação completa, descarregando os recursos da página atual e carregando os recursos da nova página. Páginas que são visitadas com frequência juntas devem ficar na mesma zone para evitar navegações completas.
 
-## How to define a zone
+## Como definir uma zone \{#how-to-define-a-zone}
 
-A zone is a normal Next.js application where you also configure an [assetPrefix](/docs/app/api-reference/config/next-config-js/assetPrefix) to avoid conflicts with pages and static files in other zones.
+Uma zone é um app Next.js normal em que você também configura um [assetPrefix](/docs/app/api-reference/config/next-config-js/assetPrefix) para evitar conflitos com páginas e arquivos estáticos de outras zones.
 
 ```js filename="next.config.js"
 /** @type {import('next').NextConfig} */
@@ -46,11 +46,11 @@ const nextConfig = {
 }
 ```
 
-Next.js assets, such as JavaScript and CSS, will be prefixed with `assetPrefix` to make sure that they don't conflict with assets from other zones. These assets will be served under `/assetPrefix/_next/...` for each of the zones.
+Os assets do Next.js, como JavaScript e CSS, terão o `assetPrefix` como prefixo para garantir que não entrem em conflito com os assets de outras zones. Esses assets são servidos em `/assetPrefix/_next/...` para cada uma das zones.
 
-The default application handling all paths not routed to another more specific zone does not need an `assetPrefix`.
+O app padrão, que trata todos os caminhos não roteados para uma zone mais específica, não precisa de `assetPrefix`.
 
-In versions older than Next.js 15, you may also need an additional rewrite to handle the static assets. This is no longer necessary in Next.js 15.
+Em versões anteriores ao Next.js 15, você pode precisar de um rewrite adicional para tratar os arquivos estáticos. Isso não é mais necessário no Next.js 15.
 
 ```js filename="next.config.js"
 /** @type {import('next').NextConfig} */
@@ -69,11 +69,11 @@ const nextConfig = {
 }
 ```
 
-## How to route requests to the right zone
+## Como rotear requisições para a zone certa \{#how-to-route-requests-to-the-right-zone}
 
-With the Multi Zones set-up, you need to route the paths to the correct zone since they are served by different applications. You can use any HTTP proxy to do this, but one of the Next.js applications can also be used to route requests for the entire domain.
+Com a configuração de Multi-Zones, você precisa rotear os caminhos para a zone correta, já que eles são servidos por apps diferentes. Você pode usar qualquer proxy HTTP para isso, mas um dos apps Next.js também pode ser usado para rotear as requisições de todo o domínio.
 
-To route to the correct zone using a Next.js application, you can use [`rewrites`](/docs/app/api-reference/config/next-config-js/rewrites). For each path served by a different zone, you would add a rewrite rule to send that path to the domain of the other zone, and you also need to rewrite the requests for the static assets. For example:
+Para rotear para a zone correta usando um app Next.js, você pode usar os [`rewrites`](/docs/app/api-reference/config/next-config-js/rewrites). Para cada caminho servido por uma zone diferente, adicione uma regra de rewrite que envie esse caminho para o domínio da outra zone, e também reescreva as requisições dos arquivos estáticos. Por exemplo:
 
 ```js filename="next.config.js"
 async rewrites() {
@@ -94,13 +94,13 @@ async rewrites() {
 }
 ```
 
-`destination` should be a URL that is served by the zone, including scheme and domain. This should point to the zone's production domain, but it can also be used to route requests to `localhost` in local development.
+`destination` deve ser uma URL servida pela zone, incluindo esquema e domínio. Ela deve apontar para o domínio de produção da zone, mas também pode ser usada para rotear requisições para `localhost` no desenvolvimento local.
 
-> **Good to know**: URL paths should be unique to a zone. For example, two zones trying to serve `/blog` would create a routing conflict.
+> **Bom saber**: os caminhos de URL devem ser únicos em cada zone. Por exemplo, duas zones tentando servir `/blog` criariam um conflito de roteamento.
 
-### Routing requests using proxy
+### Roteando requisições usando proxy \{#routing-requests-using-proxy}
 
-Routing requests through [`rewrites`](/docs/app/api-reference/config/next-config-js/rewrites) is recommended to minimize latency overhead for the requests, but proxy can also be used when there is a need for a dynamic decision when routing. For example, if you are using a feature flag to decide where a path should be routed such as during a migration, you can use proxy.
+Rotear requisições pelos [`rewrites`](/docs/app/api-reference/config/next-config-js/rewrites) é recomendado para minimizar a latência extra das requisições, mas o proxy também pode ser usado quando é preciso uma decisão dinâmica no roteamento. Por exemplo, se você usa uma feature flag para decidir para onde um caminho deve ser roteado, como durante uma migração, pode usar o proxy.
 
 ```js filename="proxy.js"
 export async function proxy(request) {
@@ -111,21 +111,21 @@ export async function proxy(request) {
 }
 ```
 
-## Linking between zones
+## Links entre zones \{#linking-between-zones}
 
-Links to paths in a different zone should use an `a` tag instead of the Next.js [`<Link>`](/docs/app/api-reference/components/link) component. This is because Next.js will try to prefetch and soft navigate to any relative path in `<Link>` component, which will not work across zones.
+Links para caminhos de outra zone devem usar uma tag `a` em vez do componente [`<Link>`](/docs/app/api-reference/components/link) do Next.js. Isso acontece porque o Next.js tenta fazer prefetch e navegação suave para qualquer caminho relativo no componente `<Link>`, o que não funciona entre zones.
 
-## Sharing code
+## Compartilhando código \{#sharing-code}
 
-The Next.js applications that make up the different zones can live in any repository. However, it is often convenient to put these zones in a [monorepo](https://en.wikipedia.org/wiki/Monorepo) to more easily share code. For zones that live in different repositories, code can also be shared using public or private NPM packages.
+Os apps Next.js que compõem as diferentes zones podem ficar em qualquer repositório. No entanto, costuma ser conveniente colocar essas zones em um [monorepo](https://en.wikipedia.org/wiki/Monorepo) para compartilhar código com mais facilidade. Para zones que ficam em repositórios diferentes, o código também pode ser compartilhado usando pacotes NPM públicos ou privados.
 
-Since the pages in different zones may be released at different times, feature flags can be useful for enabling or disabling features in unison across the different zones.
+Como as páginas de zones diferentes podem ser lançadas em momentos diferentes, feature flags podem ser úteis para ativar ou desativar recursos em conjunto nas diferentes zones.
 
 <AppOnly>
 
-## Server Actions
+## Server Actions \{#server-actions}
 
-When using [Server Actions](/docs/app/getting-started/mutating-data) with Multi-Zones, you must explicitly allow the user-facing origin since your user facing domain may serve multiple applications. In your `next.config.js` file, add the following lines:
+Ao usar [Server Actions](/docs/app/getting-started/mutating-data) com Multi-Zones, você deve permitir explicitamente a origem que o usuário acessa, já que o domínio que o usuário acessa pode servir vários apps. No arquivo `next.config.js`, adicione as seguintes linhas:
 
 ```js filename="next.config.js"
 const nextConfig = {
@@ -137,6 +137,8 @@ const nextConfig = {
 }
 ```
 
-See [`experimental.serverActions.allowedOrigins`](/docs/app/api-reference/config/next-config-js/serverActions#allowedorigins) for more information.
+Veja [`experimental.serverActions.allowedOrigins`](/docs/app/api-reference/config/next-config-js/serverActions#allowedorigins) para mais informações.
 
 </AppOnly>
+
+{/* ia-translate: true */}

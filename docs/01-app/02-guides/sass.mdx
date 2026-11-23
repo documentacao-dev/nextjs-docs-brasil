@@ -1,14 +1,14 @@
 ---
-title: How to use Sass
+title: Como usar Sass
 nav_title: Sass
-description: Style your Next.js application using Sass.
+description: Estilize seu app Next.js usando Sass.
 ---
 
 {/* The content of this doc is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
 
-Next.js has built-in support for integrating with Sass after the package is installed using both the `.scss` and `.sass` extensions. You can use component-level Sass via CSS Modules and the `.module.scss` or `.module.sass` extension.
+O Next.js tem suporte integrado ao Sass depois que o pacote é instalado, usando as extensões `.scss` e `.sass`. Você pode usar Sass no nível do componente via CSS Modules, com a extensão `.module.scss` ou `.module.sass`.
 
-First, install [`sass`](https://github.com/sass/sass):
+Primeiro, instale o [`sass`](https://github.com/sass/sass):
 
 ```bash package="pnpm"
 pnpm add -D sass
@@ -26,18 +26,17 @@ yarn add -D sass
 bun add -D sass
 ```
 
-> **Good to know**:
+> **Bom saber**:
 >
-> Sass supports [two different syntaxes](https://sass-lang.com/documentation/syntax), each with their own extension.
-> The `.scss` extension requires you use the [SCSS syntax](https://sass-lang.com/documentation/syntax#scss),
-> while the `.sass` extension requires you use the [Indented Syntax ("Sass")](https://sass-lang.com/documentation/syntax#the-indented-syntax).
+> O Sass oferece [duas sintaxes diferentes](https://sass-lang.com/documentation/syntax), cada uma com sua própria extensão.
+> A extensão `.scss` exige que você use a [sintaxe SCSS](https://sass-lang.com/documentation/syntax#scss),
+> enquanto a extensão `.sass` exige que você use a [sintaxe indentada ("Sass")](https://sass-lang.com/documentation/syntax#the-indented-syntax).
 >
-> If you're not sure which to choose, start with the `.scss` extension which is a superset of CSS, and doesn't require you learn the
-> Indented Syntax ("Sass").
+> Se você não tem certeza de qual escolher, comece com a extensão `.scss`, que é um superconjunto de CSS e não exige que você aprenda a sintaxe indentada ("Sass").
 
-### Customizing Sass Options
+### Personalizando as opções do Sass \{#customizing-sass-options}
 
-If you want to configure your Sass options, use `sassOptions` in `next.config`.
+Se você quiser configurar as opções do Sass, use `sassOptions` no `next.config`.
 
 ```ts filename="next.config.ts" switcher
 import type { NextConfig } from 'next'
@@ -63,9 +62,9 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
-#### Implementation
+#### Implementação \{#implementation}
 
-You can use the `implementation` property to specify the Sass implementation to use. By default, Next.js uses the [`sass`](https://www.npmjs.com/package/sass) package.
+Você pode usar a propriedade `implementation` para especificar a implementação do Sass a ser usada. Por padrão, o Next.js usa o pacote [`sass`](https://www.npmjs.com/package/sass).
 
 ```ts filename="next.config.ts" switcher
 import type { NextConfig } from 'next'
@@ -91,11 +90,11 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
-### Sass Variables
+### Variáveis do Sass \{#sass-variables}
 
-Next.js supports Sass variables exported from CSS Module files.
+O Next.js aceita variáveis do Sass exportadas de arquivos CSS Module.
 
-For example, using the exported `primaryColor` Sass variable:
+Por exemplo, usando a variável `primaryColor` exportada do Sass:
 
 ```scss filename="app/variables.module.scss"
 $primary-color: #64ff00;
@@ -134,3 +133,5 @@ export default function MyApp({ Component, pageProps }) {
 ```
 
 </PagesOnly>
+
+{/* ia-translate: true */}

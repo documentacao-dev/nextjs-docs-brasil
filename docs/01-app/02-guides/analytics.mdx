@@ -1,18 +1,18 @@
 ---
-title: How to add analytics to your Next.js application
+title: Como adicionar analytics ao seu app Next.js
 nav_title: Analytics
-description: Measure and track page performance using Next.js Speed Insights
+description: Meça e acompanhe o desempenho das páginas com o Next.js Speed Insights
 ---
 
 {/* The content of this doc is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
 
-Next.js has built-in support for measuring and reporting performance metrics. You can either use the [`useReportWebVitals`](/docs/app/api-reference/functions/use-report-web-vitals) hook to manage reporting yourself, or alternatively, Vercel provides a [managed service](https://vercel.com/analytics?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) to automatically collect and visualize metrics for you.
+O Next.js tem suporte nativo para medir e reportar métricas de desempenho. Você pode usar o hook [`useReportWebVitals`](/docs/app/api-reference/functions/use-report-web-vitals) para gerenciar o envio dessas métricas por conta própria ou, como alternativa, a Vercel oferece um [serviço gerenciado](https://vercel.com/analytics?utm_source=next-site&utm_medium=docs&utm_campaign=next-website) que coleta e visualiza as métricas automaticamente.
 
-## Client Instrumentation
+## Instrumentação do cliente \{#client-instrumentation}
 
-For more advanced analytics and monitoring needs, Next.js provides a `instrumentation-client.js|ts` file that runs before your application's frontend code starts executing. This is ideal for setting up global analytics, error tracking, or performance monitoring tools.
+Para necessidades mais avançadas de analytics e monitoramento, o Next.js oferece um arquivo `instrumentation-client.js|ts` que roda antes do código do front-end do seu app começar a ser executado. Isso é ideal para configurar ferramentas globais de analytics, rastreamento de erros ou monitoramento de desempenho.
 
-To use it, create an `instrumentation-client.js` or `instrumentation-client.ts` file in your application's root directory:
+Para usar, crie um arquivo `instrumentation-client.js` ou `instrumentation-client.ts` na raiz do seu app:
 
 ```js filename="instrumentation-client.js"
 // Initialize analytics before the app starts
@@ -25,7 +25,7 @@ window.addEventListener('error', (event) => {
 })
 ```
 
-## Build Your Own
+## Crie sua própria solução \{#build-your-own}
 
 <PagesOnly>
 
@@ -41,7 +41,7 @@ function MyApp({ Component, pageProps }) {
 }
 ```
 
-View the [API Reference](/docs/pages/api-reference/functions/use-report-web-vitals) for more information.
+Veja a [Referência da API](/docs/pages/api-reference/functions/use-report-web-vitals) para mais informações.
 
 </PagesOnly>
 
@@ -74,24 +74,23 @@ export default function Layout({ children }) {
 }
 ```
 
-> Since the `useReportWebVitals` hook must be used in a Client Component, create a separate file for the `WebVitals` component with `'use client'` at the top, before any imports. Import this component into the root layout to keep the client boundary limited to this module and its imports.
+> Como o hook `useReportWebVitals` precisa ser usado em um Client Component, crie um arquivo separado para o componente `WebVitals`, com `'use client'` no topo, antes de qualquer import. Importe esse componente no layout raiz para limitar a fronteira do client a este módulo e aos imports dele.
 
-View the [API Reference](/docs/app/api-reference/functions/use-report-web-vitals) for more information.
+Veja a [Referência da API](/docs/app/api-reference/functions/use-report-web-vitals) para mais informações.
 
 </AppOnly>
 
-## Web Vitals
+## Web Vitals \{#web-vitals}
 
-[Web Vitals](https://web.dev/vitals/) are a set of useful metrics that aim to capture the user
-experience of a web page. The following web vitals are all included:
+[Web Vitals](https://web.dev/vitals/) é um conjunto de métricas úteis que buscam capturar a experiência do usuário em uma página web. As seguintes Web Vitals estão incluídas:
 
-- [Time to First Byte](https://developer.mozilla.org/docs/Glossary/Time_to_first_byte) (TTFB)
-- [First Contentful Paint](https://developer.mozilla.org/docs/Glossary/First_contentful_paint) (FCP)
-- [Largest Contentful Paint](https://web.dev/lcp/) (LCP)
-- [Cumulative Layout Shift](https://web.dev/cls/) (CLS)
-- [Interaction to Next Paint](https://web.dev/inp/) (INP)
+- [Tempo até o primeiro byte](https://developer.mozilla.org/docs/Glossary/Time_to_first_byte) (TTFB)
+- [Primeira pintura com conteúdo](https://developer.mozilla.org/docs/Glossary/First_contentful_paint) (FCP)
+- [Maior pintura com conteúdo](https://web.dev/lcp/) (LCP)
+- [Mudança cumulativa de layout](https://web.dev/cls/) (CLS)
+- [Interação até a próxima pintura](https://web.dev/inp/) (INP)
 
-You can handle all the results of these metrics using the `name` property.
+Você pode tratar todos os resultados dessas métricas usando a propriedade `name`.
 
 <PagesOnly>
 
@@ -163,17 +162,15 @@ export function WebVitals() {
 
 <PagesOnly>
 
-## Custom Metrics
+## Métricas personalizadas \{#custom-metrics}
 
-In addition to the core metrics listed above, there are some additional custom metrics that
-measure the time it takes for the page to hydrate and render:
+Além das métricas principais listadas acima, existem algumas métricas personalizadas adicionais que medem o tempo que a página leva para fazer a hydration e renderizar:
 
-- `Next.js-hydration`: Length of time it takes for the page to start and finish hydrating (in ms)
-- `Next.js-route-change-to-render`: Length of time it takes for a page to start rendering after a
-  route change (in ms)
-- `Next.js-render`: Length of time it takes for a page to finish render after a route change (in ms)
+- `Next.js-hydration`: tempo que a página leva para começar e terminar a hydration (em ms)
+- `Next.js-route-change-to-render`: tempo que a página leva para começar a renderizar após uma mudança de rota (em ms)
+- `Next.js-render`: tempo que a página leva para terminar a renderização após uma mudança de rota (em ms)
 
-You can handle all the results of these metrics separately:
+Você pode tratar os resultados dessas métricas separadamente:
 
 ```js
 export function reportWebVitals(metric) {
@@ -193,14 +190,13 @@ export function reportWebVitals(metric) {
 }
 ```
 
-These metrics work in all browsers that support the [User Timing API](https://caniuse.com/#feat=user-timing).
+Essas métricas funcionam em todos os navegadores que têm suporte à [User Timing API](https://caniuse.com/#feat=user-timing).
 
 </PagesOnly>
 
-## Sending results to external systems
+## Enviando resultados para sistemas externos \{#sending-results-to-external-systems}
 
-You can send results to any endpoint to measure and track
-real user performance on your site. For example:
+Você pode enviar os resultados para qualquer endpoint, para medir e acompanhar o desempenho real dos usuários no seu site. Por exemplo:
 
 ```js
 useReportWebVitals((metric) => {
@@ -216,9 +212,7 @@ useReportWebVitals((metric) => {
 })
 ```
 
-> **Good to know**: If you use [Google Analytics](https://analytics.google.com/analytics/web/), using the
-> `id` value can allow you to construct metric distributions manually (to calculate percentiles,
-> etc.)
+> **Bom saber:** se você usa o [Google Analytics](https://analytics.google.com/analytics/web/), usar o valor `id` permite montar distribuições das métricas manualmente (para calcular percentis, etc.)
 
 > ```js
 > useReportWebVitals((metric) => {
@@ -234,4 +228,6 @@ useReportWebVitals((metric) => {
 > })
 > ```
 >
-> Read more about [sending results to Google Analytics](https://github.com/GoogleChrome/web-vitals#send-the-results-to-google-analytics).
+> Leia mais sobre [envio de resultados para o Google Analytics](https://github.com/GoogleChrome/web-vitals#send-the-results-to-google-analytics).
+
+{/* ia-translate: true */}

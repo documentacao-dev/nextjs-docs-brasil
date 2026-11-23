@@ -1,27 +1,27 @@
 ---
-title: Connecting coding agents to the Next.js MCP server
-nav_title: Next.js MCP Server
-description: Learn how to give coding agents access to your running Next.js app through the built-in MCP endpoint.
+title: Conectando agentes de código ao servidor MCP do Next.js
+nav_title: Servidor MCP do Next.js
+description: Saiba como dar a agentes de código acesso ao seu app Next.js em execução, pelo endpoint MCP integrado.
 related:
   links:
     - app/guides/ai-agents
 ---
 
-The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) is an open standard that lets AI agents and coding assistants interact with your applications through one shared interface.
+O [Model Context Protocol (MCP)](https://modelcontextprotocol.io) é um padrão aberto que permite que agentes de IA e assistentes de código interajam com seus apps por meio de uma interface única e compartilhada.
 
-In Next.js 16 and later, the development server exposes an MCP endpoint at `/_next/mcp`. It gives coding agents the running app's view of errors, routes, logs, and compilation issues. To connect your agent client to it, install the [`next-devtools-mcp`](https://www.npmjs.com/package/next-devtools-mcp) package.
+No Next.js 16 e versões posteriores, o dev server expõe um endpoint MCP em `/_next/mcp`. Ele dá aos agentes de código a visão do app em execução sobre erros, rotas, logs e problemas de compilação. Para conectar seu cliente de agente a ele, instale o pacote [`next-devtools-mcp`](https://www.npmjs.com/package/next-devtools-mcp).
 
-Skills such as [`next-dev-loop`](/docs/app/guides/ai-agents#next-dev-loop) call `/_next/mcp` directly, so they work without this setup.
+Skills como [`next-dev-loop`](/docs/app/guides/ai-agents#next-dev-loop) chamam `/_next/mcp` diretamente, então funcionam sem essa configuração.
 
-## Getting started
+## Primeiros passos \{#getting-started}
 
-Install `next-devtools-mcp` for the coding agents on your machine with [`add-mcp`](https://www.npmjs.com/package/add-mcp):
+Instale o `next-devtools-mcp` para os agentes de código da sua máquina com o [`add-mcp`](https://www.npmjs.com/package/add-mcp):
 
 ```bash filename="Terminal"
 npx add-mcp next-devtools-mcp@latest
 ```
 
-Or add it to the `.mcp.json` file at the root of your project:
+Ou adicione-o ao arquivo `.mcp.json` na raiz do seu projeto:
 
 ```json filename=".mcp.json"
 {
@@ -34,38 +34,38 @@ Or add it to the `.mcp.json` file at the root of your project:
 }
 ```
 
-When you start your development server, `next-devtools-mcp` discovers and connects to the running Next.js instance. For client-specific setup, see the [next-devtools-mcp repository](https://github.com/vercel/next-devtools-mcp).
+Ao iniciar seu dev server, o `next-devtools-mcp` descobre a instância do Next.js em execução e se conecta a ela. Para a configuração específica de cada cliente, veja o [repositório do next-devtools-mcp](https://github.com/vercel/next-devtools-mcp).
 
-## Capabilities
+## Recursos \{#capabilities}
 
-`next-devtools-mcp` connects your agent client to the Next.js development server. It gives agents these tools:
+O `next-devtools-mcp` conecta seu cliente de agente ao dev server do Next.js. Ele oferece aos agentes estas ferramentas:
 
-- **`nextjs_index`**: Discovers running Next.js dev servers and lists the runtime tools each one exposes.
-- **`nextjs_call`**: Calls a runtime tool on a discovered dev server.
-- **`nextjs_docs`**: Points the agent at the version-matched docs bundled with your installed Next.js in `node_modules/next/dist/docs/`.
-- **`browser_eval`**: Points the agent at the [`agent-browser`](https://github.com/vercel-labs/agent-browser) CLI for verifying pages in a real browser.
+- **`nextjs_index`**: Descobre os dev servers do Next.js em execução e lista as ferramentas de runtime que cada um expõe.
+- **`nextjs_call`**: Chama uma ferramenta de runtime em um dev server descoberto.
+- **`nextjs_docs`**: Aponta o agente para a documentação da mesma versão do Next.js instalada no projeto, em `node_modules/next/dist/docs/`.
+- **`browser_eval`**: Aponta o agente para a CLI do [`agent-browser`](https://github.com/vercel-labs/agent-browser), para verificar páginas em um navegador real.
 
-`nextjs_docs` and `browser_eval` don't do the work themselves. They tell the agent where the docs are or how to run the CLI, and the agent uses them directly.
+`nextjs_docs` e `browser_eval` não fazem o trabalho sozinhos. Eles dizem ao agente onde estão os docs ou como rodar a CLI, e o agente os usa diretamente.
 
-### Runtime tools
+### Ferramentas de runtime \{#runtime-tools}
 
-Through `nextjs_call`, agents can use the tools the Next.js development server exposes at `/_next/mcp`:
+Por meio do `nextjs_call`, os agentes podem usar as ferramentas que o dev server do Next.js expõe em `/_next/mcp`:
 
-- **`get_errors`**: Get the current error state, including Next.js global errors such as `next.config` validation, browser runtime errors, and build errors with source-mapped stack traces.
-- **`get_logs`**: Get the path to the development log file, which contains browser console logs and server output.
-- **`get_page_metadata`**: Get runtime metadata about what contributes to the current page render. Requires the page to be open in a browser.
-- **`get_project_metadata`**: Get the project path and dev server URL.
-- **`get_routes`**: Get all routes that will become entry points by scanning the filesystem. Returns routes grouped by router type (`appRouter`, `pagesRouter`). Dynamic segments appear as `[param]` or `[...slug]` patterns.
-- **`get_server_action_by_id`**: Look up a Server Action by its ID to find its source file and export name.
-- **`get_compilation_issues`**: Build the module graph for all routes and return compilation issues such as resolve errors, missing modules, and transform errors. Doesn't require a browser session. Turbopack only.
-- **`compile_route`**: Compile a specific route without making an HTTP request to it. Accepts either a `routeSpecifier` (for example, `/blog/[slug]`, as returned by `get_routes`) or a `path` (for example, `/blog/hello-world`), which is resolved to the matching route. Returns any compilation issues for the route. Turbopack only.
-- **`get_request_insights`**: Get recent App Router request timelines, server fetches, and cache behavior captured by the local span recorder. Requires `experimental.requestInsights`.
+- **`get_errors`**: Obtém o estado atual de erros, incluindo erros globais do Next.js, como validação do `next.config`, erros de runtime no navegador e erros de build com stack traces mapeados para o código-fonte.
+- **`get_logs`**: Obtém o caminho do arquivo de log de desenvolvimento, que contém os logs do console do navegador e a saída do servidor.
+- **`get_page_metadata`**: Obtém metadados de runtime sobre o que contribui para a renderização da página atual. Exige que a página esteja aberta em um navegador.
+- **`get_project_metadata`**: Obtém o caminho do projeto e a URL do dev server.
+- **`get_routes`**: Obtém todas as rotas que se tornarão pontos de entrada, varrendo o sistema de arquivos. Retorna as rotas agrupadas por tipo de router (`appRouter`, `pagesRouter`). Segmentos dinâmicos aparecem como padrões `[param]` ou `[...slug]`.
+- **`get_server_action_by_id`**: Busca uma Server Action pelo ID para encontrar seu arquivo de origem e o nome da exportação.
+- **`get_compilation_issues`**: Monta o grafo de módulos de todas as rotas e retorna problemas de compilação, como erros de resolução, módulos ausentes e erros de transformação. Não exige uma sessão de navegador. Somente com Turbopack.
+- **`compile_route`**: Compila uma rota específica sem fazer uma requisição HTTP para ela. Aceita um `routeSpecifier` (por exemplo, `/blog/[slug]`, como retornado por `get_routes`) ou um `path` (por exemplo, `/blog/hello-world`), que é resolvido para a rota correspondente. Retorna os problemas de compilação da rota. Somente com Turbopack.
+- **`get_request_insights`**: Obtém as linhas do tempo de requisições recentes do App Router, os fetches do servidor e o comportamento do cache capturados pelo gravador de spans local. Exige `experimental.requestInsights`.
 
-With the compilation tools, agents can check whether code compiles from the running dev server instead of running `next build` while they are still editing.
+Com as ferramentas de compilação, os agentes podem verificar se o código compila no dev server em execução, em vez de rodar `next build` enquanto ainda estão editando.
 
-## Development workflow
+## Fluxo de trabalho de desenvolvimento \{#development-workflow}
 
-1. Start your Next.js development server:
+1. Inicie o dev server do Next.js:
 
 ```bash package="pnpm"
 pnpm dev
@@ -83,30 +83,30 @@ yarn dev
 bun dev
 ```
 
-2. Your coding agent connects to the running Next.js instance through `next-devtools-mcp`.
+2. Seu agente de código se conecta à instância do Next.js em execução por meio do `next-devtools-mcp`.
 
-3. Open the pages you're working on in the browser. Tools such as `get_errors` and `get_page_metadata` read from active browser sessions.
+3. Abra no navegador as páginas em que você está trabalhando. Ferramentas como `get_errors` e `get_page_metadata` leem das sessões ativas do navegador.
 
-4. Ask your agent about the running app, as in the examples below.
+4. Pergunte ao seu agente sobre o app em execução, como nos exemplos abaixo.
 
-## Examples
+## Exemplos \{#examples}
 
-### Error detection and diagnosis
+### Detecção e diagnóstico de erros \{#error-detection-and-diagnosis}
 
-Ask your agent about errors in the running app:
+Pergunte ao seu agente sobre erros no app em execução:
 
 ```prompt
 What errors are currently in my application?
 ```
 
-The agent will:
+O agente vai:
 
-- Discover the running dev server with `nextjs_index`
-- Call `get_errors` through `nextjs_call` to retrieve the current errors
-- Analyze the errors and suggest fixes
+- Descobrir o dev server em execução com `nextjs_index`
+- Chamar `get_errors` por meio do `nextjs_call` para obter os erros atuais
+- Analisar os erros e sugerir correções
 
 <details>
-<summary>Agent response (click to expand)</summary>
+<summary>Resposta do agente (clique para expandir)</summary>
 
 ```txt
 > fix errors on the page
@@ -133,34 +133,36 @@ The agent will:
 
 </details>
 
-### Concepts and best practices
+### Conceitos e boas práticas \{#concepts-and-best-practices}
 
-Ask conceptual questions:
+Faça perguntas conceituais:
 
 ```prompt
 When should I use 'use client' in the App Router?
 ```
 
-The agent reads the version-matched Next.js docs bundled with your project and answers with examples from your codebase.
+O agente lê a documentação da mesma versão do Next.js instalada no seu projeto e responde com exemplos do seu código.
 
-## How it works
+## Como funciona \{#how-it-works}
 
-The Next.js 16+ development server runs a built-in MCP endpoint at `/_next/mcp`. The `next-devtools-mcp` package discovers these endpoints and communicates with them, so it can:
+O dev server do Next.js 16+ roda um endpoint MCP integrado em `/_next/mcp`. O pacote `next-devtools-mcp` descobre esses endpoints e se comunica com eles, para que possa:
 
-- Connect to multiple Next.js instances running on different ports
-- Forward tool calls to the right Next.js dev server
-- Give agents one set of tools for every instance
+- Conectar-se a várias instâncias do Next.js em portas diferentes
+- Encaminhar as chamadas de ferramentas para o dev server certo
+- Oferecer aos agentes um único conjunto de ferramentas para todas as instâncias
 
-Agents that connect through `next-devtools-mcp` use the same setup across Next.js projects and versions.
+Agentes que se conectam pelo `next-devtools-mcp` usam a mesma configuração em projetos e versões diferentes do Next.js.
 
-The endpoint is enabled by default. To disable it, set `experimental.mcpServer` to `false` in `next.config`.
+O endpoint vem habilitado por padrão. Para desativá-lo, defina `experimental.mcpServer` como `false` no `next.config`.
 
-## Troubleshooting
+## Solução de problemas \{#troubleshooting}
 
-### MCP server not connecting
+### Servidor MCP não conecta \{#mcp-server-not-connecting}
 
-- Use Next.js 16 or later
-- Verify `next-devtools-mcp` is configured in your agent client, for example in `.mcp.json`
-- Check that `experimental.mcpServer` is not set to `false` in `next.config`
-- Start your development server with `npm run dev`, or restart it if it was already running
-- Check that your coding agent has loaded the MCP server configuration
+- Use o Next.js 16 ou uma versão posterior
+- Confira se o `next-devtools-mcp` está configurado no seu cliente de agente, por exemplo, no `.mcp.json`
+- Verifique se `experimental.mcpServer` não está definido como `false` no `next.config`
+- Inicie seu dev server com `npm run dev` ou reinicie-o, caso já estivesse rodando
+- Confira se seu agente de código carregou a configuração do servidor MCP
+
+{/* ia-translate: true */}

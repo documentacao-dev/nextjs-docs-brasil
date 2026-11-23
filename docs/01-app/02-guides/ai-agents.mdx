@@ -1,10 +1,10 @@
 ---
-title: How Next.js supports AI coding agents
-nav_title: AI Coding Agents
-description: Learn how Next.js helps AI coding agents use current framework guidance, inspect applications, verify changes, and report issues.
+title: Como o Next.js ajuda agentes de programação com IA
+nav_title: Agentes de programação com IA
+description: Saiba como o Next.js ajuda agentes de programação com IA a usar orientações atuais do framework, inspecionar apps, verificar mudanças e reportar problemas.
 related:
-  title: Next Steps
-  description: Learn more about the APIs and tools described in this guide.
+  title: Próximos passos
+  description: Saiba mais sobre as APIs e ferramentas descritas neste guia.
   links:
     - app/guides/mcp
     - app/getting-started/upgrading
@@ -13,15 +13,15 @@ related:
     - app/api-reference/config/next-config-js/agentUpgrade
 ---
 
-AI coding agents may rely on training data that predates the Next.js version installed in a project. To help agents use current APIs and verify their work, Next.js provides and evaluates version-matched documentation, managed project instructions, agent-guided upgrades, runtime tools, structured errors, reusable Skills, and optional agent feedback. See the results in the [Next.js agent evaluations](https://nextjs.org/evals).
+Agentes de programação com IA podem depender de dados de treinamento anteriores à versão do Next.js instalada no projeto. Para ajudar os agentes a usar APIs atuais e verificar o próprio trabalho, o Next.js fornece e avalia documentação alinhada à versão, instruções de projeto gerenciadas, upgrades guiados por agentes, ferramentas de runtime, erros estruturados, Skills reutilizáveis e feedback opcional dos agentes. Veja os resultados nas [avaliações de agentes do Next.js](https://nextjs.org/evals).
 
-For more background, read about the AI tooling introduced in [Next.js 16.2](/blog/next-16-2-ai) and [Next.js 16.3](/blog/next-16-3-ai-improvements).
+Para mais contexto, leia sobre as ferramentas de IA introduzidas no [Next.js 16.2](/blog/next-16-2-ai) e no [Next.js 16.3](/blog/next-16-3-ai-improvements).
 
 <span id="step-1-point-agents-at-the-bundled-docs" />
 
-## Version-matched documentation
+## Documentação alinhada à versão \{#version-matched-documentation}
 
-Next.js 16.2 and later include documentation that matches the installed framework version. The documentation is available at `node_modules/next/dist/docs/` and mirrors the structure of the [Next.js documentation site](https://nextjs.org/docs):
+O Next.js 16.2 e versões posteriores incluem documentação que corresponde à versão do framework instalada. A documentação está disponível em `node_modules/next/dist/docs/` e espelha a estrutura do [site de documentação do Next.js](https://nextjs.org/docs):
 
 ```txt
 node_modules/next/dist/docs/
@@ -34,13 +34,13 @@ node_modules/next/dist/docs/
 └── index.mdx
 ```
 
-The bundled copy gives coding agents access to the APIs and patterns supported by the project without a network request or external lookup. [Upgrading Next.js](/docs/app/getting-started/upgrading) also updates the bundled documentation.
+A cópia incluída dá aos agentes de programação acesso às APIs e aos padrões aceitos pelo projeto, sem requisição de rede nem consulta externa. O [upgrade do Next.js](/docs/app/getting-started/upgrading) também atualiza a documentação embutida.
 
-### Managed documentation instructions
+### Instruções de documentação gerenciadas \{#managed-documentation-instructions}
 
-Next.js makes the bundled documentation discoverable through managed instructions in `AGENTS.md` at the project root. Coding agents such as Claude Code, Codex, Cursor, and GitHub Copilot read this file when they start a session.
+O Next.js torna a documentação embutida fácil de encontrar por meio de instruções gerenciadas no `AGENTS.md`, na raiz do projeto. Agentes de programação como Claude Code, Codex, Cursor e GitHub Copilot leem esse arquivo ao iniciar uma sessão.
 
-[`create-next-app`](/docs/app/api-reference/cli/create-next-app) creates the agent files for new projects. Running `next dev` creates or updates the managed instructions for existing projects. The block directs the agent to the documentation installed with the project:
+O [`create-next-app`](/docs/app/api-reference/cli/create-next-app) cria os arquivos de agente para novos projetos. Executar `next dev` cria ou atualiza as instruções gerenciadas em projetos existentes. O bloco direciona o agente para a documentação instalada com o projeto:
 
 ```md filename="AGENTS.md"
 <!-- BEGIN:nextjs-agent-rules -->
@@ -54,47 +54,47 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 <!-- END:nextjs-agent-rules -->
 ```
 
-Next.js updates only the content between the agent rules markers and preserves the rest of `AGENTS.md`.
+O Next.js atualiza apenas o conteúdo entre os marcadores das regras de agente e preserva o restante do `AGENTS.md`.
 
-[Research comparing `AGENTS.md` with knowledge Skills](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals) found a 100% pass rate with bundled documentation, compared with up to 79% for Skill-based approaches. See the current [Next.js agent evaluation results](https://nextjs.org/evals).
+[Pesquisa comparando o `AGENTS.md` com Skills de conhecimento](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals) encontrou uma taxa de aprovação de 100% com a documentação embutida, contra até 79% em abordagens baseadas em Skills. Veja os [resultados mais recentes das avaliações de agentes do Next.js](https://nextjs.org/evals).
 
-Managed documentation instructions are enabled by default. See the [`agentRules` API reference](/docs/app/api-reference/config/next-config-js/agentRules) to configure or disable them.
+As instruções de documentação gerenciadas vêm ativadas por padrão. Veja a [referência da API `agentRules`](/docs/app/api-reference/config/next-config-js/agentRules) para configurá-las ou desativá-las.
 
-### Version support
+### Compatibilidade por versão \{#version-support}
 
-#### Next.js 16.5 and later
+#### Next.js 16.5 e versões posteriores \{#nextjs-165-and-later}
 
-Running `next dev` creates and updates managed documentation instructions in `AGENTS.md` by default. Set `agentRules: false` to disable this behavior.
+Executar `next dev` cria e atualiza as instruções de documentação gerenciadas no `AGENTS.md` por padrão. Defina `agentRules: false` para desativar esse comportamento.
 
-#### Next.js 16.3 and 16.4
+#### Next.js 16.3 e 16.4 \{#nextjs-163-and-164}
 
-These versions include bundled documentation and support managed documentation instructions.
+Essas versões incluem a documentação embutida e aceitam instruções de documentação gerenciadas.
 
-#### Next.js 16.2
+#### Next.js 16.2 \{#nextjs-162}
 
-Next.js 16.2 includes the bundled documentation but does not generate instructions automatically.
+O Next.js 16.2 inclui a documentação embutida, mas não gera instruções automaticamente.
 
-#### Next.js 16.1 and earlier
+#### Next.js 16.1 e versões anteriores \{#nextjs-161-and-earlier}
 
-Next.js 16.1 and earlier do not include the bundled documentation. The legacy `agents-md` command downloads a version-matched copy to `.next-docs/` and indexes it in `AGENTS.md`:
+O Next.js 16.1 e versões anteriores não incluem a documentação embutida. O comando `agents-md` legado baixa uma cópia alinhada à versão para `.next-docs/` e a indexa no `AGENTS.md`:
 
 ```bash
 npx @next/codemod@canary agents-md
 ```
 
-### Docs over the network
+### Documentação pela rede \{#docs-over-the-network}
 
-The Next.js documentation is also available as Markdown over the network for agents that fetch pages instead of reading `node_modules`. Every page on [nextjs.org/docs](https://nextjs.org/docs) has a plain Markdown version at its `.md` URL, and clients that send an `Accept: text/markdown` header receive Markdown. This includes the per-error pages under `/docs/messages`, which are not bundled.
+A documentação do Next.js também está disponível em Markdown pela rede, para agentes que buscam páginas em vez de ler `node_modules`. Toda página de [nextjs.org/docs](https://nextjs.org/docs) tem uma versão Markdown simples na sua URL `.md`, e clientes que enviam o header `Accept: text/markdown` recebem Markdown. Isso inclui as páginas de erro individuais em `/docs/messages`, que não são incluídas no pacote.
 
-The index at [`/docs/llms.txt`](https://nextjs.org/docs/llms.txt) and the single-file [`/docs/llms-full.txt`](https://nextjs.org/docs/llms-full.txt) follow the [`llms.txt` convention](https://llmstxt.org/), so agents that already read `llms.txt` for other tools can discover the Next.js docs the same way.
+O índice em [`/docs/llms.txt`](https://nextjs.org/docs/llms.txt) e o arquivo único [`/docs/llms-full.txt`](https://nextjs.org/docs/llms-full.txt) seguem a [convenção `llms.txt`](https://llmstxt.org/), para que agentes que já leem `llms.txt` para outras ferramentas possam descobrir a documentação do Next.js da mesma forma.
 
-## Automatic agent feedback
+## Feedback automático dos agentes \{#automatic-agent-feedback}
 
-Automatic agent feedback lets coding agents keep track of potential Next.js issues without interrupting the current user request. Before the final response, the agent evaluates those issues and opens each qualifying report in a separate review form in your default browser.
+O feedback automático dos agentes permite que agentes de programação acompanhem possíveis problemas do Next.js sem interromper a requisição atual do usuário. Antes da resposta final, o agente avalia esses problemas e abre cada relatório que se qualifica em um formulário de revisão separado no seu navegador padrão.
 
-Before opening a form, the agent attempts to anonymize the report by replacing customer and project details with generic descriptions and omitting source code, logs, paths, URLs, secrets, and personal information. Review the draft and remove anything you don't want to include. Nothing is sent until you select **Send feedback**.
+Antes de abrir um formulário, o agente tenta anonimizar o relatório, substituindo detalhes de clientes e do projeto por descrições genéricas e omitindo código-fonte, logs, caminhos, URLs, segredos e informações pessoais. Revise o rascunho e remova o que não quiser incluir. Nada é enviado até que você selecione **Send feedback**.
 
-With the option and Next.js Telemetry enabled outside CI, `next dev` adds the following managed feedback instructions to `AGENTS.md`:
+Com a opção ativada e o Next.js Telemetry habilitado fora de CI, `next dev` adiciona as seguintes instruções gerenciadas de feedback ao `AGENTS.md`:
 
 ```md filename="AGENTS.md"
 <!-- BEGIN:nextjs-agent-feedback -->
@@ -119,45 +119,45 @@ Before the final response, run one reporting pass. If candidates remain, run `np
 <!-- END:nextjs-agent-feedback -->
 ```
 
-Next.js updates only the content between the agent feedback markers and preserves the rest of the file.
+O Next.js atualiza apenas o conteúdo entre os marcadores do feedback dos agentes e preserva o restante do arquivo.
 
-Automatic agent feedback is experimental, disabled by default, and available only when [Next.js Telemetry](/telemetry) is enabled. It does not run in CI. See the [`agentFeedback` API reference](/docs/app/api-reference/config/next-config-js/agentFeedback) to enable it.
+O feedback automático dos agentes é experimental, vem desativado por padrão e só está disponível quando o [Next.js Telemetry](/telemetry) está habilitado. Ele não roda em CI. Veja a [referência da API `agentFeedback`](/docs/app/api-reference/config/next-config-js/agentFeedback) para ativá-lo.
 
-## Agent-guided upgrades
+## Upgrades guiados por agentes \{#agent-guided-upgrades}
 
-`next upgrade --agent` checks for an available upgrade, gathers the version-matched migration guides, and hands the task to a coding agent. The agent applies the changes and verifies the app:
+`next upgrade --agent` verifica se há um upgrade disponível, reúne os guias de migração alinhados à versão e entrega a tarefa a um agente de programação. O agente aplica as mudanças e verifica o app:
 
 ```bash filename="Terminal"
 npx next@canary upgrade --agent=latest
 ```
 
-The experimental [`agentUpgrade`](/docs/app/api-reference/config/next-config-js/agentUpgrade) option shows security upgrade reminders during `next dev` and `next build` by default. See [Upgrade with a coding agent](/docs/app/guides/upgrading/agent-upgrade) for the available policies and workflow.
+A opção experimental [`agentUpgrade`](/docs/app/api-reference/config/next-config-js/agentUpgrade) exibe, por padrão, lembretes de upgrade de segurança durante `next dev` e `next build`. Veja [Upgrade com um agente de programação](/docs/app/guides/upgrading/agent-upgrade) para as políticas disponíveis e o fluxo de trabalho.
 
-When upgrade reminders are enabled, `next dev` also creates or updates a separate managed upgrade block in `AGENTS.md`. Set `experimental.agentUpgrade: false` to disable reminders and remove this block. Documentation rules and feedback instructions have independent settings.
+Quando os lembretes de upgrade estão habilitados, `next dev` também cria ou atualiza um bloco separado de upgrade gerenciado no `AGENTS.md`. Defina `experimental.agentUpgrade: false` para desativar os lembretes e remover esse bloco. As regras de documentação e as instruções de feedback têm configurações independentes.
 
 <span id="step-2-give-agents-runtime-visibility" />
 
-## Runtime visibility
+## Visibilidade em runtime \{#runtime-visibility}
 
-Agents need both framework and browser state to verify a running application. Next.js and its supporting tools expose these complementary views as structured text.
+Agentes precisam do estado do framework e do navegador para verificar um app em execução. O Next.js e as ferramentas que o acompanham expõem essas visões complementares como texto estruturado.
 
-First, `next dev` forwards browser console errors and warnings to the terminal (the [`logging.browserToTerminal`](/docs/app/api-reference/config/next-config-js/logging) config), so the output agents already read carries the client-side failures they're asked to fix.
+Primeiro, `next dev` envia erros e avisos do console do navegador para o terminal (a configuração [`logging.browserToTerminal`](/docs/app/api-reference/config/next-config-js/logging)), para que a saída que os agentes já leem traga as falhas do lado do cliente que eles precisam corrigir.
 
-`next dev` also writes its PID, port, and URL to `.next/dev/lock`. If you run `next dev` while another development server is already running for the project, the command prints the existing server's URL and PID, along with a command to stop it. Continue with the existing server when possible to avoid interrupting the active development session.
+`next dev` também grava seu PID, porta e URL em `.next/dev/lock`. Se você executar `next dev` enquanto outro dev server já está rodando para o projeto, o comando exibe a URL e o PID do servidor existente, junto com um comando para pará-lo. Continue com o servidor existente sempre que possível, para evitar interromper a sessão de desenvolvimento ativa.
 
-The **framework's view** comes from the [Next.js MCP server](/docs/app/guides/mcp) at `/_next/mcp`, which exposes the running dev server's routes, server logs, and compilation issues. Its `get_compilation_issues` and `compile_route` tools report whether the code compiles straight from the dev server, so an agent doesn't have to run a full `next build` to find out.
+A **visão do framework** vem do [servidor MCP do Next.js](/docs/app/guides/mcp) em `/_next/mcp`, que expõe as rotas, os logs do servidor e os problemas de compilação do dev server em execução. As ferramentas `get_compilation_issues` e `compile_route` informam se o código compila diretamente pelo dev server, para que o agente não precise executar um `next build` completo para descobrir isso.
 
-The [`next-dev-loop` skill](#next-dev-loop) adds the **browser's view** through [`agent-browser`](https://github.com/vercel-labs/agent-browser), a CLI that exposes the DOM, console, network, and Web Vitals as structured text. The Skill opens `agent-browser` with React DevTools enabled, which also exposes the component tree and pending Suspense boundaries. An agent can run a command such as `react tree` and use the structured output to decide what to inspect next.
+A [Skill `next-dev-loop`](#next-dev-loop) adiciona a **visão do navegador** por meio do [`agent-browser`](https://github.com/vercel-labs/agent-browser), uma CLI que expõe o DOM, o console, a rede e os Web Vitals como texto estruturado. A Skill abre o `agent-browser` com o React DevTools habilitado, o que também expõe a árvore de componentes e os limites de Suspense pendentes. Um agente pode executar um comando como `react tree` e usar a saída estruturada para decidir o que inspecionar em seguida.
 
-Together with the Next.js MCP server, `next-dev-loop` combines the framework's and the browser's perspectives into one edit-and-verify loop.
+Junto com o servidor MCP do Next.js, a `next-dev-loop` combina as perspectivas do framework e do navegador em um único ciclo de edição e verificação.
 
 <span id="step-3-let-errors-drive-the-fixes" />
 
-## Built-in guidance for errors
+## Orientações integradas para erros \{#built-in-guidance-for-errors}
 
-With [Cache Components](/docs/app/api-reference/config/next-config-js/cacheComponents) enabled, a blocking error presents labeled fixes, each making a different trade-off. The dev overlay adds a **Copy prompt** button that packages the chosen fix into a paste-ready prompt. The prompt walks the agent through reading the matching error page, applying the canonical pattern, and verifying the result at runtime.
+Com [Cache Components](/docs/app/api-reference/config/next-config-js/cacheComponents) habilitado, um erro bloqueante apresenta correções rotuladas, cada uma com um trade-off diferente. O overlay do dev server adiciona um botão **Copy prompt** que empacota a correção escolhida em um prompt pronto para colar. O prompt guia o agente pela leitura da página de erro correspondente, pela aplicação do padrão canônico e pela verificação do resultado em runtime.
 
-The same menu prints in the `next dev` terminal and in `next build` output, so an agent reading CI logs sees it too:
+O mesmo menu é impresso no terminal do `next dev` e na saída do `next build`, então um agente que lê logs de CI também o vê:
 
 ```txt filename="Terminal"
 Route "/products/[slug]": Next.js encountered uncached data during prerendering.
@@ -175,136 +175,138 @@ Learn more: https://nextjs.org/docs/messages/blocking-prerender-dynamic
     ...
 ```
 
-`next dev` shows all validation errors with source-mapped stacks in the overlay and terminal. Production builds minify server code and stop after a route fails. Use [`next build --debug-prerender`](/docs/app/guides/building#debug-prerender-errors) to enable server source maps and continue checking other routes.
+`next dev` mostra todos os erros de validação com stacks mapeados para o código-fonte no overlay e no terminal. Builds de produção minificam o código do servidor e param depois que uma rota falha. Use [`next build --debug-prerender`](/docs/app/guides/building#debug-prerender-errors) para habilitar source maps do servidor e continuar verificando as outras rotas.
 
-The `Learn more` link resolves to a per-error page under [`/docs/messages`](https://nextjs.org/docs/messages/blocking-prerender-dynamic) written for agents to read. Each page follows the same shape, with the canonical patterns for every fix, the trade-offs against the other fixes, and the gotchas an agent is likely to miss on a first attempt. The [Instant navigation guide](/docs/app/guides/instant-navigation#ai-workflow) walks through the full loop an agent runs on these errors, from reading the insight to writing an `instant()` test that fails before the fix and passes once it's in place.
+O link `Learn more` leva a uma página de erro individual em [`/docs/messages`](https://nextjs.org/docs/messages/blocking-prerender-dynamic), escrita para que agentes a leiam. Cada página segue a mesma estrutura, com os padrões canônicos de cada correção, os trade-offs em relação às outras correções e as armadilhas que um agente costuma deixar passar na primeira tentativa. O [guia de navegação instantânea](/docs/app/guides/instant-navigation#ai-workflow) descreve o ciclo completo que um agente executa com esses erros, desde a leitura do insight até a escrita de um teste `instant()` que falha antes da correção e passa depois que ela entra no código.
 
 <span id="step-4-hand-multi-step-workflows-to-skills" />
 
-## Skills for multi-step workflows
+## Skills para fluxos de trabalho em várias etapas \{#skills-for-multi-step-workflows}
 
-Framework knowledge comes from the bundled docs, not from Skills. [Benchmark results](https://nextjs.org/evals) show that always-available context outperforms on-demand retrieval. Skills cover the tasks that are workflows rather than lookups, such as adopting Cache Components or Partial Prefetching across an app. Next.js Skills package these as structured instructions an agent installs and follows, sequencing the work and pointing at the relevant docs and [runtime tooling](#runtime-visibility) along the way.
+O conhecimento sobre o framework vem da documentação embutida, não das Skills. [Resultados de benchmark](https://nextjs.org/evals) mostram que contexto sempre disponível supera a busca sob demanda. As Skills cobrem tarefas que são fluxos de trabalho, e não consultas, como adotar Cache Components ou Partial Prefetching em um app inteiro. As Skills do Next.js empacotam essas tarefas como instruções estruturadas que um agente instala e segue, organizando o trabalho e apontando para a documentação relevante e para as [ferramentas de runtime](#runtime-visibility) ao longo do caminho.
 
-You can [browse the source for these Skills](https://github.com/vercel/next.js/tree/canary/skills) in the Next.js repository and [find them on skills.sh](https://www.skills.sh/vercel/next.js).
+Você pode [ver o código-fonte dessas Skills](https://github.com/vercel/next.js/tree/canary/skills) no repositório do Next.js e [encontrá-las no skills.sh](https://www.skills.sh/vercel/next.js).
 
-The Skills serve three different workflow types:
+As Skills atendem a três tipos de fluxo de trabalho:
 
-- **Runtime foundations** such as `next-dev-loop` give any coding task a repeatable inspect, edit, and verify cycle.
-- **Interactive workflows** make broader changes with user checkpoints, such as adopting Cache Components or Partial Prefetching across an app.
-- **Unattended loops** work toward a verifiable goal and stop only for genuine decisions.
+- **Fundamentos de runtime**, como `next-dev-loop`, dão a qualquer tarefa de programação um ciclo repetível de inspecionar, editar e verificar.
+- **Fluxos interativos** fazem mudanças mais amplas com checkpoints do usuário, como adotar Cache Components ou Partial Prefetching em um app inteiro.
+- **Loops sem supervisão** trabalham rumo a um objetivo verificável e param apenas diante de decisões reais.
 
-### `next-dev-loop`
+### `next-dev-loop` \{#next-dev-loop}
 
-The [`next-dev-loop`](https://www.skills.sh/vercel/next.js/next-dev-loop) runtime foundation verifies changes against a running dev server using the [MCP server](/docs/app/guides/mcp) and browser.
+O fundamento de runtime [`next-dev-loop`](https://www.skills.sh/vercel/next.js/next-dev-loop) verifica mudanças contra um dev server em execução, usando o [servidor MCP](/docs/app/guides/mcp) e o navegador.
 
 ```bash filename="Terminal"
 npx skills add vercel/next.js --skill next-dev-loop
 ```
 
-Then give the agent this prompt:
+Depois, dê ao agente este prompt:
 
 ```prompt
 After every edit, verify the page still works at runtime using the next-dev-loop Skill.
 ```
 
-### `next-bundle-optimizer`
+### `next-bundle-optimizer` \{#next-bundle-optimizer}
 
-The [`next-bundle-optimizer`](https://www.skills.sh/vercel/next.js/next-bundle-optimizer) skill uses Turbopack's bundle analyzer to identify sources of large client-side bundles that impact your site's initial load performance.
+A Skill [`next-bundle-optimizer`](https://www.skills.sh/vercel/next.js/next-bundle-optimizer) usa o analisador de bundle do Turbopack para identificar as fontes de bundles grandes no cliente que afetam o carregamento inicial do seu site.
 
 ```bash filename="Terminal"
 npx skills add vercel/next.js --skill next-bundle-optimizer
 ```
 
-In audit-only mode, it produces a report without making any changes:
+No modo somente auditoria, ela produz um relatório sem fazer nenhuma alteração:
 
 ```prompt
 Use the next-bundle-optimizer skill to produce a report of the initial load performance of this site.
 ```
 
-You can also tell your agent to fix any issues, and it will optimize your site based on its findings. Or have it focus on a specific route by providing the route in the prompt.
+Você também pode pedir ao agente que corrija os problemas, e ele vai otimizar seu site com base nas descobertas. Ou peça para focar em uma rota específica, informando a rota no prompt.
 
-### `next-cache-components-adoption`
+### `next-cache-components-adoption` \{#next-cache-components-adoption}
 
-The [`next-cache-components-adoption`](https://www.skills.sh/vercel/next.js/next-cache-components-adoption) Skill migrates an app to [Cache Components](/docs/app/getting-started/caching):
+A Skill [`next-cache-components-adoption`](https://www.skills.sh/vercel/next.js/next-cache-components-adoption) migra um app para [Cache Components](/docs/app/getting-started/caching):
 
-1. Turns the flag on and finds the routes that can't prerender.
-2. Fixes them one feature at a time, checking in with you before moving on.
-3. Confirms a feature against `next dev` and `next build` before leaving it.
+1. Ativa a flag e encontra as rotas que não podem ser prerendered.
+2. Corrige uma funcionalidade por vez, consultando você antes de avançar.
+3. Confirma uma funcionalidade com `next dev` e `next build` antes de deixá-la.
 
-The Skill supports both a series of pull requests and a single-branch migration.
+A Skill aceita tanto uma série de pull requests quanto uma migração em um único branch.
 
 ```bash filename="Terminal"
 npx skills add vercel/next.js --skill next-cache-components-adoption
 ```
 
-Then give the agent this prompt:
+Depois, dê ao agente este prompt:
 
 ```prompt
 Adopt Cache Components in this project using the next-cache-components-adoption Skill.
 ```
 
-### `next-cache-components-optimizer`
+### `next-cache-components-optimizer` \{#next-cache-components-optimizer}
 
-The [`next-cache-components-optimizer`](https://www.skills.sh/vercel/next.js/next-cache-components-optimizer) Skill expands a target route's static shell to include the useful UI you want available on an initial load:
+A Skill [`next-cache-components-optimizer`](https://www.skills.sh/vercel/next.js/next-cache-components-optimizer) expande o shell estático de uma rota-alvo para incluir a UI útil que você quer disponível no carregamento inicial:
 
-1. Writes a failing [`instant()`](/docs/app/guides/instant-navigation#prevent-regressions-with-e2e-tests) test for the static-shell UI you named.
-2. Refactors the route until it passes, often by moving a data read below a `<Suspense>` boundary.
-3. Commits the passing test with the refactoring, so it catches future regressions.
+1. Escreve um teste [`instant()`](/docs/app/guides/testing/playwright#testing-instant-navigations) que falha para a UI do shell estático que você indicou.
+2. Refatora a rota até o teste passar, muitas vezes movendo uma leitura de dados para baixo de um limite de `<Suspense>`.
+3. Faz commit do teste aprovado junto com a refatoração, para que ele detecte regressões futuras.
 
-Use it after adopting [Cache Components](/docs/app/getting-started/caching) to optimize an initial load or client navigation. To prefetch URL-specific content for an already-instant destination, use the [`next-partial-prefetching-optimizer`](#next-partial-prefetching-optimizer) instead.
+Use depois de adotar [Cache Components](/docs/app/getting-started/caching) para otimizar um carregamento inicial ou a navegação no cliente. Para fazer prefetch de conteúdo específico de uma URL para um destino que já é instantâneo, use a [`next-partial-prefetching-optimizer`](#next-partial-prefetching-optimizer) em vez dela.
 
 ```bash filename="Terminal"
 npx skills add vercel/next.js --skill next-cache-components-optimizer
 ```
 
-Then give the agent a prompt like:
+Depois, dê ao agente um prompt como:
 
 ```prompt
 Optimize the static shell for /dashboard using the next-cache-components-optimizer Skill. On an initial load, the header and project list should be available immediately.
 ```
 
-### `next-partial-prefetching-adoption`
+### `next-partial-prefetching-adoption` \{#next-partial-prefetching-adoption}
 
-The [`next-partial-prefetching-adoption`](https://www.skills.sh/vercel/next.js/next-partial-prefetching-adoption) Skill moves an app onto [Partial Prefetching](/docs/app/guides/adopting-partial-prefetching), where links share one App Shell:
+A Skill [`next-partial-prefetching-adoption`](https://www.skills.sh/vercel/next.js/next-partial-prefetching-adoption) move um app para o [Partial Prefetching](/docs/app/guides/adopting-partial-prefetching), em que os links compartilham um único App Shell:
 
-1. Audits existing `<Link prefetch={true}>` navigations and identifies the prefetched UI to preserve.
-2. Captures that UI in passing [`instant()`](/docs/app/guides/instant-navigation#prevent-regressions-with-e2e-tests) tests before enabling Partial Prefetching, then migrates each destination until the same tests pass unchanged.
-3. Enables the flag, resolves the URL-data insights it surfaces, and marks optional per-link prefetching candidates for later.
+1. Audita as navegações existentes com `<Link prefetch={true}>` e identifica a UI com prefetch que deve ser preservada.
+2. Captura essa UI em testes [`instant()`](/docs/app/guides/testing/playwright#testing-instant-navigations) antes de ativar o Partial Prefetching e, em seguida, migra cada destino até que os mesmos testes passem sem alterações.
+3. Ativa a flag, resolve os insights de dados de URL que ela exibe e marca como candidatos opcionais os prefetches por link para depois.
 
-It needs [Cache Components](/docs/app/getting-started/caching) already adopted and a production-like build it can run for prefetch verification.
+Ela precisa que [Cache Components](/docs/app/getting-started/caching) já tenha sido adotado e de um build semelhante ao de produção que ela possa executar para verificar o prefetch.
 
 ```bash filename="Terminal"
 npx skills add vercel/next.js --skill next-partial-prefetching-adoption
 ```
 
-Then give the agent this prompt:
+Depois, dê ao agente este prompt:
 
 ```prompt
 Adopt Partial Prefetching in this project using the next-partial-prefetching-adoption Skill.
 ```
 
-### `next-partial-prefetching-optimizer`
+### `next-partial-prefetching-optimizer` \{#next-partial-prefetching-optimizer}
 
-The [`next-partial-prefetching-optimizer`](https://www.skills.sh/vercel/next.js/next-partial-prefetching-optimizer) Skill takes a target navigation or set of navigations and works toward the UI you want ready before each click:
+A Skill [`next-partial-prefetching-optimizer`](https://www.skills.sh/vercel/next.js/next-partial-prefetching-optimizer) recebe uma navegação-alvo ou um conjunto de navegações e trabalha para que a UI desejada esteja pronta antes de cada clique:
 
-1. Turns the requested behavior for each navigation into a contract for what is prefetched, what waits for navigation, and when prefetching begins.
-2. Captures each contract in an [`instant()`](/docs/app/guides/instant-navigation#prevent-regressions-with-e2e-tests) test.
-3. Applies the [Optimizing prefetching](/docs/app/guides/optimizing-prefetching) patterns and keeps the passing tests as regression coverage.
+1. Transforma o comportamento pedido para cada navegação em um contrato que define o que é carregado com prefetch, o que espera a navegação e quando o prefetch começa.
+2. Registra cada contrato em um teste [`instant()`](/docs/app/guides/testing/playwright#testing-instant-navigations).
+3. Aplica os padrões de [Otimizando o prefetch](/docs/app/guides/optimizing-prefetching) e mantém os testes aprovados como cobertura de regressão.
 
-It needs Cache Components and Partial Prefetching already adopted.
+Ela precisa que Cache Components e Partial Prefetching já tenham sido adotados.
 
 ```bash filename="Terminal"
 npx skills add vercel/next.js --skill next-partial-prefetching-optimizer
 ```
 
-Then give the agent a prompt like:
+Depois, dê ao agente um prompt como:
 
 ```prompt
 Make the product title instant when navigating from /products to /products/[id]. Use the next-partial-prefetching-optimizer Skill.
 ```
 
-## Version History
+## Histórico de versões \{#version-history}
 
-| Version   | Changes                              |
-| --------- | ------------------------------------ |
-| `v16.4.0` | `next-bundle-optimizer` skill added. |
+| Versão    | Mudanças                                       |
+| --------- | ---------------------------------------------- |
+| `v16.4.0` | Skill `next-bundle-optimizer` adicionada.      |
+
+{/* ia-translate: true */}
