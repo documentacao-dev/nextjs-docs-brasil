@@ -18,7 +18,7 @@ Este guia mostra como criar páginas públicas que compartilham dados entre usu�
 
 Como exemplo, vamos criar uma página de listagem de produtos.
 
-Vamos começar com um cabeçalho estático, adicionar uma lista de produtos com dados externos assíncronos e aprender a renderizá-la sem bloquear a resposta. Por fim, vamos adicionar um banner de promoção específico do usuário, sem mudar a página inteira para a [renderização dinâmica](/docs/app/glossary#dynamic-rendering).
+Vamos começar com um cabeçalho estático, adicionar uma lista de produtos com dados externos assíncronos e aprender a renderizá-la sem bloquear a resposta. Por fim, vamos adicionar um banner de promoção específico do usuário, sem mudar a página inteira para a [Dynamic Rendering](/docs/app/glossary#dynamic-rendering).
 
 Você encontra os recursos usados neste exemplo aqui:
 
@@ -49,7 +49,7 @@ export default async function Page() {
 
 O componente `<Header />` não depende de nenhuma entrada que muda entre requisições, como dados externos, cabeçalhos de requisição, parâmetros de rota, a hora atual ou valores aleatórios.
 
-> **Bom saber:** se você precisa exibir datas ou horários sensíveis ao locale sem um flash visível, veja [Evitando flash antes da hidratação](/docs/app/guides/preventing-flash-before-hydration).
+> **Bom saber:** se você precisa exibir datas ou horários sensíveis ao locale sem um flash visível, veja [Como evitar flash antes da hydration](/docs/app/guides/preventing-flash-before-hydration).
 
 Como a saída nunca muda e pode ser determinada antecipadamente, este tipo de componente é chamado de componente **estático**. Sem motivo para esperar uma requisição, o Next.js pode, com segurança, **prerenderizar** a página no [tempo de build](/docs/app/glossary#build-time).
 
@@ -63,7 +63,7 @@ Route (app)      Revalidate  Expire
 ○  (Static)  prerendered as static content
 ```
 
-Observe que a rota de produtos está marcada como estática, mesmo sem nenhuma configuração explícita que tenhamos adicionado.
+Observe que a rota de produtos está marcada como estática, mesmo sem termos adicionado nenhuma configuração explícita.
 
 ### Passo 2: adicione a lista de produtos \{#step-2-add-the-product-list}
 

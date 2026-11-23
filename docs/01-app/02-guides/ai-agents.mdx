@@ -34,11 +34,11 @@ node_modules/next/dist/docs/
 └── index.mdx
 ```
 
-A cópia incluída dá aos agentes de programação acesso às APIs e aos padrões aceitos pelo projeto, sem requisição de rede nem consulta externa. O [upgrade do Next.js](/docs/app/getting-started/upgrading) também atualiza a documentação incluída.
+A cópia incluída dá aos agentes de programação acesso às APIs e aos padrões aceitos pelo projeto, sem requisição de rede nem consulta externa. O [upgrade do Next.js](/docs/app/getting-started/upgrading) também atualiza a documentação embutida.
 
 ### Instruções de documentação gerenciadas \{#managed-documentation-instructions}
 
-O Next.js torna a documentação incluída descoberta por meio de instruções gerenciadas no `AGENTS.md`, na raiz do projeto. Agentes de programação como Claude Code, Codex, Cursor e GitHub Copilot leem esse arquivo ao iniciar uma sessão.
+O Next.js torna a documentação embutida fácil de encontrar por meio de instruções gerenciadas no `AGENTS.md`, na raiz do projeto. Agentes de programação como Claude Code, Codex, Cursor e GitHub Copilot leem esse arquivo ao iniciar uma sessão.
 
 O [`create-next-app`](/docs/app/api-reference/cli/create-next-app) cria os arquivos de agente para novos projetos. Executar `next dev` cria ou atualiza as instruções gerenciadas em projetos existentes. O bloco direciona o agente para a documentação instalada com o projeto:
 
@@ -56,7 +56,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 O Next.js atualiza apenas o conteúdo entre os marcadores das regras de agente e preserva o restante do `AGENTS.md`.
 
-[Pesquisa comparando o `AGENTS.md` com Skills de conhecimento](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals) encontrou uma taxa de aprovação de 100% com a documentação incluída, contra até 79% em abordagens baseadas em Skills. Veja os [resultados mais recentes das avaliações de agentes do Next.js](https://nextjs.org/evals).
+[Pesquisa comparando o `AGENTS.md` com Skills de conhecimento](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals) encontrou uma taxa de aprovação de 100% com a documentação embutida, contra até 79% em abordagens baseadas em Skills. Veja os [resultados mais recentes das avaliações de agentes do Next.js](https://nextjs.org/evals).
 
 As instruções de documentação gerenciadas vêm ativadas por padrão. Veja a [referência da API `agentRules`](/docs/app/api-reference/config/next-config-js/agentRules) para configurá-las ou desativá-las.
 
@@ -68,15 +68,15 @@ Executar `next dev` cria e atualiza as instruções de documentação gerenciada
 
 #### Next.js 16.3 e 16.4 \{#nextjs-163-and-164}
 
-Essas versões incluem a documentação incluída e aceitam instruções de documentação gerenciadas.
+Essas versões incluem a documentação embutida e aceitam instruções de documentação gerenciadas.
 
 #### Next.js 16.2 \{#nextjs-162}
 
-O Next.js 16.2 inclui a documentação incluída, mas não gera instruções automaticamente.
+O Next.js 16.2 inclui a documentação embutida, mas não gera instruções automaticamente.
 
 #### Next.js 16.1 e versões anteriores \{#nextjs-161-and-earlier}
 
-O Next.js 16.1 e versões anteriores não incluem a documentação incluída. O comando `agents-md` legado baixa uma cópia alinhada à versão para `.next-docs/` e a indexa no `AGENTS.md`:
+O Next.js 16.1 e versões anteriores não incluem a documentação embutida. O comando `agents-md` legado baixa uma cópia alinhada à versão para `.next-docs/` e a indexa no `AGENTS.md`:
 
 ```bash
 npx @next/codemod@canary agents-md
@@ -177,13 +177,13 @@ Learn more: https://nextjs.org/docs/messages/blocking-prerender-dynamic
 
 `next dev` mostra todos os erros de validação com stacks mapeados para o código-fonte no overlay e no terminal. Builds de produção minificam o código do servidor e param depois que uma rota falha. Use [`next build --debug-prerender`](/docs/app/guides/building#debug-prerender-errors) para habilitar source maps do servidor e continuar verificando as outras rotas.
 
-O link `Learn more` leva a uma página de erro individual em [`/docs/messages`](https://nextjs.org/docs/messages/blocking-prerender-dynamic), escrita para que agentes a leiam. Cada página segue a mesma estrutura, com os padrões canônicos de cada correção, os trade-offs em relação às outras correções e as armadilhas que um agente costuma perder na primeira tentativa. O [guia de navegação instantânea](/docs/app/guides/instant-navigation#ai-workflow) descreve o ciclo completo que um agente executa com esses erros, desde a leitura do insight até a escrita de um teste `instant()` que falha antes da correção e passa depois que ela entra no código.
+O link `Learn more` leva a uma página de erro individual em [`/docs/messages`](https://nextjs.org/docs/messages/blocking-prerender-dynamic), escrita para que agentes a leiam. Cada página segue a mesma estrutura, com os padrões canônicos de cada correção, os trade-offs em relação às outras correções e as armadilhas que um agente costuma deixar passar na primeira tentativa. O [guia de navegação instantânea](/docs/app/guides/instant-navigation#ai-workflow) descreve o ciclo completo que um agente executa com esses erros, desde a leitura do insight até a escrita de um teste `instant()` que falha antes da correção e passa depois que ela entra no código.
 
 <span id="step-4-hand-multi-step-workflows-to-skills" />
 
 ## Skills para fluxos de trabalho em várias etapas \{#skills-for-multi-step-workflows}
 
-O conhecimento sobre o framework vem da documentação incluída, não das Skills. [Resultados de benchmark](https://nextjs.org/evals) mostram que contexto sempre disponível supera a busca sob demanda. As Skills cobrem tarefas que são fluxos de trabalho, e não consultas, como adotar Cache Components ou Partial Prefetching em um app inteiro. As Skills do Next.js empacotam essas tarefas como instruções estruturadas que um agente instala e segue, organizando o trabalho e apontando para a documentação relevante e para as [ferramentas de runtime](#runtime-visibility) ao longo do caminho.
+O conhecimento sobre o framework vem da documentação embutida, não das Skills. [Resultados de benchmark](https://nextjs.org/evals) mostram que contexto sempre disponível supera a busca sob demanda. As Skills cobrem tarefas que são fluxos de trabalho, e não consultas, como adotar Cache Components ou Partial Prefetching em um app inteiro. As Skills do Next.js empacotam essas tarefas como instruções estruturadas que um agente instala e segue, organizando o trabalho e apontando para a documentação relevante e para as [ferramentas de runtime](#runtime-visibility) ao longo do caminho.
 
 Você pode [ver o código-fonte dessas Skills](https://github.com/vercel/next.js/tree/canary/skills) no repositório do Next.js e [encontrá-las no skills.sh](https://www.skills.sh/vercel/next.js).
 
@@ -191,7 +191,7 @@ As Skills atendem a três tipos de fluxo de trabalho:
 
 - **Fundamentos de runtime**, como `next-dev-loop`, dão a qualquer tarefa de programação um ciclo repetível de inspecionar, editar e verificar.
 - **Fluxos interativos** fazem mudanças mais amplas com checkpoints do usuário, como adotar Cache Components ou Partial Prefetching em um app inteiro.
-- **Loops sem supervisão** trabalham em direção a um objetivo verificável e param apenas diante de decisões reais.
+- **Loops sem supervisão** trabalham rumo a um objetivo verificável e param apenas diante de decisões reais.
 
 ### `next-dev-loop` \{#next-dev-loop}
 
@@ -227,7 +227,7 @@ Você também pode pedir ao agente que corrija os problemas, e ele vai otimizar 
 
 A Skill [`next-cache-components-adoption`](https://www.skills.sh/vercel/next.js/next-cache-components-adoption) migra um app para [Cache Components](/docs/app/getting-started/caching):
 
-1. Liga a flag e encontra as rotas que não podem ser prerendered.
+1. Ativa a flag e encontra as rotas que não podem ser prerendered.
 2. Corrige uma funcionalidade por vez, consultando você antes de avançar.
 3. Confirma uma funcionalidade com `next dev` e `next build` antes de deixá-la.
 
@@ -251,7 +251,7 @@ A Skill [`next-cache-components-optimizer`](https://www.skills.sh/vercel/next.js
 2. Refatora a rota até o teste passar, muitas vezes movendo uma leitura de dados para baixo de um limite de `<Suspense>`.
 3. Faz commit do teste aprovado junto com a refatoração, para que ele detecte regressões futuras.
 
-Use depois de adotar [Cache Components](/docs/app/getting-started/caching) para otimizar um carregamento inicial ou a navegação no cliente. Para fazer prefetch de conteúdo específico de uma URL para um destino que já é instantâneo, use a [`next-partial-prefetching-optimizer`](#next-partial-prefetching-optimizer).
+Use depois de adotar [Cache Components](/docs/app/getting-started/caching) para otimizar um carregamento inicial ou a navegação no cliente. Para fazer prefetch de conteúdo específico de uma URL para um destino que já é instantâneo, use a [`next-partial-prefetching-optimizer`](#next-partial-prefetching-optimizer) em vez dela.
 
 ```bash filename="Terminal"
 npx skills add vercel/next.js --skill next-cache-components-optimizer

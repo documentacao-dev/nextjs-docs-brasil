@@ -163,7 +163,7 @@ NEXT_PUBLIC_ANALYTICS_ID=abcdefghijk
 
 Isso faz o Next.js substituir todas as referências a `process.env.NEXT_PUBLIC_ANALYTICS_ID` no ambiente Node.js pelo valor do ambiente em que você executa `next build`, permitindo usá-la em qualquer lugar do seu código. Ela será inserida em todo JavaScript enviado ao navegador.
 
-> **Observação**: depois do build, seu app não responderá mais a mudanças nessas variáveis de ambiente. Por exemplo, se você usa um pipeline do Heroku para promover slugs construídos em um ambiente para outro, ou se faz o build e o deploy de uma única imagem Docker para vários ambientes, todas as variáveis `NEXT_PUBLIC_` ficam congeladas com o valor avaliado no build. Por isso, esses valores precisam estar configurados corretamente quando o projeto for construído. Se você precisar de valores de ambiente em runtime, terá que criar sua própria API para fornecê-los ao cliente (sob demanda ou durante a inicialização).
+> **Observação**: depois do build, seu app não responderá mais a mudanças nessas variáveis de ambiente. Por exemplo, se você usa um pipeline do Heroku para promover slugs gerados em um ambiente para outro, ou se faz o build e o deploy de uma única imagem Docker para vários ambientes, todas as variáveis `NEXT_PUBLIC_` ficam congeladas com o valor avaliado no build. Por isso, esses valores precisam estar configurados corretamente quando o build do projeto for feito. Se você precisar de valores de ambiente em runtime, terá que criar sua própria API para fornecê-los ao cliente (sob demanda ou durante a inicialização).
 
 ```js filename="pages/index.js"
 import setupAnalyticsService from '../lib/my-analytics-service'
@@ -179,7 +179,7 @@ function HomePage() {
 export default HomePage
 ```
 
-Observe que buscas dinâmicas _não_ são inseridas no bundle, por exemplo:
+Observe que consultas dinâmicas _não_ são inseridas no bundle, por exemplo:
 
 ```js
 // This will NOT be inlined, because it uses a variable

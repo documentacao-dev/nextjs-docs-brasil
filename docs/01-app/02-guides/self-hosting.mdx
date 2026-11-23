@@ -6,7 +6,7 @@ description: Saiba como fazer self-hosting do seu app Next.js em um servidor Nod
 
 {/* The content of this doc is shared between the app and pages router. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
 
-Ao [fazer o deploy](/docs/app/getting-started/deploying) do seu app Next.js, você pode querer configurar como diferentes funcionalidades são tratadas de acordo com a sua infraestrutura.
+Ao [fazer o deploy](/docs/app/getting-started/deploying) do seu app Next.js, talvez queira configurar como diferentes funcionalidades são tratadas de acordo com a sua infraestrutura.
 
 > **🎥 Assista:** saiba mais sobre self-hosting do Next.js → [YouTube (45 minutos)](https://www.youtube.com/watch?v=sIVL4JMqRfc).
 
@@ -18,7 +18,7 @@ Ao fazer self-hosting, é recomendado usar um proxy reverso (como o nginx) na fr
 
 A [otimização de imagens](/docs/app/api-reference/components/image) feita pelo `next/image` funciona em self-hosting sem nenhuma configuração ao fazer deploy com `next start`. Se você preferir ter um serviço separado para otimizar imagens, pode [configurar um image loader](/docs/app/api-reference/components/image#loader).
 
-A otimização de imagens pode ser usada com uma [exportação estática](/docs/app/guides/static-exports#image-optimization) definindo um image loader personalizado em `next.config.js`. Observe que as imagens são otimizadas em tempo de execução, e não durante o build.
+A otimização de imagens pode ser usada com uma [exportação estática](/docs/app/guides/static-exports#image-optimization) definindo um image loader personalizado em `next.config.js`. Observe que as imagens são otimizadas em runtime, e não durante o build.
 
 > **Bom saber:**
 >
@@ -34,7 +34,7 @@ Se você quer adicionar lógica (ou usar um pacote externo) que exige todas as A
 
 ## Variáveis de ambiente \{#environment-variables}
 
-O Next.js aceita variáveis de ambiente tanto em tempo de build quanto em tempo de execução.
+O Next.js aceita variáveis de ambiente tanto em tempo de build quanto em runtime.
 
 **Por padrão, as variáveis de ambiente só ficam disponíveis no servidor**. Para expor uma variável de ambiente ao navegador, ela precisa ter o prefixo `NEXT_PUBLIC_`. No entanto, essas variáveis públicas serão incorporadas (inlined) ao bundle JavaScript durante o `next build`.
 
@@ -88,14 +88,14 @@ O Next.js pode armazenar em cache respostas, páginas estáticas geradas, output
 
 O cache de páginas e de dados revalidados (com a [Incremental Static Regeneration](/docs/app/guides/incremental-static-regeneration)) usa o **mesmo cache do servidor do Next.js**. Por padrão, esse cache é armazenado no sistema de arquivos local (em disco) de cada instância do servidor Next.js.
 
-Isso funciona automaticamente para uma única instância hospedada por você com `next start` e disco local persistente. Se você executar várias instâncias, usar compute efêmero ou colocar um CDN/proxy reverso na frente do Next.js, revise também [Configurando o cache](#configuring-caching), [Coordenação de cache entre múltiplas instâncias](#multi-instance-cache-coordination) e [Uso com CDNs](#usage-with-cdns).
+Isso funciona automaticamente para uma única instância hospedada por você com `next start` e disco local persistente. Se você executar várias instâncias, usar compute efêmero ou colocar um CDN/proxy reverso na frente do Next.js, revise também [Configurar o cache](#configuring-caching), [Coordenação de cache entre múltiplas instâncias](#multi-instance-cache-coordination) e [Uso com CDNs](#usage-with-cdns).
 
 Você pode configurar o local de cache do Next.js se quiser persistir páginas e dados em cache em um armazenamento durável, ou compartilhar o cache entre vários containers ou instâncias do seu app Next.js.
 
 ### Cache automático \{#automatic-caching}
 
 - O Next.js define o header `Cache-Control` como `public, max-age=31536000, immutable` para assets verdadeiramente imutáveis. Esse valor não pode ser sobrescrito. Esses arquivos imutáveis contêm um hash SHA no nome, então podem ser armazenados em cache por tempo indefinido com segurança. Por exemplo, [importações estáticas de imagens](/docs/app/getting-started/images#local-images). Você pode [configurar o TTL](/docs/app/api-reference/components/image#minimumcachettl) das imagens.
-- A Incremental Static Regeneration (ISR) define o header `Cache-Control` como `s-maxage: <revalidate in getStaticProps>, stale-while-revalidate`. Esse tempo de revalidação é definido na sua [função `getStaticProps`](/docs/pages/building-your-application/data-fetching/get-static-props) em segundos. Se você definir `revalidate: false`, será usada por padrão uma duração de cache de um ano. Para aproveitar isso na camada do CDN, seu CDN/proxy reverso precisa respeitar essas diretivas e a variabilidade da chave de cache ([CDN Caching](/docs/app/guides/cdn-caching)); caso contrário, as respostas podem ignorar o cache do CDN ou servir variantes desatualizadas ou incompatíveis durante a navegação no cliente.
+- A Incremental Static Regeneration (ISR) define o header `Cache-Control` como `s-maxage: <revalidate in getStaticProps>, stale-while-revalidate`. Esse tempo de revalidação é definido na sua [função `getStaticProps`](/docs/pages/building-your-application/data-fetching/get-static-props) em segundos. Se você definir `revalidate: false`, será usada por padrão uma duração de cache de um ano. Para aproveitar isso na camada do CDN, seu CDN/proxy reverso precisa respeitar essas diretivas e a variabilidade da chave de cache ([Cache de CDN](/docs/app/guides/cdn-caching)); caso contrário, as respostas podem ignorar o cache do CDN ou servir variantes desatualizadas ou incompatíveis durante a navegação no cliente.
 - Páginas renderizadas dinamicamente definem o header `Cache-Control` como `private, no-cache, no-store, max-age=0, must-revalidate` para impedir que dados específicos do usuário sejam armazenados em cache. Isso vale tanto para o App Router quanto para o Pages Router. Também inclui o [Draft Mode](/docs/app/guides/draft-mode).
 
 ### Assets estáticos \{#static-assets}
@@ -104,7 +104,7 @@ Se você quiser hospedar assets estáticos em um domínio ou CDN diferente, pode
 
 [Saiba mais sobre `assetPrefix`](/docs/app/api-reference/config/next-config-js/assetPrefix).
 
-### Configurando o cache \{#configuring-caching}
+### Configurar o cache \{#configuring-caching}
 
 Por padrão, os assets de cache gerados são armazenados em memória (o padrão é 50 MB) e em disco. Em plataformas de compute efêmero (configurações serverless comuns), o disco local frequentemente não é persistente ou não está disponível, então esse cache é, na prática, de curta duração e restrito a cada instância. Se você hospeda o Next.js em uma plataforma de orquestração de containers, como o Kubernetes, cada pod terá uma cópia do cache. Para evitar que dados desatualizados sejam exibidos, já que o cache não é compartilhado entre pods por padrão, você pode configurar o Next.js para usar um cache handler e desativar o cache em memória.
 
@@ -232,7 +232,7 @@ module.exports = {
 }
 ```
 
-Além do nginx, garanta que toda a sua infraestrutura aceite streaming de ponta a ponta:
+Além do nginx, verifique se toda a sua infraestrutura aceita streaming de ponta a ponta:
 
 - **Load balancers** precisam aceitar chunked transfer encoding ou streaming HTTP/2. Alguns load balancers em nuvem (por exemplo, o AWS ALB com integração com Lambda) podem fazer buffer das respostas por padrão.
 - **Proxies reversos** entre o load balancer e o Next.js também precisam repassar respostas em chunks sem fazer buffer.
@@ -258,7 +258,7 @@ Ao usar um CDN na frente do seu app Next.js, a página incluirá o header de res
 
 Se você não precisa de uma mistura de componentes estáticos e dinâmicos, pode tornar toda a rota estática e armazenar o HTML de saída em um CDN. Essa Automatic Static Optimization é o comportamento padrão ao executar `next build` quando APIs dinâmicas não são usadas.
 
-Para orientações detalhadas sobre o comportamento de cache em CDNs, degradação graciosa e variabilidade de cache, veja [CDN Caching](/docs/app/guides/cdn-caching). Para saber quais plataformas aceitam Partial Prerendering, veja o [PPR Platform Guide](/docs/app/guides/ppr-platform-guide) e a [Deployment Adapter API](/docs/app/api-reference/config/next-config-js/adapterPath).
+Para orientações detalhadas sobre o comportamento de cache em CDNs, degradação graciosa e variabilidade de cache, veja [Cache de CDN](/docs/app/guides/cdn-caching). Para saber quais plataformas aceitam Partial Prerendering, veja o [Guia de PPR para plataformas](/docs/app/guides/ppr-platform-guide) e a [Deployment Adapter API](/docs/app/api-reference/config/next-config-js/adapterPath).
 
 </AppOnly>
 
@@ -268,7 +268,7 @@ Para orientações detalhadas sobre o comportamento de cache em CDNs, degradaç�
 
 [`after`](/docs/app/api-reference/functions/after) funciona totalmente ao fazer self-hosting com `next start`.
 
-Ao parar o servidor, garanta um encerramento gracioso enviando os sinais `SIGINT` ou `SIGTERM` e aguardando. O servidor do Next.js vai concluir as requisições em andamento e executar quaisquer callbacks `after()` pendentes antes de encerrar. As plataformas devem permitir um período de drenagem configurável (recomendamos entre 10 e 30 segundos) para garantir que todo o trabalho em segundo plano seja concluído.
+Ao parar o servidor, faça um encerramento gracioso enviando os sinais `SIGINT` ou `SIGTERM` e aguardando. O servidor do Next.js vai concluir as requisições em andamento e executar quaisquer callbacks `after()` pendentes antes de encerrar. As plataformas devem permitir um período de drenagem configurável (recomendamos entre 10 e 30 segundos) para garantir que todo o trabalho em segundo plano seja concluído.
 
 </AppOnly>
 

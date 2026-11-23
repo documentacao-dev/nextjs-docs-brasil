@@ -68,7 +68,7 @@ Crie um arquivo chamado `.vscode/launch.json` na raiz do seu projeto com o segui
 
 Na configuração "Next.js: debug full stack", `serverReadyAction.action` especifica qual navegador abrir quando o servidor estiver pronto. `debugWithEdge` significa abrir o navegador Edge. Se você usa o Chrome, troque esse valor para `debugWithChrome`.
 
-Se você [mudar a porta](/docs/pages/api-reference/cli/next#next-dev-options) em que sua aplicação inicia, substitua o `3000` em `http://localhost:3000` pela porta que você está usando.
+Se você [mudar a porta](/docs/pages/api-reference/cli/next#next-dev-options) em que seu app inicia, substitua o `3000` em `http://localhost:3000` pela porta que você está usando.
 
 Se você executa o Next.js a partir de um diretório diferente da raiz (por exemplo, usando o Turborepo), precisa adicionar `cwd` às tarefas de depuração do servidor e do full stack. Por exemplo, `"cwd": "${workspaceFolder}/apps/web"`.
 
@@ -76,13 +76,13 @@ Agora, vá para o painel Debug (`Ctrl+Shift+D` no Windows/Linux, `⇧+⌘+D` no 
 
 ## Usando o depurador no Jetbrains WebStorm \{#using-the-debugger-in-jetbrains-webstorm}
 
-Clique no menu suspenso que lista a configuração de runtime e clique em `Edit Configurations...`. Crie uma configuração de depuração `JavaScript Debug` com `http://localhost:3000` como URL. Personalize como preferir (por exemplo, Browser para depuração, salvar como arquivo do projeto) e clique em `OK`. Execute essa configuração de depuração e o navegador selecionado deve abrir automaticamente. Neste ponto, você terá 2 aplicações em modo de depuração: a aplicação Node.js do Next.js e a aplicação do cliente/navegador.
+Clique no menu suspenso que lista a configuração de runtime e clique em `Edit Configurations...`. Crie uma configuração de depuração `JavaScript Debug` com `http://localhost:3000` como URL. Personalize como preferir (por exemplo, Browser para depuração, salvar como arquivo do projeto) e clique em `OK`. Execute essa configuração de depuração e o navegador selecionado deve abrir automaticamente. Neste ponto, você deve ter 2 apps em modo de depuração: o app Node.js do Next.js e o app do cliente/navegador.
 
 ## Depurando com as DevTools do navegador \{#debugging-with-browser-devtools}
 
 ### Código no cliente \{#client-side-code}
 
-Inicie seu dev server normalmente, executando `next dev`, `npm run dev` ou `yarn dev`. Quando o servidor iniciar, abra `http://localhost:3000` (ou a sua URL alternativa) no navegador de sua preferência.
+Inicie seu dev server normalmente, executando `next dev`, `npm run dev` ou `yarn dev`. Quando o servidor iniciar, abra `http://localhost:3000` (ou outra URL) no navegador de sua preferência.
 
 No Chrome:
 
@@ -94,7 +94,7 @@ No Firefox:
 - Abra as Developer Tools do Firefox (`Ctrl+Shift+I` no Windows/Linux, `⌥+⌘+I` no macOS)
 - Vá para a aba **Debugger**
 
-Em qualquer um dos navegadores, sempre que o seu código do cliente chegar a uma instrução [`debugger`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/debugger), a execução do código será pausada e esse arquivo aparecerá na área de depuração. Você também pode buscar arquivos para definir breakpoints manualmente:
+Em qualquer um dos navegadores, sempre que seu código do cliente chegar a uma instrução [`debugger`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/debugger), a execução do código será pausada e esse arquivo aparecerá na área de depuração. Você também pode buscar arquivos para definir breakpoints manualmente:
 
 - No Chrome: pressione `Ctrl+P` no Windows/Linux ou `⌘+P` no macOS
 - No Firefox: pressione `Ctrl+P` no Windows/Linux ou `⌘+P` no macOS, ou use a árvore de arquivos no painel da esquerda
@@ -144,7 +144,7 @@ ready - started server on 0.0.0.0:3000, url: http://localhost:3000
 No Chrome:
 
 1. Abra uma nova aba e acesse `chrome://inspect`
-1. Procure a sua aplicação Next.js na seção **Remote Target**
+1. Procure o seu app Next.js na seção **Remote Target**
 1. Clique em **inspect** para abrir uma janela separada das DevTools
 1. Vá para a aba **Sources**
 
@@ -152,11 +152,11 @@ No Firefox:
 
 1. Abra uma nova aba e acesse `about:debugging`
 1. Clique em **This Firefox** na barra lateral esquerda
-1. Em **Remote Targets**, encontre a sua aplicação Next.js
+1. Em **Remote Targets**, encontre o seu app Next.js
 1. Clique em **Inspect** para abrir o depurador
 1. Vá para a aba **Debugger**
 
-A depuração do código do servidor funciona de forma semelhante à depuração do cliente. Ao buscar arquivos (`Ctrl+P`/`⌘+P`), seus arquivos de código-fonte terão caminhos começando com `webpack://{application-name}/./` (onde `{application-name}` será substituído pelo nome da sua aplicação, de acordo com o arquivo `package.json`).
+A depuração do código do servidor funciona de forma semelhante à depuração do cliente. Ao buscar arquivos (`Ctrl+P`/`⌘+P`), seus arquivos de código-fonte terão caminhos começando com `webpack://{application-name}/./` (onde `{application-name}` será substituído pelo nome do seu app, de acordo com o arquivo `package.json`).
 
 Para usar `--inspect-brk` ou `--inspect-wait`, é preciso especificar o `NODE_OPTIONS`. Por exemplo: `NODE_OPTIONS=--inspect-brk next dev`.
 

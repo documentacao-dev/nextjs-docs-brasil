@@ -15,7 +15,7 @@ A [Regeneração Estática Incremental (ISR)](/docs/app/glossary#incremental-sta
 Durante o build, o Partial Prerendering divide cada renderização em duas partes:
 
 - A **App Shell**: a parte genérica e reutilizável da página, que não depende de dados da URL
-- O restante do conteúdo renderizável estaticamente: as pré-renderizações específicas de parâmetros para as URLs que você lista em [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params)
+- O restante do conteúdo renderizável estaticamente: as prerenderizações específicas de parâmetros para as URLs que você lista em [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params)
 
 Para uma visita a uma URL cujos parâmetros foram incluídos em `generateStaticParams`, o Next.js serve a página totalmente prerenderizada a partir do cache. Para uma visita a uma URL cujos parâmetros não foram incluídos, o Next.js serve a App Shell instantaneamente e, em seguida, a atualiza em segundo plano com os parâmetros já conhecidos. As visitas seguintes a essa URL recebem o resultado atualizado do cache, pulando a App Shell por completo.
 
@@ -50,7 +50,7 @@ Vamos montar um catálogo de produtos com layouts de categoria e páginas de det
 - [Demonstração](https://partial-fallbacks.labs.vercel.dev/)
 - [Código](https://github.com/nextjs/partial-fallbacks)
 
-### Prepare as suas rotas \{#prepare-your-routes}
+### Prepare suas rotas \{#prepare-your-routes}
 
 Use [`generateStaticParams`](/docs/app/api-reference/functions/generate-static-params) para definir quais valores de parâmetro devem ser prerenderizados. Ao renderizar essas rotas, os valores dos parâmetros são conhecidos em tempo de build. O processo de prerendering monta uma shell estática até encontrar uma [API de tempo de requisição](/docs/app/glossary#request-time-apis) ou dados sem cache. Veja [Prerendering](/docs/app/getting-started/caching#prerendering) para mais detalhes.
 
@@ -192,7 +192,7 @@ Essas combinações resultam em:
 
 Os parâmetros desconhecidos de uma shell sempre vêm por último, na ordem da rota. Uma URL não pode ter um segmento desconhecido no meio, então não existe a shell `/[category]/tee`. Uma visita com uma categoria não listada recebe `/[category]/[product]`, qualquer que seja o produto.
 
-### Em tempo de execução \{#at-runtime}
+### Em runtime \{#at-runtime}
 
 Um visitante navega até `/tops/tee`. Os dois parâmetros foram prerenderizados. Ele recebe uma página totalmente estática.
 
@@ -210,7 +210,7 @@ Os links para essas páginas precisam de `prefetch={true}`. Um `<Link>` padrão 
 
 ### Aguarde a saída estática completa \{#wait-for-complete-static-output}
 
-Para um parâmetro não listado, o [`ensureStatic = 'navigation'`](/docs/app/api-reference/file-conventions/route-segment-config/ensureStatic#navigation) faz a primeira requisição aguardar a página estática completa. Sem esse requisito, o Next.js pode devolver um fallback prerenderizado enquanto gera a página em segundo plano. O Next.js armazena a página completa para as requisições seguintes.
+Para um parâmetro não listado, o [`ensureStatic = 'navigation'`](/docs/app/api-reference/file-conventions/route-segment-config/ensureStatic#navigation) faz a primeira requisição aguardar a página estática completa. Sem esse requisito, o Next.js pode servir um fallback prerenderizado enquanto gera a página em segundo plano. O Next.js armazena a página completa para as requisições seguintes.
 
 ### O que a atualização produz \{#what-the-upgrade-produces}
 

@@ -10,7 +10,7 @@ O [lazy loading](https://developer.mozilla.org/docs/Web/Performance/Lazy_loading
 
 <AppOnly>
 
-Ele permite adiar o carregamento de **Client Components** e de bibliotecas importadas, incluindo-os no bundle do cliente somente quando forem necessários. Por exemplo, você pode querer adiar o carregamento de um modal até que o usuário clique para abri-lo.
+Ele permite adiar o carregamento de **Client Components** e de bibliotecas importadas, incluindo-os no bundle do cliente somente quando forem necessários. Por exemplo, adie o carregamento de um modal até que o usuário clique para abri-lo.
 
 Há duas formas de implementar lazy loading no Next.js:
 
@@ -61,7 +61,7 @@ export default function ClientComponentExample() {
 
 ### Desativando o SSR \{#skipping-ssr}
 
-Ao usar `React.lazy()` e Suspense, os Client Components serão [prerendered](https://github.com/reactwg/server-components/discussions/4) (SSR) por padrão.
+Ao usar `React.lazy()` e Suspense, os Client Components passam por [prerendering](https://github.com/reactwg/server-components/discussions/4) (SSR) por padrão.
 
 > **Nota:** a opção `ssr: false` só funciona com Client Components. Mova-a para dentro de Client Components para garantir que a divisão de código no cliente funcione corretamente.
 
@@ -180,7 +180,7 @@ O Next.js aceita comentários mágicos (magic comments) para controlar como o bu
 
 ### `webpackIgnore` / `turbopackIgnore` \{#webpackignore--turbopackignore}
 
-Use esses comentários para ignorar o bundling de uma importação dinâmica. A expressão de importação será mantida como está na saída, o que é útil para módulos que existem apenas em tempo de execução:
+Use esses comentários para ignorar o bundling de uma importação dinâmica. A expressão de importação será mantida como está na saída, o que é útil para módulos que existem apenas em runtime:
 
 ```js
 // Skip bundling - import happens at runtime
@@ -195,7 +195,7 @@ const mod = require(/* webpackIgnore: true */ 'runtime-module')
 
 ### `turbopackOptional` (apenas Turbopack) \{#turbopackoptional-turbopack-only}
 
-Use este comentário para suprimir erros de build quando um módulo pode não existir. A importação ainda vai lançar um erro em tempo de execução se o módulo estiver ausente:
+Use este comentário para suprimir erros de build quando um módulo pode não existir. A importação ainda vai lançar um erro em runtime se o módulo estiver ausente:
 
 ```js
 // No build error if './optional-feature' doesn't exist

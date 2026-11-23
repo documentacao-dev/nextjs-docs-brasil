@@ -14,7 +14,7 @@ related:
 
 React Server Components (RSC) dividem uma árvore de componentes entre dois grafos de módulos, o do servidor e o do cliente. Essa fronteira determina onde o código do componente roda e se esse código é enviado ao navegador. O RSC mantém os Server Components exclusivamente no servidor e reserva os Client Components para a UI interativa. Os dois tipos compõem uma única árvore, que o servidor renderiza no [RSC Payload](/docs/app/glossary#rsc-payload), uma descrição serializada da UI que carrega referências aos Client Components contidos nela.
 
-Antes do RSC, os componentes React seguiam o que o RSC agora chama de modelo de Client Component. O React podia renderizar esses componentes em HTML no servidor, mas o mesmo código também era enviado ao navegador para [hidratar](https://react.dev/reference/react-dom/client/hydrateRoot#hydrating-server-rendered-html) esse HTML. A hidratação tornava o HTML inicial interativo e exigia que o componente produzisse a mesma saída no servidor e no navegador. Apps renderizados inteiramente no cliente podiam, em vez disso, começar com uma shell vazia e montar a árvore de componentes no navegador.
+Antes do RSC, os componentes React seguiam o que o RSC agora chama de modelo de Client Component. O React podia renderizar esses componentes em HTML no servidor, mas o mesmo código também era enviado ao navegador para [fazer o hydrate](https://react.dev/reference/react-dom/client/hydrateRoot#hydrating-server-rendered-html) esse HTML. A hydration tornava o HTML inicial interativo e exigia que o componente produzisse a mesma saída no servidor e no navegador. Apps renderizados inteiramente no cliente podiam, em vez disso, começar com um shell vazio e montar a árvore de componentes no navegador.
 
 ```txt
 Server Component
@@ -40,7 +40,7 @@ Ao decidir onde um componente roda, considere tanto a renderização dele no ser
 
 A palavra "Client" indica que um Client Component também roda no navegador, além da renderização no servidor.
 
-Em uma visita direta, o Client Component a seguir é renderizado no servidor e, de novo, no navegador durante a hidratação. O log dele aparece no terminal e no console do navegador. Em uma navegação no cliente, o servidor envia o RSC Payload, e o componente é renderizado no navegador, sem HTML renderizado no servidor.
+Em uma visita direta, o Client Component a seguir é renderizado no servidor e, de novo, no navegador durante a hydration. O log dele aparece no terminal e no console do navegador. Em uma navegação no cliente, o servidor envia o RSC Payload, e o componente é renderizado no navegador, sem HTML renderizado no servidor.
 
 ```tsx filename="app/hello.tsx" switcher
 'use client'
@@ -65,14 +65,14 @@ Renderizar um Client Component no servidor produz HTML, mas o componente continu
 Renderizar Client Components em HTML é anterior ao RSC. Dependendo da rota, o Next.js pode gerar ou regenerar o HTML:
 
 - No build, com [Static Site Generation (SSG)](/docs/app/glossary#prerendering).
-- Após o build, com [Regeneração Estática Incremental (ISR)](/docs/app/glossary#incremental-static-regeneration-isr).
+- Após o build, com [Incremental Static Regeneration (ISR)](/docs/app/glossary#incremental-static-regeneration-isr).
 - Para cada requisição, com Server Rendering (SSR).
 
 O RSC é um processo separado que mantém o código dos Server Components no servidor e emite o RSC Payload, em vez de enviar esse código. "Server-rendered" descreve como o Next.js produziu o HTML. "Server Component" descreve onde o código do componente roda e se esse código é enviado ao navegador.
 
 > **Server Components e SEO**
 >
-> Um crawler que lê apenas HTML vê a primeira resposta e não executa nenhum do seu JavaScript. Tanto os Server quanto os Client Components contribuem com HTML para essa resposta.
+> Um crawler que lê apenas HTML vê a primeira resposta e não executa nenhum JavaScript seu. Tanto os Server quanto os Client Components contribuem com HTML para essa resposta.
 >
 > O SEO depende de a renderização no servidor alcançar o conteúdo. Conteúdo que depende de uma interação do usuário ou de um evento não aparece no HTML disponível para um crawler que não executa JavaScript.
 
@@ -116,7 +116,7 @@ export default async function Page() {
 
 Com o RSC, um Server Component pode buscar dados enquanto renderiza. Uma etapa separada de carregamento de dados não precisa passar props iniciais para a árvore de componentes.
 
-> **Bom saber:** como um Server Component pode ler segredos e dados exclusivos do servidor diretamente, seja deliberado sobre o que passa aos Client Components.
+> **Bom saber:** como um Server Component pode ler segredos e dados exclusivos do servidor diretamente, tenha cuidado com o que você passa aos Client Components.
 >
 > As props são serializadas e enviadas ao navegador. Veja [Segurança de dados](/docs/app/guides/data-security#passing-data-from-server-to-client).
 
@@ -132,7 +132,7 @@ Requisições `fetch` idênticas são [memoizadas durante a renderização no se
 
 O código de um Server Component nunca chega ao navegador. O componente pode ser renderizado novamente quando o Next.js renderiza a rota, como em uma navegação, em um refresh ou após a revalidação.
 
-O código de um Client Component chega ao navegador. O React hidrata o componente no carregamento inicial, e atualizações no cliente podem renderizá-lo novamente no navegador.
+O código de um Client Component chega ao navegador. O React faz o hydration do componente no carregamento inicial, e atualizações no cliente podem renderizá-lo novamente no navegador.
 
 > **Bom saber:** no carregamento inicial, o RSC Payload é enviado junto com o HTML.
 >

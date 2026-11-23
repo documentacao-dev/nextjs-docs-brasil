@@ -20,7 +20,7 @@ Softwares antivírus podem deixar o acesso aos arquivos mais lento. Isso é mais
 
 **No Windows,** você pode adicionar seu projeto à [lista de exclusões do Microsoft Defender Antivirus](https://support.microsoft.com/en-us/windows/virus-and-threat-protection-in-the-windows-security-app-1362f4cd-d71a-b52a-0b66-c2820032b65e#bkmk_threat-protection-settings).
 
-1. Abra o aplicativo **"Segurança do Windows"** e selecione **"Proteção contra vírus e ameaças"** &rarr; **"Gerenciar configurações"** &rarr; **"Adicionar ou remover exclusões"**.
+1. Abra o app **"Segurança do Windows"** e selecione **"Proteção contra vírus e ameaças"** &rarr; **"Gerenciar configurações"** &rarr; **"Adicionar ou remover exclusões"**.
 2. Adicione uma exclusão de **"Pasta"**. Selecione a pasta do seu projeto.
 
 Como alternativa, você pode ativar e usar um [Dev Drive](#3-windows-use-dev-drive-or-wsl-2), que [usa o "modo de performance" do Microsoft Defender](https://learn.microsoft.com/en-us/windows/dev-drive/#understanding-security-risks-and-trust-in-relation-to-dev-drive).
@@ -56,7 +56,7 @@ Se você usa Docker para desenvolvimento no Mac ou no Windows, pode notar uma pe
 
 Isso geralmente não é um problema em produção, nem quando o Docker roda nativamente no Linux, porque os arquivos do projeto não atravessam a camada de compartilhamento de arquivos entre o host e a VM do Docker Desktop.
 
-Quando os arquivos do projeto ficam no host macOS ou Windows e são montados em um container pelo Docker Desktop ou ferramentas semelhantes, a camada de compartilhamento de arquivos entre o host e a VM pode atrasar ou impedir a propagação dos eventos do sistema de arquivos. Isso pode fazer o [Fast Refresh](/docs/architecture/fast-refresh) levar segundos ou até minutos, enquanto a mesma aplicação mostra as atualizações rapidamente quando desenvolvida diretamente no host, sem Docker.
+Quando os arquivos do projeto ficam no host macOS ou Windows e são montados em um container pelo Docker Desktop ou ferramentas semelhantes, a camada de compartilhamento de arquivos entre o host e a VM pode atrasar ou impedir a propagação dos eventos do sistema de arquivos. Isso pode fazer o [Fast Refresh](/docs/architecture/fast-refresh) levar segundos ou até minutos, enquanto o mesmo app mostra as atualizações rapidamente quando desenvolvida diretamente no host, sem Docker.
 
 Para a melhor experiência de desenvolvimento:
 
@@ -80,7 +80,7 @@ Ao usar o WSL 2, armazene o diretório do projeto dentro do sistema de arquivos 
 
 ### 1. Atualize o Next.js e use o Turbopack \{#1-update-nextjs-and-use-turbopack}
 
-Garanta que você está usando a versão mais recente do Next.js. Cada nova versão costuma trazer melhorias de performance.
+Confirme que você usa a versão mais recente do Next.js. Cada nova versão costuma trazer melhorias de performance.
 
 O Turbopack agora é o bundler padrão para o desenvolvimento com Next.js e oferece melhorias significativas de performance em relação ao webpack.
 
@@ -104,7 +104,7 @@ bun add next@latest
 bun dev  # Turbopack is used by default
 ```
 
-Se você precisar usar o Webpack em vez do Turbopack, pode optar por ele:
+Se você precisar usar o webpack em vez do Turbopack, pode optar por ele:
 
 ```bash package="pnpm"
 pnpm dev --webpack
@@ -248,7 +248,7 @@ module.exports = {
 O rastreamento do Turbopack é uma ferramenta que ajuda a entender a performance do seu app durante o desenvolvimento local.
 Ele fornece informações detalhadas sobre o tempo que cada módulo leva para compilar e como os módulos se relacionam.
 
-1. Garanta que você tem a versão mais recente do Next.js instalada.
+1. Confirme que você tem a versão mais recente do Next.js instalada.
 1. Gere um arquivo de rastreamento do Turbopack:
 
    ```bash package="pnpm"

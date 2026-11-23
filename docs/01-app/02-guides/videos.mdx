@@ -61,7 +61,7 @@ Para uma lista completa dos atributos de vídeo, consulte a [documentação da M
 - **Dimensões:** defina `width` e `height`, ou um `aspect-ratio` no CSS, para que o navegador reserve a caixa antes de o arquivo carregar. Um vídeo sem dimensões colapsa e depois empurra o restante da página para baixo, o que conta contra o [Cumulative Layout Shift](https://web.dev/articles/cls).
 - **Imagem de pôster:** use `poster` para preencher essa caixa reservada enquanto o vídeo carrega, principalmente com `preload="none"`, em que nenhum quadro é buscado até a reprodução começar.
 - **Conteúdo de fallback:** ao usar a tag `<video>`, inclua conteúdo de fallback dentro da tag para navegadores que não oferecem suporte à reprodução de vídeo.
-- **Legendas ou closed captions:** inclua legendas para usuários surdos ou com deficiência auditiva. Use a tag [`<track>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track) com seus elementos `<video>` para especificar as fontes dos arquivos de legenda.
+- **Legendas:** inclua legendas para usuários surdos ou com deficiência auditiva. Use a tag [`<track>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/track) com seus elementos `<video>` para especificar as fontes dos arquivos de legenda.
 - **Controles acessíveis:** os controles de vídeo padrão do HTML5 são recomendados para navegação por teclado e compatibilidade com leitores de tela. Para necessidades mais avançadas, considere players de terceiros como [react-player](https://github.com/cookpete/react-player) ou [video.js](https://videojs.com/), que oferecem controles acessíveis e uma experiência consistente entre navegadores.
 
 ### `<iframe>` \{#iframe}
@@ -140,10 +140,10 @@ export default function Page() {
 
 > **Bom saber**: ao incorporar vídeos de plataformas externas, considere as seguintes boas práticas:
 >
-> - Garanta que os embeds de vídeo sejam responsivos. Use CSS para que o iframe ou o player de vídeo se adaptem a diferentes tamanhos de tela.
+> - Confira se os embeds de vídeo são responsivos. Use CSS para que o iframe ou o player de vídeo se adaptem a diferentes tamanhos de tela.
 > - Implemente [estratégias para carregar vídeos](https://yoast.com/site-speed-tips-for-faster-video/) de acordo com as condições de rede, principalmente para usuários com planos de dados limitados.
 
-Essa abordagem melhora a experiência do usuário, pois evita que a página fique bloqueada: o usuário pode interagir com a página enquanto o componente de vídeo é transmitido via streaming.
+Essa abordagem melhora a experiência do usuário, pois evita que a página fique bloqueada: o usuário pode interagir com a página enquanto o componente de vídeo chega por streaming.
 
 Para uma experiência de carregamento mais envolvente e informativa, considere usar um skeleton de carregamento como UI de fallback. Em vez de mostrar uma simples mensagem de carregamento, você pode exibir um skeleton que lembra o player de vídeo, assim:
 
@@ -170,7 +170,7 @@ Hospedar vídeos por conta própria pode ser preferível por vários motivos:
 
 - **Controle total e independência**: hospedar por conta própria dá gerenciamento direto sobre seu conteúdo de vídeo, da reprodução à aparência, garantindo propriedade e controle totais, livres das restrições de plataformas externas.
 - **Personalização para necessidades específicas**: ideal para requisitos únicos, como vídeos de fundo dinâmicos, permite uma personalização sob medida para as necessidades de design e funcionalidade.
-- **Considerações de performance e escalabilidade**: escolha soluções de armazenamento que sejam ao mesmo tempo de alta performance e escaláveis, para suportar o crescimento do tráfego e do tamanho do conteúdo de forma eficaz.
+- **Considerações de performance e escalabilidade**: escolha soluções de armazenamento que sejam ao mesmo tempo de alta performance e escaláveis, para dar conta do crescimento do tráfego e do tamanho do conteúdo de forma eficaz.
 - **Custo e integração**: equilibre os custos de armazenamento e de banda com a necessidade de integração simples ao seu framework Next.js e ao restante do seu ecossistema tecnológico.
 
 ### Usando o Vercel Blob para hospedar vídeos \{#using-vercel-blob-for-video-hosting}

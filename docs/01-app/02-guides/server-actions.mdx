@@ -38,7 +38,7 @@ Quando uma Server Action dispara uma revalidação imediata, o Next.js faz o tra
 - O valor retornado pela action, consumido pelo `useActionState` ou pela promise aguardada no cliente.
 - Um [RSC Payload](/docs/app/glossary#rsc-payload) recém-renderizado para a rota atual, que o cliente aplica como uma navegação já preenchida.
 
-O código da sua aplicação não precisa de uma busca adicional para ver a UI atualizada da página atual.
+O código do seu app não precisa de uma busca adicional para ver a UI atualizada da página atual.
 
 Uma nova renderização entra na mesma resposta quando a action faz qualquer uma destas coisas:
 
@@ -85,9 +85,9 @@ O Next.js aplica algumas proteções no nível do framework:
 - **IDs de action criptografados e eliminação de código morto.** As referências de action são criptografadas em tempo de build, e Server Functions não utilizadas são removidas dos bundles do cliente, para que não tenham um endpoint público. Veja [recursos de segurança integrados das Server Actions](/docs/app/guides/data-security#built-in-server-actions-security-features).
 - **Criptografia de variáveis de closure.** As variáveis capturadas por uma action inline são criptografadas antes de serem enviadas ao cliente. Em deployments com várias instâncias ou self-hosted, defina `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` com uma chave estável compartilhada entre as instâncias. Veja [Closures e criptografia](/docs/app/guides/data-security#closures-and-encryption).
 
-As proteções do framework não substituem as verificações no nível da aplicação. Dentro de cada action:
+As proteções do framework não substituem as verificações no nível do app. Dentro de cada action:
 
-- **Autentique e autorize.** Bloquear a renderização no momento da renderização (exibir um formulário só em uma página autenticada) não é uma fronteira de segurança, porque requisições podem ser enviadas sem passar pela UI.
+- **Autentique e autorize.** Condicionar a renderização (exibir um formulário só em uma página autenticada) não é uma fronteira de segurança, porque requisições podem ser enviadas sem passar pela UI.
 - **Valide as entradas.** Trate `FormData`, parâmetros de query e headers como não confiáveis.
 - **Limite os valores retornados.** Os retornos da action são serializados para o cliente. Modele-os para o que a UI renderiza, e não registros brutos do banco de dados.
 
@@ -111,7 +111,7 @@ export async function deletePost(postId: string) {
 
 Se você ativou a flag experimental [`authInterrupts`](/docs/app/api-reference/config/next-config-js/authInterrupts), pode lançar [`unauthorized()`](/docs/app/api-reference/functions/unauthorized) e [`forbidden()`](/docs/app/api-reference/functions/forbidden), de `next/navigation`, no lugar. Assim, o Next.js renderiza automaticamente o segmento de UI `unauthorized.tsx` / `forbidden.tsx` correspondente.
 
-Por exemplo, um cliente diz legitimamente ao servidor _qual_ item deve ser alterado, mas não deve fornecer o conteúdo da linha nem a sua propriedade. Envie uma referência (normalmente um ID) mais a alteração do usuário, e releia o restante a partir de uma fonte confiável, usando a sessão. A validação de schema (zod ou similar) só verifica a _forma_ da entrada. Um objeto `Item` bem formado ainda pode se referir a uma linha que o chamador não possui.
+Por exemplo, um cliente diz legitimamente ao servidor _qual_ item deve ser alterado, mas não deve fornecer o conteúdo da linha nem quem é o dono dela. Envie uma referência (normalmente um ID) mais a alteração do usuário, e releia o restante a partir de uma fonte confiável, usando a sessão. A validação de schema (zod ou similar) só verifica a _forma_ da entrada. Um objeto `Item` bem formado ainda pode se referir a uma linha que o chamador não possui.
 
 ```ts filename="app/items/actions.ts"
 'use server'
@@ -143,12 +143,12 @@ export async function completeItem(itemId: string) {
 
 Depois de mutar dados, a revalidação sob demanda atualiza o cache do servidor, o router do cliente ou ambos. Escolha de acordo com o que precisa mudar:
 
-- [`updateTag`](/docs/app/api-reference/functions/updateTag): expiração imediata de uma tag. A próxima leitura (incluindo a renderização da rota que acompanha a resposta da action) espera pelos dados novos. Use quando a action precisa de **read-your-own-writes**, para que o usuário veja a sua mudança imediatamente. Somente Server Actions.
+- [`updateTag`](/docs/app/api-reference/functions/updateTag): expiração imediata de uma tag. A próxima leitura (incluindo a renderização da rota que acompanha a resposta da action) espera pelos dados novos. Use quando a action precisa de **read-your-own-writes**, para que o usuário veja a mudança imediatamente. Somente Server Actions.
 - [`revalidateTag`](/docs/app/api-reference/functions/revalidateTag): atualização stale-while-revalidate de uma tag com um perfil de cache-life, como `'max'`. As leituras seguintes recebem o valor antigo enquanto uma nova busca acontece em segundo plano. A chamada **não** dispara uma nova renderização imediata. Veja o [comportamento do cache no cliente](/docs/app/api-reference/functions/updateTag#client-cache-behavior) para perfis de expiração imediata.
 - [`revalidatePath`](/docs/app/api-reference/functions/revalidatePath): invalida por caminho de URL. Use quando uma única rota é afetada e usar tags seria exagero.
 - [`refresh`](/docs/app/api-reference/functions/refresh): busca novamente o RSC Payload da rota atual sem invalidar os dados em cache. Use quando a view depende de um estado fora do cache que a action acabou de alterar.
 
-Quando `updateTag`, `revalidatePath` ou `refresh` é executado, o Next.js renderiza novamente a rota atual no servidor e inclui um [RSC Payload](/docs/app/glossary#rsc-payload) recém-renderizado na resposta da action, para que a página reflita a mudança na mesma ida e volta. O `revalidateTag` com um perfil de stale-while-revalidate intencionalmente pula essa nova renderização imediata.
+Quando `updateTag`, `revalidatePath` ou `refresh` é executado, o Next.js renderiza novamente a rota atual no servidor e inclui um [RSC Payload](/docs/app/glossary#rsc-payload) recém-renderizado na resposta da action, para que a página reflita a mudança na mesma ida e volta. O `revalidateTag` com um perfil de stale-while-revalidate intencionalmente ignora essa nova renderização imediata.
 
 Diferente do [`redirect`](/docs/app/api-reference/functions/redirect), nenhuma dessas funções lança exceção. Assim, uma action pode chamá-las e ainda retornar um valor para quem a chamou. Veja [Como funciona a revalidação](/docs/app/guides/how-revalidation-works) para entender o modelo por trás disso.
 
