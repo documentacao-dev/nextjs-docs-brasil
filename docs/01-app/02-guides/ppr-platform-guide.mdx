@@ -21,7 +21,7 @@ Esta página explica como as plataformas podem implementar suporte a PPR em dife
 
 Para cada rota com PPR, o Next.js produz:
 
-- Uma **casca HTML estática** contendo todo o conteúdo que pode ser pré-renderizado, com fallbacks de [Suspense](/docs/app/guides/streaming#what-is-streaming) nos pontos onde o conteúdo dinâmico vai aparecer.
+- Uma **casca HTML estática** contendo todo o conteúdo que pode passar por prerendering, com fallbacks de [Suspense](/docs/app/guides/streaming#what-is-streaming) nos pontos onde o conteúdo dinâmico vai aparecer.
 - Um valor **`postponedState`**: uma string serializada. Trate-o como opaco: repasse sem analisar nem modificar. Alterar o `postponedState` produz uma saída de renderização dinâmica incorreta.
 - Um **payload RSC** para as partes estáticas da página.
 
@@ -31,7 +31,7 @@ Quando uma requisição chega a uma rota com PPR:
 
 1. O servidor envia a casca HTML estática ao cliente imediatamente.
 2. O servidor retoma a renderização das partes dinâmicas usando o estado adiado.
-3. O conteúdo dinâmico é enviado por streaming ao cliente, permitindo que o React hidrate os limites de Suspense adiados.
+3. O conteúdo dinâmico é enviado por streaming ao cliente, permitindo que o React faça a hydration dos limites de Suspense adiados.
 
 O cliente vê a casca estática instantaneamente, e depois o conteúdo dinâmico aparece conforme é resolvido.
 
@@ -60,7 +60,7 @@ Para um TTFB melhor, a casca HTML estática pode ser armazenada em cache na bord
 
 1. O CDN serve a casca em cache imediatamente (latência de borda).
 2. O CDN envia uma requisição de retomada ao servidor de origem (idealmente em paralelo com o envio da casca em streaming).
-3. O servidor de origem renderiza apenas as partes dinâmicas e as devolve por streaming.
+3. O servidor de origem renderiza apenas as partes dinâmicas e as envia de volta por streaming.
 4. O CDN concatena a casca e o conteúdo dinâmico em uma única resposta em streaming para o cliente.
 
 Isso exige que o CDN ofereça um mecanismo para combinar conteúdo em cache e conteúdo dinâmico em uma única resposta em streaming. O TTFB da casca estática cai para a latência de borda, enquanto o conteúdo dinâmico continua vindo por streaming da origem.
@@ -105,7 +105,7 @@ Para uma implementação detalhada com exemplos de código, veja [Implementando 
 
 2. **Sirva a casca no momento da requisição.** Para requisições que chegam a rotas com PPR, sirva a casca em cache imediatamente e comece o streaming.
 
-3. **Retome a renderização dinâmica.** Para CDN para origem: envie uma requisição POST ao handler do Next.js com o header `next-resume: 1` e o postponed state como corpo. Para baseado em adapter: chame o handler diretamente com o método POST e o postponed state no corpo da requisição (ou passe `requestMeta: { postponed: postponedState }` ao handler). Envie a resposta em streaming de volta ao cliente.
+3. **Retome a renderização dinâmica.** No caso de CDN para origem: envie uma requisição POST ao handler do Next.js com o header `next-resume: 1` e o estado adiado como corpo. No caso de baseado em adapter: chame o handler diretamente com o método POST e o estado adiado no corpo da requisição (ou passe `requestMeta: { postponed: postponedState }` ao handler). Envie a resposta em streaming de volta ao cliente.
 
 4. **Trate as atualizações de cache.** Use `requestMeta.onCacheEntryV2` para capturar novos pares de casca + estado adiado após a revalidação, e atualize seu cache de forma atômica.
 

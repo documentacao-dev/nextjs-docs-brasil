@@ -21,7 +21,7 @@ Por exemplo, digamos que você tenha o seguinte conjunto de páginas que gostari
 - `/dashboard/*` para todas as páginas quando o usuário está logado no dashboard
 - `/*` para o restante do site que não é coberto por outras zones
 
-Com Multi-Zones, você pode criar três apps que são todos servidos no mesmo domínio e têm a mesma aparência para o usuário, mas você pode desenvolver e fazer deploy de cada um deles de forma independente.
+Com Multi-Zones, você pode criar três apps que são todos servidos no mesmo domínio e têm a mesma aparência para o usuário, mas é possível desenvolver e fazer deploy de cada um deles de forma independente.
 
 <Image
   alt="Três zones: A, B e C. Mostra uma navegação completa entre rotas de zones diferentes e navegações suaves entre rotas da mesma zone."
@@ -31,9 +31,9 @@ Com Multi-Zones, você pode criar três apps que são todos servidos no mesmo do
   height="750"
 />
 
-Navegar entre páginas da mesma zone realiza navegações suaves, uma navegação que não exige recarregar a página. Por exemplo, neste diagrama, navegar de `/` para `/products` é uma navegação suave.
+Navegar entre páginas da mesma zone resulta em navegações suaves, uma navegação que não exige recarregar a página. Por exemplo, neste diagrama, navegar de `/` para `/products` é uma navegação suave.
 
-Navegar de uma página em uma zone para uma página em outra zone, como de `/` para `/dashboard`, realiza uma navegação completa, descarregando os recursos da página atual e carregando os recursos da nova página. Páginas que são visitadas com frequência juntas devem ficar na mesma zone para evitar navegações completas.
+Navegar de uma página em uma zone para uma página em outra zone, como de `/` para `/dashboard`, resulta em uma navegação completa, descarregando os recursos da página atual e carregando os recursos da nova página. Páginas que são visitadas com frequência juntas devem ficar na mesma zone para evitar navegações completas.
 
 ## Como definir uma zone \{#how-to-define-a-zone}
 
@@ -71,7 +71,7 @@ const nextConfig = {
 
 ## Como rotear requisições para a zone certa \{#how-to-route-requests-to-the-right-zone}
 
-Com a configuração de Multi Zones, você precisa rotear os caminhos para a zone correta, já que eles são servidos por apps diferentes. Você pode usar qualquer proxy HTTP para isso, mas um dos apps Next.js também pode ser usado para rotear as requisições de todo o domínio.
+Com a configuração de Multi-Zones, você precisa rotear os caminhos para a zone correta, já que eles são servidos por apps diferentes. Você pode usar qualquer proxy HTTP para isso, mas um dos apps Next.js também pode ser usado para rotear as requisições de todo o domínio.
 
 Para rotear para a zone correta usando um app Next.js, você pode usar os [`rewrites`](/docs/app/api-reference/config/next-config-js/rewrites). Para cada caminho servido por uma zone diferente, adicione uma regra de rewrite que envie esse caminho para o domínio da outra zone, e também reescreva as requisições dos arquivos estáticos. Por exemplo:
 
@@ -117,7 +117,7 @@ Links para caminhos de outra zone devem usar uma tag `a` em vez do componente [`
 
 ## Compartilhando código \{#sharing-code}
 
-Os apps Next.js que compõem as diferentes zones podem morar em qualquer repositório. No entanto, costuma ser conveniente colocar essas zones em um [monorepo](https://en.wikipedia.org/wiki/Monorepo) para compartilhar código com mais facilidade. Para zones que moram em repositórios diferentes, o código também pode ser compartilhado usando pacotes NPM públicos ou privados.
+Os apps Next.js que compõem as diferentes zones podem ficar em qualquer repositório. No entanto, costuma ser conveniente colocar essas zones em um [monorepo](https://en.wikipedia.org/wiki/Monorepo) para compartilhar código com mais facilidade. Para zones que ficam em repositórios diferentes, o código também pode ser compartilhado usando pacotes NPM públicos ou privados.
 
 Como as páginas de zones diferentes podem ser lançadas em momentos diferentes, feature flags podem ser úteis para ativar ou desativar recursos em conjunto nas diferentes zones.
 
@@ -125,7 +125,7 @@ Como as páginas de zones diferentes podem ser lançadas em momentos diferentes,
 
 ## Server Actions \{#server-actions}
 
-Ao usar [Server Actions](/docs/app/getting-started/mutating-data) com Multi-Zones, você deve permitir explicitamente a origem voltada ao usuário, já que o domínio voltado ao usuário pode servir vários apps. No seu arquivo `next.config.js`, adicione as seguintes linhas:
+Ao usar [Server Actions](/docs/app/getting-started/mutating-data) com Multi-Zones, você deve permitir explicitamente a origem que o usuário acessa, já que o domínio que o usuário acessa pode servir vários apps. No arquivo `next.config.js`, adicione as seguintes linhas:
 
 ```js filename="next.config.js"
 const nextConfig = {

@@ -1,10 +1,10 @@
 ---
 title: Como otimizar o uso de memória
 nav_title: Uso de memória
-description: Otimize a memória usada pela sua aplicação em desenvolvimento e em produção.
+description: Otimize a memória usada pelo seu app em desenvolvimento e em produção.
 ---
 
-À medida que os apps crescem e ganham mais recursos, eles podem exigir mais do computador ao rodar localmente ou ao gerar builds de produção.
+À medida que os apps crescem e ganham mais recursos, eles podem exigir mais recursos ao rodar localmente ou ao gerar builds de produção.
 
 Vamos explorar algumas estratégias e técnicas para otimizar a memória e resolver problemas comuns de memória no Next.js.
 
@@ -16,7 +16,7 @@ O [Bundle Analyzer](/docs/app/guides/package-bundling) pode ajudar você a inves
 
 ## Teste o `experimental.webpackMemoryOptimizations` \{#try-experimentalwebpackmemoryoptimizations}
 
-A partir da `v15.0.0`, você pode adicionar `experimental.webpackMemoryOptimizations: true` ao seu arquivo `next.config.js` para alterar o comportamento do Webpack, reduzindo o uso máximo de memória ao custo de um pequeno aumento no tempo de compilação.
+A partir da `v15.0.0`, você pode adicionar `experimental.webpackMemoryOptimizations: true` ao seu arquivo `next.config.js` para alterar o comportamento do webpack, reduzindo o uso máximo de memória ao custo de um pequeno aumento no tempo de compilação.
 
 > **Bom saber**: Este recurso ainda é experimental, para ser testado em mais projetos antes, mas é considerado de baixo risco.
 
@@ -24,7 +24,7 @@ A partir da `v15.0.0`, você pode adicionar `experimental.webpackMemoryOptimizat
 
 A partir da `14.2.0`, você pode executar `next build --experimental-debug-memory-usage` para rodar o build em um modo em que o Next.js imprime continuamente informações sobre o uso de memória durante todo o build, como o uso do heap e estatísticas do garbage collection. Snapshots do heap também são gerados automaticamente quando o uso de memória se aproxima do limite configurado.
 
-> **Bom saber**: Este recurso não é compatível com a opção de worker de build do Webpack, que é habilitada automaticamente, a menos que você tenha uma configuração personalizada do webpack.
+> **Bom saber**: Este recurso não é compatível com a opção de worker de build do webpack, que é habilitada automaticamente, a menos que você tenha uma configuração personalizada do webpack.
 
 ## Gravar um heap profile \{#record-a-heap-profile}
 
@@ -42,7 +42,7 @@ No Chrome DevTools, você pode abrir a aba Memory e clicar no botão "Load Profi
 
 ## Analisar um snapshot do heap \{#analyze-a-snapshot-of-the-heap}
 
-Você pode usar uma ferramenta de inspeção para analisar o uso de memória da aplicação.
+Você pode usar uma ferramenta de inspeção para analisar o uso de memória do app.
 
 Ao executar o comando `next build` ou `next dev`, adicione `NODE_OPTIONS=--inspect` no início do comando. Isso vai expor o agente de inspeção na porta padrão.
 Se você quiser pausar antes de qualquer código do usuário começar, pode passar `--inspect-brk`. Enquanto o processo está em execução, você pode usar uma ferramenta como o Chrome DevTools para se conectar à porta de depuração, gravar e analisar um snapshot do heap e ver qual memória está sendo retida.
@@ -51,25 +51,25 @@ A partir da `14.2.0`, você também pode executar `next build` com a flag `--exp
 
 Nesse modo, você pode enviar um sinal `SIGUSR2` ao processo a qualquer momento, e o processo vai gerar um snapshot do heap.
 
-O snapshot do heap será salvo na raiz do projeto Next.js e pode ser carregado em qualquer analisador de heap, como o Chrome DevTools, para ver o que está sendo retido. Este modo ainda não é compatível com os workers de build do Webpack.
+O snapshot do heap será salvo na raiz do projeto Next.js e pode ser carregado em qualquer analisador de heap, como o Chrome DevTools, para ver o que está sendo retido. Este modo ainda não é compatível com os workers de build do webpack.
 
 Veja [como gravar e analisar snapshots do heap](https://developer.chrome.com/docs/devtools/memory-problems/heap-snapshots) para mais informações.
 
-## Worker de build do Webpack \{#webpack-build-worker}
+## Worker de build do webpack \{#webpack-build-worker}
 
-O worker de build do Webpack permite executar as compilações do Webpack em um worker separado do Node.js, o que reduz o uso de memória da sua aplicação durante os builds.
+O worker de build do webpack permite executar as compilações do webpack em um worker separado do Node.js, o que reduz o uso de memória do seu app durante os builds.
 
-A partir da `v14.1.0`, esta opção vem habilitada por padrão, desde que a sua aplicação não tenha uma configuração personalizada do Webpack.
+A partir da `v14.1.0`, esta opção vem habilitada por padrão, desde que o seu app não tenha uma configuração personalizada do webpack.
 
-Se você estiver usando uma versão mais antiga do Next.js ou tiver uma configuração personalizada do Webpack, pode habilitar esta opção definindo `experimental.webpackBuildWorker: true` dentro do seu `next.config.js`.
+Se você estiver usando uma versão mais antiga do Next.js ou tiver uma configuração personalizada do webpack, pode habilitar esta opção definindo `experimental.webpackBuildWorker: true` dentro do seu `next.config.js`.
 
-> **Bom saber**: Este recurso pode não ser compatível com todos os plugins personalizados do Webpack.
+> **Bom saber**: Este recurso pode não ser compatível com todos os plugins personalizados do webpack.
 
-## Desativar o cache do Webpack \{#disable-webpack-cache}
+## Desativar o cache do webpack \{#disable-webpack-cache}
 
-O [cache do Webpack](https://webpack.js.org/configuration/cache/) salva os módulos gerados pelo Webpack na memória e/ou em disco para melhorar a velocidade dos builds. Isso pode ajudar na performance, mas também aumenta o uso de memória da sua aplicação para armazenar os dados em cache.
+O [cache do webpack](https://webpack.js.org/configuration/cache/) salva os módulos gerados pelo webpack na memória e/ou em disco para melhorar a velocidade dos builds. Isso pode ajudar na performance, mas também aumenta o uso de memória do seu app para armazenar os dados em cache.
 
-Você pode desativar esse comportamento adicionando uma [configuração personalizada do Webpack](/docs/app/api-reference/config/next-config-js/webpack) à sua aplicação:
+Você pode desativar esse comportamento adicionando uma [configuração personalizada do webpack](/docs/app/api-reference/config/next-config-js/webpack) ao seu app:
 
 ```js filename="next.config.mjs"
 /** @type {import('next').NextConfig} */
@@ -138,7 +138,7 @@ O Next.js `v14.1.3` corrigiu um problema de memória ao usar o Edge Runtime. Atu
 
 Quando o servidor do Next.js inicia, ele pré-carrega na memória os módulos JavaScript de cada página, em vez de fazer isso no momento da requisição.
 
-Essa otimização permite tempos de resposta mais rápidos, em troca de uma pegada de memória inicial maior.
+Essa otimização permite tempos de resposta mais rápidos, em troca de um consumo de memória inicial maior.
 
 Para desativar essa otimização, defina a flag `experimental.preloadEntriesOnStart` como `false`.
 
@@ -165,6 +165,6 @@ const config = {
 export default config
 ```
 
-O Next.js não descarrega esses módulos JavaScript da memória, o que significa que, mesmo com essa otimização desativada, a pegada de memória do seu servidor Next.js vai acabar sendo a mesma se todas as páginas forem requisitadas em algum momento.
+O Next.js não descarrega esses módulos JavaScript da memória, o que significa que, mesmo com essa otimização desativada, o consumo de memória do seu servidor Next.js vai acabar sendo o mesmo se todas as páginas forem acessadas em algum momento.
 
 {/* ia-translate: true */}

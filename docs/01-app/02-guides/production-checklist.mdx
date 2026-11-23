@@ -24,17 +24,17 @@ Estas otimizações do Next.js vêm habilitadas por padrão e não exigem config
 
 <PagesOnly>
 
-- **[Code-splitting](/docs/pages/building-your-application/routing/pages-and-layouts):** O Next.js faz o code-splitting do código da sua aplicação automaticamente, por páginas. Isso significa que, na navegação, só o código necessário para a página atual é carregado. Você também pode considerar [lazy loading](/docs/pages/guides/lazy-loading) para bibliotecas de terceiros, quando fizer sentido.
+- **[Code-splitting](/docs/pages/building-your-application/routing/pages-and-layouts):** O Next.js faz o code-splitting do código do seu app automaticamente, por páginas. Isso significa que, na navegação, só o código necessário para a página atual é carregado. Você também pode considerar [lazy loading](/docs/pages/guides/lazy-loading) para bibliotecas de terceiros, quando fizer sentido.
 - **[Prefetching](/docs/pages/api-reference/components/link#prefetch):** Quando um link para uma nova rota entra na viewport do usuário, o Next.js faz o prefetch da rota em segundo plano. Isso torna a navegação para novas rotas quase instantânea. Você pode desativar o prefetching, quando fizer sentido.
-- **[Automatic Static Optimization](/docs/pages/building-your-application/rendering/automatic-static-optimization):** O Next.js determina automaticamente que uma página é estática (pode ser prerenderizada) se ela não tiver requisitos de dados bloqueantes. Páginas otimizadas podem ser armazenadas em cache e servidas ao usuário final a partir de vários locais de CDN. Você pode optar pelo [Server-side Rendering](/docs/pages/building-your-application/data-fetching/get-server-side-props), quando fizer sentido.
+- **[Automatic Static Optimization](/docs/pages/building-your-application/rendering/automatic-static-optimization):** O Next.js determina automaticamente que uma página é estática (pode passar por prerendering) se ela não tiver requisitos de dados bloqueantes. Páginas otimizadas podem ser armazenadas em cache e servidas ao usuário final a partir de vários locais de CDN. Você pode optar pelo [Server-side Rendering](/docs/pages/building-your-application/data-fetching/get-server-side-props), quando fizer sentido.
 
 </PagesOnly>
 
-Esses padrões têm como objetivo melhorar a performance da sua aplicação e reduzir o custo e a quantidade de dados transferidos em cada requisição de rede.
+Esses padrões têm como objetivo melhorar a performance do seu app e reduzir o custo e a quantidade de dados transferidos em cada requisição de rede.
 
 ## Durante o desenvolvimento \{#during-development}
 
-Enquanto constrói sua aplicação, recomendamos usar os recursos a seguir para garantir a melhor performance e experiência do usuário:
+Enquanto constrói seu app, recomendamos usar os recursos a seguir para garantir a melhor performance e experiência do usuário:
 
 ### Roteamento e renderização \{#routing-and-rendering}
 
@@ -44,7 +44,7 @@ Enquanto constrói sua aplicação, recomendamos usar os recursos a seguir para 
 - **[Componente `<Link>`](/docs/app/api-reference/components/link):** Use o componente `<Link>` para [navegação no cliente e prefetching](/docs/app/getting-started/linking-and-navigating#how-navigation-works).
 - **[Tratamento de erros](/docs/app/getting-started/error-handling):** Trate com elegância [erros genéricos](/docs/app/getting-started/error-handling) e [erros 404](/docs/app/api-reference/file-conventions/not-found) em produção, criando páginas de erro personalizadas.
 - **[Client e Server Components](/docs/app/getting-started/server-and-client-components#examples):** Siga os padrões de composição recomendados para Server e Client Components, e verifique a posição das suas [fronteiras `"use client"`](/docs/app/getting-started/server-and-client-components#reducing-js-bundle-size) para não aumentar desnecessariamente o bundle de JavaScript no cliente.
-- **[APIs de tempo de requisição](/docs/app/getting-started/caching#working-with-runtime-apis):** APIs de tempo de requisição, como [`cookies`](/docs/app/api-reference/functions/cookies) e a prop [`searchParams`](/docs/app/api-reference/file-conventions/page#searchparams-optional), leem dados que só são conhecidos quando o usuário faz uma requisição. Envolva os componentes que as usam em `<Suspense>` para que o restante da rota ainda possa ser prerenderizado. Sem Cache Components, usá-las faz a rota inteira entrar no [Dynamic Rendering](/docs/app/glossary#dynamic-rendering) (ou toda a sua aplicação, se usadas no [Root Layout](/docs/app/api-reference/file-conventions/layout#root-layout)).
+- **[APIs de tempo de requisição](/docs/app/getting-started/caching#working-with-runtime-apis):** APIs de tempo de requisição, como [`cookies`](/docs/app/api-reference/functions/cookies) e a prop [`searchParams`](/docs/app/api-reference/file-conventions/page#searchparams-optional), leem dados que só são conhecidos quando o usuário faz uma requisição. Envolva os componentes que as usam em `<Suspense>` para que o restante da rota ainda possa ser prerenderizado. Sem Cache Components, usá-las faz a rota inteira entrar no [Dynamic Rendering](/docs/app/glossary#dynamic-rendering) (ou todo o seu app, se usadas no [Root Layout](/docs/app/api-reference/file-conventions/layout#root-layout)).
 
 </AppOnly>
 
@@ -64,7 +64,7 @@ Enquanto constrói sua aplicação, recomendamos usar os recursos a seguir para 
 - **[Streaming](/docs/app/api-reference/file-conventions/loading):** Use Loading UI e React Suspense para enviar a UI progressivamente do servidor para o cliente, e evitar que a rota inteira fique bloqueada enquanto os dados são buscados.
 - **[Busca de dados em paralelo](/docs/app/getting-started/fetching-data#parallel-data-fetching):** Reduza as cascatas de requisições buscando dados em paralelo, quando fizer sentido.
 - **[Data Caching](/docs/app/getting-started/caching):** Verifique se suas requisições de dados estão sendo armazenadas em cache e opte pelo caching, quando fizer sentido. Garanta que requisições que não usam `fetch` sejam [armazenadas em cache](/docs/app/api-reference/functions/unstable_cache).
-- **[Imagens estáticas](/docs/app/api-reference/file-conventions/public-folder):** Use o diretório `public` para armazenar automaticamente em cache os assets estáticos da sua aplicação, por exemplo, imagens.
+- **[Imagens estáticas](/docs/app/api-reference/file-conventions/public-folder):** Use o diretório `public` para armazenar automaticamente em cache os assets estáticos do seu app, por exemplo, imagens.
 
 </AppOnly>
 
@@ -73,7 +73,7 @@ Enquanto constrói sua aplicação, recomendamos usar os recursos a seguir para 
 - **[API Routes](/docs/pages/building-your-application/routing/api-routes):** Use Route Handlers para acessar seus recursos de backend e impedir que segredos sensíveis sejam expostos ao cliente.
 - **[Data Caching](/docs/pages/building-your-application/data-fetching/get-static-props):** Verifique se suas requisições de dados estão sendo armazenadas em cache e opte pelo caching, quando fizer sentido. Garanta que as requisições que não usam `getStaticProps` sejam armazenadas em cache, quando fizer sentido.
 - **[Incremental Static Regeneration](/docs/pages/guides/incremental-static-regeneration):** Use Incremental Static Regeneration para atualizar páginas estáticas depois que elas foram geradas, sem fazer o build de todo o seu site novamente.
-- **[Imagens estáticas](/docs/pages/api-reference/file-conventions/public-folder):** Use o diretório `public` para armazenar automaticamente em cache os assets estáticos da sua aplicação, por exemplo, imagens.
+- **[Imagens estáticas](/docs/pages/api-reference/file-conventions/public-folder):** Use o diretório `public` para armazenar automaticamente em cache os assets estáticos do seu app, por exemplo, imagens.
 
 </PagesOnly>
 
@@ -102,14 +102,14 @@ Enquanto constrói sua aplicação, recomendamos usar os recursos a seguir para 
 </AppOnly>
 
 - **[Variáveis de ambiente](/docs/app/guides/environment-variables):** Confira se seus arquivos `.env.*` estão adicionados ao `.gitignore` e se apenas as variáveis públicas têm o prefixo `NEXT_PUBLIC_`.
-- **[Content Security Policy](/docs/app/guides/content-security-policy):** Considere adicionar uma Content Security Policy para proteger sua aplicação contra diversas ameaças de segurança, como cross-site scripting, clickjacking e outros ataques de injeção de código.
+- **[Content Security Policy](/docs/app/guides/content-security-policy):** Considere adicionar uma Content Security Policy para proteger seu app contra diversas ameaças de segurança, como cross-site scripting, clickjacking e outros ataques de injeção de código.
 
 ### Metadados e SEO \{#metadata-and-seo}
 
 <AppOnly>
 
-- **[Metadata API](/docs/app/getting-started/metadata-and-og-images):** Use a Metadata API para melhorar a otimização para mecanismos de busca (SEO) da sua aplicação, adicionando títulos de página, descrições e outros dados.
-- **[Imagens Open Graph (OG)](/docs/app/api-reference/file-conventions/metadata/opengraph-image):** Crie imagens OG para preparar sua aplicação para o compartilhamento em redes sociais.
+- **[Metadata API](/docs/app/getting-started/metadata-and-og-images):** Use a Metadata API para melhorar a otimização para mecanismos de busca (SEO) do seu app, adicionando títulos de página, descrições e outros dados.
+- **[Imagens Open Graph (OG)](/docs/app/api-reference/file-conventions/metadata/opengraph-image):** Crie imagens OG para preparar seu app para o compartilhamento em redes sociais.
 - **[Sitemaps](/docs/app/api-reference/functions/generate-sitemaps) e [Robots](/docs/app/api-reference/file-conventions/metadata/robots):** Ajude os mecanismos de busca a rastrear e indexar suas páginas gerando arquivos de sitemap e robots.
 
 </AppOnly>
@@ -126,7 +126,7 @@ Enquanto constrói sua aplicação, recomendamos usar os recursos a seguir para 
 
 ## Antes de ir para produção \{#before-going-to-production}
 
-Antes de ir para produção, você pode rodar `next build` para fazer o build da sua aplicação localmente e identificar erros de build, e depois rodar `next start` para medir a performance da sua aplicação em um ambiente semelhante ao de produção.
+Antes de ir para produção, você pode rodar `next build` para fazer o build do seu app localmente e identificar erros de build, e depois rodar `next start` para medir a performance do seu app em um ambiente semelhante ao de produção.
 
 ### Core Web Vitals \{#core-web-vitals}
 
@@ -140,9 +140,9 @@ Antes de ir para produção, você pode rodar `next build` para fazer o build da
 
 ### Analisando bundles \{#analyzing-bundles}
 
-Use o [plugin `@next/bundle-analyzer`](/docs/app/guides/package-bundling#nextbundle-analyzer-for-webpack) para analisar o tamanho dos seus bundles de JavaScript e identificar módulos e dependências grandes que possam estar impactando a performance da sua aplicação.
+Use o [plugin `@next/bundle-analyzer`](/docs/app/guides/package-bundling#nextbundle-analyzer-for-webpack) para analisar o tamanho dos seus bundles de JavaScript e identificar módulos e dependências grandes que possam estar impactando a performance do seu app.
 
-Além disso, as ferramentas a seguir podem ajudar você a entender o impacto de adicionar novas dependências à sua aplicação:
+Além disso, as ferramentas a seguir podem ajudar você a entender o impacto de adicionar novas dependências ao seu app:
 
 - [Import Cost](https://marketplace.visualstudio.com/items?itemName=wix.vscode-import-cost)
 - [Package Phobia](https://packagephobia.com/)

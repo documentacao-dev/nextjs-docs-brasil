@@ -36,7 +36,7 @@ bunx next build --custom-webpack
 
 Execute o comando de instalação no diretório do seu app. A versão personalizada fica disponível quando o Next.js avalia o `next.config.js`, então sua configuração do webpack e seus plugins podem importá-la. Se o webpack não estiver instalado no app, o `--custom-webpack` informa como instalá-lo.
 
-**Usando pnpm com hoisting restrito:** o Next.js resolve o webpack diretamente do seu app, mesmo quando o pnpm não faz o hoisting dele. No entanto, plugins personalizados do webpack ou outras ferramentas do workspace podem resolver o webpack a partir dos próprios locais de pacote. Se elas não conseguirem encontrá-lo porque você restringiu o [hoisting](https://pnpm.io/settings/node-modules#hoistpattern) do pnpm, adicione `webpack` ao `hoistPattern` existente no `pnpm-workspace.yaml` da raiz do workspace:
+**pnpm com hoisting restrito:** o Next.js resolve o webpack diretamente do seu app, mesmo quando o pnpm não faz o hoisting dele. No entanto, plugins personalizados do webpack ou outras ferramentas do workspace podem resolver o webpack a partir dos próprios locais de pacote. Se elas não conseguirem encontrá-lo porque você restringiu o [hoisting](https://pnpm.io/settings/node-modules#hoistpattern) do pnpm, adicione `webpack` ao `hoistPattern` existente no `pnpm-workspace.yaml` da raiz do workspace:
 
 ```yaml filename="pnpm-workspace.yaml"
 hoistPattern:

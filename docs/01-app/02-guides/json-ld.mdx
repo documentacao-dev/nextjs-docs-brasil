@@ -8,7 +8,7 @@ description: Aprenda a adicionar JSON-LD ao seu app Next.js para descrever seu c
 
 Nossa recomendação atual para JSON-LD é renderizar os dados estruturados como uma tag `<script>` nos componentes `layout.js` ou `page.js`.
 
-O trecho a seguir usa `JSON.stringify`, que não sanitiza strings maliciosas usadas em injeção de XSS. Para prevenir esse tipo de vulnerabilidade, você pode remover tags `HTML` do payload `JSON-LD`, por exemplo, substituindo o caractere `<` pelo seu equivalente unicode, `<`.
+O trecho a seguir usa `JSON.stringify`, que não sanitiza strings maliciosas usadas em injeção de XSS. Para prevenir esse tipo de vulnerabilidade, você pode remover tags `HTML` do payload `JSON-LD`, por exemplo, substituindo o caractere `<` pelo seu equivalente unicode, `\u003c`.
 
 Revise a abordagem recomendada pela sua organização para sanitizar strings potencialmente perigosas, ou use alternativas mantidas pela comunidade para o `JSON.stringify`, como o [serialize-javascript](https://www.npmjs.com/package/serialize-javascript).
 

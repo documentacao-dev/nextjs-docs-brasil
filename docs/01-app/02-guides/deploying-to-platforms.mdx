@@ -11,7 +11,7 @@ related:
     - app/api-reference/config/next-config-js/adapterPath
 ---
 
-O Next.js [trata conteúdo estático e dinâmico como um espectro](/docs/app/guides/rendering-philosophy) no nível do componente. Diferentes recursos nesse modelo exigem diferentes capacidades da plataforma. Esta página ajuda você a entender o que sua plataforma precisa oferecer e como configurar o seu deploy.
+O Next.js [trata conteúdo estático e dinâmico como um espectro](/docs/app/guides/rendering-philosophy) no nível do componente. Diferentes recursos nesse modelo exigem diferentes capacidades da plataforma. Esta página ajuda você a entender o que sua plataforma precisa oferecer e como configurar seu deploy.
 
 ## Requisitos mínimos \{#minimum-requirements}
 
@@ -25,9 +25,9 @@ Ao avaliar o suporte de uma plataforma ao Next.js, ajuda distinguir dois níveis
 
 **Fidelidade funcional** significa que todo recurso do Next.js funciona corretamente. A [suíte de testes de adapters](/docs/app/api-reference/adapters/testing-adapters) é o contrato: se o adapter de uma plataforma passa nos testes, ela tem suporte ao Next.js. É binário: passa ou não passa.
 
-**Fidelidade de desempenho** significa que os recursos alcançam suas características ótimas de desempenho. Exemplos incluem a casca estática do PPR servida com latência de CDN em vez de latência de origem, ou o ISR servindo conteúdo desatualizado instantaneamente com propagação de revalidação em menos de um segundo. A fidelidade de desempenho é um espectro que cada plataforma alcança de um jeito diferente, dependendo da sua arquitetura.
+**Fidelidade de desempenho** significa que os recursos alcançam o melhor desempenho possível. Exemplos incluem o shell estático do PPR servido com latência de CDN em vez de latência de origem, ou o ISR servindo conteúdo desatualizado instantaneamente com propagação de revalidação em menos de um segundo. A fidelidade de desempenho é um espectro que cada plataforma alcança de um jeito diferente, dependendo da sua arquitetura.
 
-Uma plataforma que alcança fidelidade funcional é um destino de deploy totalmente suportado para o Next.js. A fidelidade de desempenho é o que diferencia as plataformas, e ela melhora de forma incremental com o tempo.
+Uma plataforma que alcança fidelidade funcional é um destino de deploy com suporte total ao Next.js. A fidelidade de desempenho é o que diferencia as plataformas, e ela melhora de forma incremental com o tempo.
 
 Use a matriz de recursos abaixo com essa lente: "Streaming obrigatório" e "Cache compartilhado recomendado" descrevem o que é necessário para a fidelidade funcional. "Edge Stitching" é uma otimização de fidelidade de desempenho.
 
@@ -78,7 +78,7 @@ Um **adapter verificado** é aquele que atende a dois requisitos:
 1. **Código aberto.** O código-fonte do adapter está disponível publicamente, para que a comunidade e a equipe do Next.js possam inspecioná-lo, contribuir e verificá-lo.
 2. **Executa a suíte de testes de compatibilidade.** A plataforma oferece um jeito de rodar a [suíte de testes de compatibilidade do Next.js](/docs/app/api-reference/adapters/testing-adapters) completa contra o adapter dela. Isso dá visibilidade sobre quais recursos funcionam, quais estão em andamento e onde ainda há lacunas.
 
-Adapters verificados ficam hospedados na [organização do Next.js no GitHub](https://github.com/nextjs), são listados como destinos de deploy suportados na documentação do Next.js e são mantidos pelas respectivas equipes das plataformas. Não há hooks privados do framework nem caminhos de integração exclusivos: o adapter da Vercel usa a mesma API pública que qualquer outro adapter.
+Adapters verificados ficam hospedados na [organização do Next.js no GitHub](https://github.com/nextjs), são listados como destinos de deploy com suporte na documentação do Next.js e são mantidos pelas respectivas equipes das plataformas. Não há hooks privados do framework nem caminhos de integração exclusivos: o adapter da Vercel usa a mesma API pública que qualquer outro adapter.
 
 Para adapters verificados e para plataformas que buscam o status verificado pelo [Ecosystem Working Group](https://nextjs.org/ecosystem-working-group), a equipe do Next.js se compromete com:
 

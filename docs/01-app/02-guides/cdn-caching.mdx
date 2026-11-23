@@ -1,7 +1,7 @@
 ---
 title: Como usar um CDN com o Next.js
 nav_title: Cache de CDN
-description: Aprenda como o cache de CDN funciona com o Next.js, incluindo o que funciona hoje, a variabilidade do cache e a direção rumo à chave de cache baseada em pathname.
+description: Aprenda como o cache de CDN funciona com o Next.js, incluindo o que funciona hoje, a variabilidade do cache e a direção da chave de cache baseada em pathname.
 related:
   description: Guias e referências relacionados.
   links:
@@ -11,7 +11,7 @@ related:
     - app/api-reference/config/next-config-js/assetPrefix
 ---
 
-O Next.js define headers padrão de `Cache-Control` que os CDNs podem usar para armazenar as respostas na borda. Esta página aborda o que funciona hoje, onde o cache de CDN é um desafio e a direção rumo a eliminar a dependência de headers personalizados.
+O Next.js define headers padrão de `Cache-Control` que os CDNs podem usar para armazenar as respostas na borda. Esta página aborda o que funciona hoje, onde o cache de CDN é um desafio e a direção para eliminar a dependência de headers personalizados.
 
 ## O que funciona hoje \{#what-works-today}
 
@@ -40,7 +40,7 @@ Para rotas com PPR ativado, um CDN pode armazenar em cache as respostas de prefe
 1. Incluir o parâmetro de busca `_rsc` na chave de cache (para distinguir as variantes de prefetch das respostas HTML).
 2. Respeitar os headers `Cache-Control` que o Next.js define na resposta.
 
-> **Bom saber:** para rotas sem PPR, o header `next-router-state-tree` é lido nas requisições de prefetch para determinar quais segmentos incluir, o que aumenta o `vary` do cache, já que ele carrega o estado atual do roteador. Quando o Cache Components está ativado, os prefetches por segmento já usam rotas baseadas em pathname (por exemplo, `/page.segments/_tree.segment.rsc`), e os CDNs podem armazenar essas rotas com chaves de cache padrão baseadas em pathname.
+> **Bom saber:** para rotas sem PPR, o header `next-router-state-tree` é lido nas requisições de prefetch para determinar quais segmentos incluir, o que aumenta a variação do cache (`vary`), já que o header carrega o estado atual do roteador. Quando o Cache Components está ativado, os prefetches por segmento já usam rotas baseadas em pathname (por exemplo, `/page.segments/_tree.segment.rsc`), e os CDNs podem armazenar essas rotas com chaves de cache padrão baseadas em pathname.
 
 ## Onde o cache de CDN é um desafio \{#where-cdn-caching-is-challenging}
 
@@ -52,7 +52,7 @@ Respostas do App Router podem variar com base em vários headers personalizados 
 - `next-router-segment-prefetch`: o segmento específico alvo do prefetch
 - `next-url`: adicionado apenas para rotas que usam [rotas de interceptação](/docs/app/api-reference/file-conventions/intercepting-routes), carrega a URL interceptada
 
-> **Bom saber:** [`proxy.js`](/docs/app/api-reference/file-conventions/proxy) (anteriormente Middleware) deve rodar antes do cache de CDN, para continuar sendo a fonte da verdade para autenticação, redirecionamentos e rewrites. Se o seu deployment coloca o `proxy.js` atrás do CDN, configure a camada de cache para não armazenar em cache as rotas que dependem das decisões do `proxy.js`.
+> **Bom saber:** [`proxy.js`](/docs/app/api-reference/file-conventions/proxy) (anteriormente Middleware) deve rodar antes do cache de CDN, para continuar sendo a fonte da verdade para autenticação, redirecionamentos e rewrites. Se seu deployment coloca o `proxy.js` atrás do CDN, configure a camada de cache para não armazenar em cache as rotas que dependem das decisões do `proxy.js`.
 
 Muitos CDNs não funcionam com `Vary` sem configuração adicional. O Next.js resolve isso com o parâmetro de busca `_rsc`: um hash dos valores relevantes dos headers da requisição, que funciona como chave de cache e garante que variantes diferentes de resposta recebam chaves de cache diferentes. Isso garante respostas corretas mesmo em CDNs que ignoram `Vary`.
 
@@ -70,7 +70,7 @@ Estes headers podem ser omitidos em casos específicos sem causar erros de proto
 
 ### O que você deve preservar \{#what-you-must-preserve}
 
-**O header `rsc`** precisa ser encaminhado do cliente para o servidor. Esse header diz ao servidor para retornar um payload RSC em vez de HTML. Se um CDN o remover, o servidor retorna HTML quando o roteador do lado do cliente espera dados RSC, o que quebra a navegação do lado do cliente e faz o navegador recarregar a página. O header `Vary` e o parâmetro `_rsc` existem justamente para impedir que os CDNs sirvam uma resposta HTML em cache para uma requisição RSC (ou o contrário).
+**O header `rsc`** precisa ser encaminhado do cliente para o servidor. Esse header diz ao servidor para retornar um payload RSC em vez de HTML. Se um CDN o remover, o servidor retorna HTML quando o roteador do lado do cliente espera dados RSC, o que quebra a navegação do lado do cliente e causa navegações completas do navegador no lugar. O header `Vary` e o parâmetro `_rsc` existem justamente para impedir que os CDNs sirvam uma resposta HTML em cache para uma requisição RSC (ou o contrário).
 
 **Quando `next-router-prefetch` estiver presente, preserve tanto o header de prefetch quanto o parâmetro de busca `_rsc`.** Para fluxos de prefetch, `_rsc` é um discriminador obrigatório de cache-busting e deve ser tratado como obrigatório.
 
@@ -103,7 +103,7 @@ Um CDN armazenaria as respostas do Next.js usando o pathname como chave de cache
 No esquema atual, `next-url` contribui para o hash de `_rsc`, então descartá-lo causa cache misses. No esquema baseado em pathname, a variabilidade da interceptação seria codificada em um parâmetro de busca (e não no pathname):
 
 - Se o CDN preservar os parâmetros de busca, a interceptação funciona corretamente.
-- Se o CDN descartar os parâmetros de busca, a interceptação não funciona. Ela degradaria graciosamente para a página não interceptada, e as navegações do lado do cliente não quebram.
+- Se o CDN descartar os parâmetros de busca, a interceptação não funciona. Ela voltaria para a página não interceptada sem erro, e as navegações do lado do cliente não quebram.
 
 Isso torna o suporte a rotas de interceptação uma capacidade opcional do CDN, e não um requisito.
 

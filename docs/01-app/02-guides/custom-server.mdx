@@ -59,7 +59,7 @@ app.prepare().then(() => {
 })
 ```
 
-> **Defina seus próprios headers de resposta antes de chamar `handle`**: o Next.js começa a enviar a resposta dentro de `handle(req, res)`, então, quando a promise dele resolve, `res.headersSent` já é `true` e qualquer chamada posterior a `res.setHeader()` é descartada silenciosamente. Defina os headers que são seus, como `Set-Cookie`, antes de entregar a requisição ao Next.js:
+> **Defina seus próprios headers de resposta antes de chamar `handle`**: o Next.js começa a enviar a resposta dentro de `handle(req, res)`, então, quando a promise de `handle` resolve, `res.headersSent` já é `true` e qualquer chamada posterior a `res.setHeader()` é descartada silenciosamente. Defina os headers que são seus, como `Set-Cookie`, antes de entregar a requisição ao Next.js:
 >
 > ```js
 > res.setHeader('Set-Cookie', 'sessionId=abc123; Max-Age=2592000')
@@ -69,9 +69,9 @@ app.prepare().then(() => {
 >
 > A mesma ordem se aplica ao envolver o Next.js em outro framework, por exemplo `reply.raw` no Fastify ou `res` no Express.
 
-> `server.js` não passa pelo Next.js Compiler nem pelo processo de bundling. Garanta que a sintaxe e o código-fonte que esse arquivo requer sejam compatíveis com a versão do Node.js que você está usando. [Veja um exemplo](https://github.com/vercel/next.js/tree/canary/examples/custom-server).
+> `server.js` não passa pelo Next.js Compiler nem pelo processo de bundling. Confira se a sintaxe e o código-fonte que esse arquivo requer sejam compatíveis com a versão do Node.js que você está usando. [Veja um exemplo](https://github.com/vercel/next.js/tree/canary/examples/custom-server).
 
-Para rodar o servidor personalizado, você precisará atualizar os `scripts` no `package.json` assim:
+Para rodar o servidor personalizado, atualize os `scripts` no `package.json` assim:
 
 ```json filename="package.json"
 {
@@ -109,7 +109,7 @@ O `app` retornado pode então ser usado para deixar o Next.js tratar as requisi�
 
 <PagesOnly>
 
-## Desativando o roteamento baseado em arquivos \{#disabling-file-system-routing}
+## Desativar o roteamento baseado em arquivos \{#disabling-file-system-routing}
 
 Por padrão, o `Next` serve cada arquivo da pasta `pages` em um pathname que corresponde ao nome do arquivo. Se seu projeto usa um servidor personalizado, esse comportamento pode fazer com que o mesmo conteúdo seja servido em vários caminhos, o que pode causar problemas de SEO e de UX.
 
@@ -121,7 +121,7 @@ module.exports = {
 }
 ```
 
-> Observe que o `useFileSystemPublicRoutes` desativa as rotas por nome de arquivo no SSR; a navegação do lado do cliente ainda pode acessar esses caminhos. Ao usar essa opção, proteja-se contra navegações programáticas para rotas que você não quer.
+> Observe que o `useFileSystemPublicRoutes` desativa as rotas por nome de arquivo no SSR; a navegação do lado do cliente ainda pode acessar esses caminhos. Ao usar essa opção, bloqueie a navegação programática para rotas que você não quer.
 
 > Você também pode configurar o roteador do lado do cliente para não permitir redirecionamentos do lado do cliente para rotas por nome de arquivo; para isso, consulte [`router.beforePopState`](/docs/pages/api-reference/functions/use-router#routerbeforepopstate).
 

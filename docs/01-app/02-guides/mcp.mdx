@@ -7,7 +7,7 @@ related:
     - app/guides/ai-agents
 ---
 
-O [Model Context Protocol (MCP)](https://modelcontextprotocol.io) é um padrão aberto que permite que agentes de IA e assistentes de código interajam com as suas aplicações por meio de uma interface única e compartilhada.
+O [Model Context Protocol (MCP)](https://modelcontextprotocol.io) é um padrão aberto que permite que agentes de IA e assistentes de código interajam com seus apps por meio de uma interface única e compartilhada.
 
 No Next.js 16 e versões posteriores, o dev server expõe um endpoint MCP em `/_next/mcp`. Ele dá aos agentes de código a visão do app em execução sobre erros, rotas, logs e problemas de compilação. Para conectar seu cliente de agente a ele, instale o pacote [`next-devtools-mcp`](https://www.npmjs.com/package/next-devtools-mcp).
 
@@ -42,7 +42,7 @@ O `next-devtools-mcp` conecta seu cliente de agente ao dev server do Next.js. El
 
 - **`nextjs_index`**: Descobre os dev servers do Next.js em execução e lista as ferramentas de runtime que cada um expõe.
 - **`nextjs_call`**: Chama uma ferramenta de runtime em um dev server descoberto.
-- **`nextjs_docs`**: Aponta o agente para a documentação, na mesma versão, que acompanha o Next.js instalado em `node_modules/next/dist/docs/`.
+- **`nextjs_docs`**: Aponta o agente para a documentação da mesma versão do Next.js instalada no projeto, em `node_modules/next/dist/docs/`.
 - **`browser_eval`**: Aponta o agente para a CLI do [`agent-browser`](https://github.com/vercel-labs/agent-browser), para verificar páginas em um navegador real.
 
 `nextjs_docs` e `browser_eval` não fazem o trabalho sozinhos. Eles dizem ao agente onde estão os docs ou como rodar a CLI, e o agente os usa diretamente.
@@ -55,7 +55,7 @@ Por meio do `nextjs_call`, os agentes podem usar as ferramentas que o dev server
 - **`get_logs`**: Obtém o caminho do arquivo de log de desenvolvimento, que contém os logs do console do navegador e a saída do servidor.
 - **`get_page_metadata`**: Obtém metadados de runtime sobre o que contribui para a renderização da página atual. Exige que a página esteja aberta em um navegador.
 - **`get_project_metadata`**: Obtém o caminho do projeto e a URL do dev server.
-- **`get_routes`**: Obtém todas as rotas que se tornarão pontos de entrada, escaneando o sistema de arquivos. Retorna as rotas agrupadas por tipo de router (`appRouter`, `pagesRouter`). Segmentos dinâmicos aparecem como padrões `[param]` ou `[...slug]`.
+- **`get_routes`**: Obtém todas as rotas que se tornarão pontos de entrada, varrendo o sistema de arquivos. Retorna as rotas agrupadas por tipo de router (`appRouter`, `pagesRouter`). Segmentos dinâmicos aparecem como padrões `[param]` ou `[...slug]`.
 - **`get_server_action_by_id`**: Busca uma Server Action pelo ID para encontrar seu arquivo de origem e o nome da exportação.
 - **`get_compilation_issues`**: Monta o grafo de módulos de todas as rotas e retorna problemas de compilação, como erros de resolução, módulos ausentes e erros de transformação. Não exige uma sessão de navegador. Somente com Turbopack.
 - **`compile_route`**: Compila uma rota específica sem fazer uma requisição HTTP para ela. Aceita um `routeSpecifier` (por exemplo, `/blog/[slug]`, como retornado por `get_routes`) ou um `path` (por exemplo, `/blog/hello-world`), que é resolvido para a rota correspondente. Retorna os problemas de compilação da rota. Somente com Turbopack.
@@ -141,7 +141,7 @@ Faça perguntas conceituais:
 When should I use 'use client' in the App Router?
 ```
 
-O agente lê a documentação do Next.js, na mesma versão, que acompanha o seu projeto, e responde com exemplos do seu código.
+O agente lê a documentação da mesma versão do Next.js instalada no seu projeto e responde com exemplos do seu código.
 
 ## Como funciona \{#how-it-works}
 
